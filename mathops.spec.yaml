@@ -1,0 +1,83 @@
+library: mathops
+functions:
+  imax:
+    restype: c_int
+    params:
+    - name: a
+      role: scalar
+      ctype: c_int
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: b
+      role: scalar
+      ctype: c_int
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  divmod:
+    restype: null
+    params:
+    - name: a
+      role: scalar
+      ctype: c_int
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: b
+      role: scalar
+      ctype: c_int
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: q
+      role: scalar
+      ctype: c_int
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    - name: r
+      role: scalar
+      ctype: c_int
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+  scale_inplace:
+    restype: null
+    params:
+    - name: v
+      role: scalar
+      ctype: c_double
+      intent:
+        value: inout
+        sources:
+        - manual
+        confidence: 1.0
+        verified: true
+    - name: k
+      role: scalar
+      ctype: c_double
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
