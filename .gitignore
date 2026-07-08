@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.spec.yaml
 
 # Virtual environments
 .venv/
@@ -49,3 +50,7 @@ pip-wheel-metadata/
 .DS_Store
 Thumbs.db
 docs/*
+
+
+
+
