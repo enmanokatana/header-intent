@@ -1,14 +1,3 @@
-"""
-here we'll be building callable tools from a capability spec + a loaded ctypes library.
-
-
-Pattern handlers keyed on (role, intent). The server used to classify inline;
-now it just reads the spec and routes. Returns ToolDescriptors that a thin
-FastMCP wrapper registers but they're plain callables, so they're testable
-without the mcp package.
-
-handles now : scalar in, string in, scalar out, scalar inout. (handle/array we'll do it later)
-"""
 from __future__ import annotations
 
 import ctypes
@@ -26,7 +15,6 @@ CTYPE_TO_PY = {
     ctypes.c_bool: bool, ctypes.c_char_p: str, ctypes.c_char: str,
 }
 
-# Confidence below which an unverified fact is treated as unsafe (fail-safe).
 CONFIDENCE_THRESHOLD = 0.5
 
 
@@ -51,8 +39,8 @@ def _from_c(value, ctype):
 class ToolDescriptor:
     name: str
     doc: str
-    params: list[tuple[str, type]]     # visible (name, python_type) for the schema
-    returns_dict: bool                 # True if it returns {result, out...}
+    params: list[tuple[str, type]]     
+    returns_dict: bool                 
     invoke: Callable[..., Any]
 
 
@@ -61,15 +49,15 @@ class SpecViolation(Exception):
 
 
 def _arg_ctype(p: ParamSpec):
-    """The ctypes type to bind for this param (POINTER for out/inout)."""
+    """The ctypes type to bind for this param (POINTER whenever it's by_ref)."""
     base = ctype_by_name(p.ctype)
-    if p.intent.value in (Intent.OUT, Intent.INOUT):
-        return ctypes.POINTER(base)
-    return base
+    return ctypes.POINTER(base) if p.by_ref else base
 
 
 def _check_safe(fn: FunctionSpec) -> None:
     for p in fn.params:
+        if p.role is Role.HANDLE:            
+            continue
         if p.role is Role.OPAQUE or (
             not p.intent.verified and p.intent.confidence < CONFIDENCE_THRESHOLD
         ):
@@ -80,7 +68,54 @@ def _check_safe(fn: FunctionSpec) -> None:
             )
 
 
-def build_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
+def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
+    """Generate a create/use/destroy tool from lifecycle facts. Opaque handle
+    pointers are bound as c_void_p; the real pointer lives in `handles`, the
+    client sees an integer id."""
+    cfn = getattr(lib, fn.name)
+    argtypes = []
+    for p in fn.params:
+        argtypes.append(ctypes.c_void_p if p.role is Role.HANDLE else _arg_ctype(p))
+    cfn.argtypes = argtypes
+    cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
+    if fn.lifecycle == "creates":
+        cfn.restype = ctypes.c_void_p        # returned handle is an opaque address
+
+    non_handle = [p for p in fn.params if p.role is not Role.HANDLE
+                  and p.intent.value is not Intent.OUT]
+    schema = [(p.name, CTYPE_TO_PY.get(ctype_by_name(p.ctype), int)) for p in non_handle]
+    if fn.lifecycle in ("uses", "destroys"):
+        schema = [("handle", int)] + schema
+
+    def invoke(**kwargs):
+        call_args = []
+        for p in fn.params:
+            if p.role is Role.HANDLE:
+                call_args.append(handles.get(kwargs["handle"]))
+            else:
+                base = ctype_by_name(p.ctype)
+                call_args.append(_to_c(kwargs[p.name], base))
+        ret = cfn(*call_args)
+        if fn.lifecycle == "creates":
+            if not ret:
+                return {"handle": None}
+            return {"handle": handles.put(ret)}
+        if fn.lifecycle == "destroys":
+            handles.pop(kwargs["handle"])
+            return {"freed": kwargs["handle"], "live_handles": len(handles)}
+        rtype = None if fn.restype is None else ctype_by_name(fn.restype)
+        return _from_c(ret, rtype)
+
+    doc = f"{fn.name}({', '.join(n for n, _ in schema)}) [handle:{fn.lifecycle} {fn.handle_type}]"
+    return ToolDescriptor(fn.name, doc, schema, fn.lifecycle in ("creates", "destroys"), invoke)
+
+
+def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
+    if fn.lifecycle in ("creates", "uses", "destroys"):
+        if handles is None:
+            raise SpecViolation(f"{fn.name}: lifecycle tool needs a handle table")
+        return build_handle_tool(lib, fn, handles)
+
     _check_safe(fn)
 
     argtypes = [_arg_ctype(p) for p in fn.params]
@@ -89,7 +124,7 @@ def build_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
 
     has_out = any(p.intent.value in (Intent.OUT, Intent.INOUT) for p in fn.params)
-    visible = [p for p in fn.params if p.intent.value is not Intent.OUT]  # inout stays visible
+    visible = [p for p in fn.params if p.intent.value is not Intent.OUT]  
 
     def py_for(p: ParamSpec):
         base = ctype_by_name(p.ctype)
@@ -101,16 +136,18 @@ def build_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
         call_args, outs = [], {}
         for p in fn.params:
             base = ctype_by_name(p.ctype)
-            if p.intent.value is Intent.OUT:
-                cell = base()
-                outs[p.name] = cell
-                call_args.append(ctypes.byref(cell))
-            elif p.intent.value is Intent.INOUT:
-                cell = base(_to_c(kwargs[p.name], base))
-                outs[p.name] = cell
+            if p.by_ref:
+                if p.intent.value is Intent.OUT:                 
+                    cell = base()
+                    outs[p.name] = cell
+                elif p.intent.value is Intent.INOUT:             
+                    cell = base(_to_c(kwargs[p.name], base))
+                    outs[p.name] = cell
+                else:                                           
+                    cell = base(_to_c(kwargs[p.name], base))
                 call_args.append(ctypes.byref(cell))
             else:
-                call_args.append(_to_c(kwargs[p.name], base))
+                call_args.append(_to_c(kwargs[p.name], base))    
         ret = cfn(*call_args)
         rtype = None if fn.restype is None else ctype_by_name(fn.restype)
         if not has_out:
@@ -126,5 +163,8 @@ def build_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
     return ToolDescriptor(fn.name, doc, param_schema, has_out, invoke)
 
 
-def build_tools(lib, spec: LibrarySpec) -> list[ToolDescriptor]:
-    return [build_tool(lib, fn) for fn in spec.functions.values()]
+def build_tools(lib, spec: LibrarySpec, handles=None) -> list[ToolDescriptor]:
+    if handles is None:
+        from .handles import HandleTable
+        handles = HandleTable()
+    return [build_tool(lib, fn, handles) for fn in spec.functions.values()]

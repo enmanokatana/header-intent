@@ -16,7 +16,7 @@ from .build import build_tools
 
 
 def make_server(so_path: str, spec_path: str, name: str = "ferrule"):
-    from mcp.server.fastmcp import FastMCP     # imported lazily so tests don't need it
+    from mcp.server.fastmcp import FastMCP     
 
     lib = ctypes.CDLL(so_path)
     spec = load_yaml(spec_path)

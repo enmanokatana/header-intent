@@ -6,6 +6,7 @@ functions:
     - name: a
       role: scalar
       ctype: c_int
+      by_ref: false
       intent:
         value: in
         sources:
@@ -15,6 +16,322 @@ functions:
     - name: b
       role: scalar
       ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  lsum:
+    restype: c_long
+    params:
+    - name: a
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: b
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  average:
+    restype: c_double
+    params:
+    - name: a
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: b
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  dpow:
+    restype: c_double
+    params:
+    - name: base
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: exp
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  is_even:
+    restype: c_int
+    params:
+    - name: n
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  clamp:
+    restype: c_int
+    params:
+    - name: x
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: lo
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: hi
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  factorial:
+    restype: c_ulong
+    params:
+    - name: n
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  fib:
+    restype: c_long
+    params:
+    - name: n
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  fclampf:
+    restype: c_float
+    params:
+    - name: x
+      role: scalar
+      ctype: c_float
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: lo
+      role: scalar
+      ctype: c_float
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: hi
+      role: scalar
+      ctype: c_float
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  in_range:
+    restype: c_bool
+    params:
+    - name: x
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: lo
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: hi
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  hypot2:
+    restype: c_double
+    params:
+    - name: a
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: b
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  str_len:
+    restype: c_int
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  count_char:
+    restype: c_int
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: c
+      role: scalar
+      ctype: c_char
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  char_at:
+    restype: c_char
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: i
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  str_upper:
+    restype: c_char_p
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  str_reverse:
+    restype: c_char_p
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
       intent:
         value: in
         sources:
@@ -27,6 +344,7 @@ functions:
     - name: a
       role: scalar
       ctype: c_int
+      by_ref: false
       intent:
         value: in
         sources:
@@ -36,6 +354,7 @@ functions:
     - name: b
       role: scalar
       ctype: c_int
+      by_ref: false
       intent:
         value: in
         sources:
@@ -45,36 +364,43 @@ functions:
     - name: q
       role: scalar
       ctype: c_int
+      by_ref: true
       intent:
         value: out
         sources:
         - const_ness
+        - behavioral_probe
         confidence: 0.9
-        verified: false
+        verified: true
     - name: r
       role: scalar
       ctype: c_int
+      by_ref: true
       intent:
         value: out
         sources:
         - const_ness
+        - behavioral_probe
         confidence: 0.9
-        verified: false
+        verified: true
   scale_inplace:
     restype: null
     params:
     - name: v
       role: scalar
       ctype: c_double
+      by_ref: true
       intent:
-        value: inout
+        value: out
         sources:
-        - manual
-        confidence: 1.0
+        - const_ness
+        - behavioral_probe
+        confidence: 0.9
         verified: true
     - name: k
       role: scalar
       ctype: c_double
+      by_ref: false
       intent:
         value: in
         sources:

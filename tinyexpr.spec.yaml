@@ -1,0 +1,72 @@
+library: tinyexpr
+functions:
+  te_interp:
+    restype: c_double
+    params:
+    - name: expression
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: error
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+  compile_expr:
+    restype: c_void_p
+    params:
+    - name: expression
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: te_expr
+  te_eval:
+    restype: c_double
+    params:
+    - name: n
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: te_expr
+    lifecycle: uses
+    handle_type: te_expr
+  te_free:
+    restype: null
+    params:
+    - name: n
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: te_expr
+    lifecycle: destroys
+    handle_type: te_expr
