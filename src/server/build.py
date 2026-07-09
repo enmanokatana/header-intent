@@ -1,3 +1,14 @@
+"""
+Build callable tools from a capability spec + a loaded ctypes library.
+
+Pattern handlers keyed on (role, intent). The server used to classify inline;
+now it just reads the spec and routes. Returns ToolDescriptors that a thin
+FastMCP wrapper registers -- but they're plain callables, so they're testable
+without the mcp package.
+
+Phase 1 handles: scalar in, string in, scalar out, scalar inout. (handle/array
+come in later phases.)
+"""
 from __future__ import annotations
 
 import ctypes
@@ -15,6 +26,7 @@ CTYPE_TO_PY = {
     ctypes.c_bool: bool, ctypes.c_char_p: str, ctypes.c_char: str,
 }
 
+# Confidence below which an unverified fact is treated as unsafe (fail-safe).
 CONFIDENCE_THRESHOLD = 0.5
 
 
@@ -39,8 +51,8 @@ def _from_c(value, ctype):
 class ToolDescriptor:
     name: str
     doc: str
-    params: list[tuple[str, type]]     
-    returns_dict: bool                 
+    params: list[tuple[str, type]]     # visible (name, python_type) for the schema
+    returns_dict: bool                 # True if it returns {result, out...}
     invoke: Callable[..., Any]
 
 
@@ -56,7 +68,7 @@ def _arg_ctype(p: ParamSpec):
 
 def _check_safe(fn: FunctionSpec) -> None:
     for p in fn.params:
-        if p.role is Role.HANDLE:            
+        if p.role is Role.HANDLE:            # handled by the lifecycle builder
             continue
         if p.role is Role.OPAQUE or (
             not p.intent.verified and p.intent.confidence < CONFIDENCE_THRESHOLD
@@ -116,6 +128,9 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
             raise SpecViolation(f"{fn.name}: lifecycle tool needs a handle table")
         return build_handle_tool(lib, fn, handles)
 
+    if any(p.role is Role.ARRAY for p in fn.params):
+        return build_array_tool(lib, fn)
+
     _check_safe(fn)
 
     argtypes = [_arg_ctype(p) for p in fn.params]
@@ -124,7 +139,7 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
 
     has_out = any(p.intent.value in (Intent.OUT, Intent.INOUT) for p in fn.params)
-    visible = [p for p in fn.params if p.intent.value is not Intent.OUT]  
+    visible = [p for p in fn.params if p.intent.value is not Intent.OUT]  # inout stays visible
 
     def py_for(p: ParamSpec):
         base = ctype_by_name(p.ctype)
@@ -137,17 +152,17 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
         for p in fn.params:
             base = ctype_by_name(p.ctype)
             if p.by_ref:
-                if p.intent.value is Intent.OUT:                 
+                if p.intent.value is Intent.OUT:                 # allocate, return
                     cell = base()
                     outs[p.name] = cell
-                elif p.intent.value is Intent.INOUT:             
+                elif p.intent.value is Intent.INOUT:             # seed, return
                     cell = base(_to_c(kwargs[p.name], base))
                     outs[p.name] = cell
-                else:                                           
+                else:                                            # IN by reference: seed, don't return
                     cell = base(_to_c(kwargs[p.name], base))
                 call_args.append(ctypes.byref(cell))
             else:
-                call_args.append(_to_c(kwargs[p.name], base))    
+                call_args.append(_to_c(kwargs[p.name], base))    # by value
         ret = cfn(*call_args)
         rtype = None if fn.restype is None else ctype_by_name(fn.restype)
         if not has_out:
@@ -161,6 +176,65 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
 
     doc = f"{fn.name}({', '.join(n for n, _ in param_schema)}) [spec-driven]"
     return ToolDescriptor(fn.name, doc, param_schema, has_out, invoke)
+
+
+def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
+    """Function with an input array + companion length. The array param takes a
+    JSON list; the length param is hidden and filled from len(list). Other params
+    pass through as scalars/strings. (Input arrays only; out-arrays are later.)"""
+    # names of length params (hidden) and array->length map
+    length_names = {p.dimension for p in fn.params if p.role is Role.ARRAY}
+    arrays = {p.name: p for p in fn.params if p.role is Role.ARRAY}
+
+    for p in fn.params:                     # fail-safe: unresolved pointer stays refused
+        if p.role is Role.OPAQUE:
+            raise SpecViolation(f"{fn.name}: opaque param {p.name!r} alongside array; refusing.")
+
+    argtypes = []
+    for p in fn.params:
+        if p.role is Role.ARRAY:
+            argtypes.append(ctypes.POINTER(ctype_by_name(p.ctype)))
+        elif p.by_ref:
+            argtypes.append(ctypes.POINTER(ctype_by_name(p.ctype)))
+        else:
+            argtypes.append(ctype_by_name(p.ctype))
+    cfn = getattr(lib, fn.name)
+    cfn.argtypes = argtypes
+    cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
+
+    visible = [p for p in fn.params
+               if p.name not in length_names and p.intent.value is not Intent.OUT]
+    schema = []
+    for p in visible:
+        if p.role is Role.ARRAY:
+            schema.append((p.name, list))
+        else:
+            schema.append((p.name, CTYPE_TO_PY.get(ctype_by_name(p.ctype), int)))
+
+    def invoke(**kwargs):
+        # build C arrays first so lengths are known
+        built = {}
+        for name, p in arrays.items():
+            elem = ctype_by_name(p.ctype)
+            items = kwargs[name]
+            built[name] = (elem * len(items))(*items)
+        call_args = []
+        for p in fn.params:
+            if p.role is Role.ARRAY:
+                call_args.append(built[p.name])
+            elif p.role is Role.LENGTH_OF:
+                call_args.append(len(kwargs[p.dimension]))     # auto length
+            elif p.by_ref:
+                base = ctype_by_name(p.ctype)
+                call_args.append(ctypes.byref(base(_to_c(kwargs[p.name], base))))
+            else:
+                call_args.append(_to_c(kwargs[p.name], ctype_by_name(p.ctype)))
+        ret = cfn(*call_args)
+        rtype = None if fn.restype is None else ctype_by_name(fn.restype)
+        return _from_c(ret, rtype)
+
+    doc = f"{fn.name}({', '.join(n for n, _ in schema)}) [array; length auto-filled]"
+    return ToolDescriptor(fn.name, doc, schema, False, invoke)
 
 
 def build_tools(lib, spec: LibrarySpec, handles=None) -> list[ToolDescriptor]:
