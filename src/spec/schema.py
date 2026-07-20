@@ -1,4 +1,10 @@
+"""
+Capability spec schema (dataclass-based; swap to Pydantic in a richer env).
 
+Every semantic fact is wrapped in Evidenced: the value plus where it came from,
+how confident we are, and whether a behavioral probe confirmed it. The spec is
+"the answer plus how much to trust it and why."
+"""
 from __future__ import annotations
 
 import ctypes
@@ -7,6 +13,7 @@ from typing import Any, Optional
 
 from .vocab import Intent, Role
 
+# --- ctype-name <-> ctypes object registry (so specs serialize as strings) ---
 _CTYPES = {
     "c_int": ctypes.c_int, "c_uint": ctypes.c_uint,
     "c_long": ctypes.c_long, "c_ulong": ctypes.c_ulong,
@@ -28,6 +35,7 @@ def name_of_ctype(t) -> str:
 
 @dataclass
 class Evidenced:
+    """A fact plus its provenance, confidence, and verification status."""
     value: Any
     sources: list[str] = field(default_factory=list)
     confidence: float = 0.0
@@ -38,9 +46,10 @@ class Evidenced:
 class ParamSpec:
     name: str
     role: Role
-    intent: Evidenced          
-    ctype: str                 
-    by_ref: bool = False        #True if the C param is a pointer
+    intent: Evidenced           # Evidenced[Intent]
+    ctype: str                  # value type name; for a pointer this is the POINTEE
+    by_ref: bool = False        # True if the C param is a pointer (bind POINTER(ctype))
+    # phase 2/3 fields (unused now): dimension, owner, handle_type
     dimension: Optional[str] = None
     owner: Optional[str] = None
     handle_type: Optional[str] = None
@@ -50,9 +59,10 @@ class ParamSpec:
 class FunctionSpec:
     name: str
     params: list[ParamSpec] = field(default_factory=list)
-    restype: Optional[str] = None
-    lifecycle: Optional[str] = None       #  "creates" | "uses" | "destroys"
-    handle_type: Optional[str] = None     
+    restype: Optional[str] = None          # ctype name, or None for void
+    lifecycle: Optional[str] = None        # "creates" | "borrows" | "uses" | "destroys"
+    handle_type: Optional[str] = None      # the opaque type this fn's lifecycle concerns
+    owner: Optional[str] = None            # "caller" (may free) | "library" (borrowed)
 
 
 @dataclass
@@ -61,7 +71,7 @@ class LibrarySpec:
     functions: dict[str, FunctionSpec] = field(default_factory=dict)
 
 
-#(de)serialization to plain dicts (for YAML)
+# --- (de)serialization to plain dicts (for YAML) ----------------------------
 def to_dict(spec: LibrarySpec) -> dict:
     out = {"library": spec.library, "functions": {}}
     for fname, fn in spec.functions.items():
@@ -73,8 +83,9 @@ def to_dict(spec: LibrarySpec) -> dict:
             entry["lifecycle"] = fn.lifecycle
         if fn.handle_type is not None:
             entry["handle_type"] = fn.handle_type
+        if fn.owner is not None:
+            entry["owner"] = fn.owner
         out["functions"][fname] = entry
-        
     return out
 
 def _param_to_dict(p: ParamSpec) -> dict:
@@ -82,7 +93,7 @@ def _param_to_dict(p: ParamSpec) -> dict:
         "name": p.name,
         "role": p.role.value,
         "ctype": p.ctype,
-        "by_ref": p.by_ref,       
+        "by_ref": p.by_ref,
         "intent": {
             "value": p.intent.value.value if isinstance(p.intent.value, Intent) else p.intent.value,
             "sources": list(p.intent.sources),
@@ -106,7 +117,7 @@ def from_dict(d: dict) -> LibrarySpec:
                 name=pd["name"],
                 role=Role(pd["role"]),
                 ctype=pd["ctype"],
-                by_ref=pd.get("by_ref", False),  
+                by_ref=pd.get("by_ref", False),
                 intent=Evidenced(
                     value=Intent(iv["value"]),
                     sources=list(iv.get("sources", [])),
@@ -117,5 +128,7 @@ def from_dict(d: dict) -> LibrarySpec:
                 owner=pd.get("owner"),
                 handle_type=pd.get("handle_type"),
             ))
-        funcs[fname] = FunctionSpec(name=fname, params=params, restype=fd.get("restype"), lifecycle=fd.get("lifecycle"), handle_type=fd.get("handle_type"))
+        funcs[fname] = FunctionSpec(name=fname, params=params, restype=fd.get("restype"),
+                                    lifecycle=fd.get("lifecycle"), handle_type=fd.get("handle_type"),
+                                    owner=fd.get("owner"))
     return LibrarySpec(library=d["library"], functions=funcs)

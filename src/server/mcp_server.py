@@ -12,23 +12,42 @@ import sys
 
 from ..spec.io import load_yaml
 from ..verify.probes import apply_verification
-from .build import build_tools
+from .build import build_tool, SpecViolation
+from .handles import HandleTable
 
 
 def make_server(so_path: str, spec_path: str, name: str = "ferrule"):
-    from mcp.server.fastmcp import FastMCP     
+    from mcp.server.fastmcp import FastMCP     # imported lazily so tests don't need it
 
     lib = ctypes.CDLL(so_path)
     spec = load_yaml(spec_path)
     apply_verification(lib, spec)              # promote inferred facts before exposing
 
     mcp = FastMCP(name)
-    for tool in build_tools(lib, spec):
+    handles = HandleTable()
+
+    # A refused function must be SKIPPED, not fatal. The fail-safe guard exists to
+    # drop what we can't expose safely -- it should never take the whole server down.
+    tools, refused = [], []
+    for fn in spec.functions.values():
+        try:
+            tools.append(build_tool(lib, fn, handles))
+        except SpecViolation as e:
+            refused.append(f"{fn.name}: {str(e).split(';')[0]}")
+        except Exception as e:
+            refused.append(f"{fn.name}: {type(e).__name__}: {e}")
+    if refused:
+        print(f"[ferrule] serving {len(tools)} tools; skipped {len(refused)} refused:",
+              file=sys.stderr)
+        for r in refused:
+            print(f"  - {r}", file=sys.stderr)
+
+    for tool in tools:
         params = [
             inspect.Parameter(n, inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=pt)
             for n, pt in tool.params
         ]
-        ret = dict if tool.returns_dict else (params[0].annotation if params else type(None))
+        ret = tool.ret_type          # the tool knows what it returns (never guess from a param)
 
         def _make(descriptor):
             def fn(**kwargs):

@@ -12,7 +12,7 @@ A type T is a HANDLE only if some function returns it as a pointer (the library
 hands it out for the caller to hold).
 
 Extraction is engine-specific (pycparser here; a libclang engine avoids the
-cpp/fake-header preprocessing see libclang_engine.py). Classification is
+cpp/fake-header preprocessing -- see libclang_engine.py). Classification is
 engine-agnostic and shared.
 """
 from __future__ import annotations
@@ -22,7 +22,20 @@ from dataclasses import dataclass, field
 from pycparser import c_ast, c_parser
 
 
-_FREE_NAMES = {"free"}
+import re as _re
+
+# A deallocator may be free(), a custom name (cJSON_free), or a FUNCTION POINTER
+# reached through a hooks struct: global_hooks.deallocate(item)  <- cJSON does this.
+# Matching only "free" missed cJSON_Delete entirely (it derived as `uses`, leaving
+# a dangling handle after delete). Match the dealloc FAMILY by name instead.
+_DEALLOC_RE = _re.compile(r"(^|_)(free|dealloc|deallocate|destroy|delete|release|dispose)($|_)", _re.I)
+
+
+def _is_dealloc_name(name: str) -> bool:
+    return bool(name) and bool(_DEALLOC_RE.search(name))
+
+
+_FREE_NAMES = {"free"}          # kept for back-compat; _is_dealloc_name is the real test
 
 
 @dataclass
@@ -39,10 +52,13 @@ class HandleFacts:
     function: str
     role: str | None = None                       # creates | uses | destroys
     handle_type: str | None = None
-    handle_param: str | None = None
+    handle_param: str | None = None               # the one freed/used (destroys/uses)
+    handle_params: list = field(default_factory=list)   # ALL handle-typed params
 
 
+# --------------------------------------------------------------------------
 # pycparser extraction
+# --------------------------------------------------------------------------
 def _pointee_typename(node) -> str | None:
     if isinstance(node, c_ast.PtrDecl):
         inner = node.type
@@ -60,8 +76,16 @@ class _FreeFinder(c_ast.NodeVisitor):
     def __init__(self):
         self.freed_ids: set[str] = set()
 
+    @staticmethod
+    def _callee_name(nm) -> str:
+        if isinstance(nm, c_ast.ID):
+            return nm.name                       # free(p)
+        if isinstance(nm, c_ast.StructRef):
+            return nm.field.name                 # hooks.deallocate(p) / hooks->free(p)
+        return ""
+
     def visit_FuncCall(self, node):
-        if isinstance(node.name, c_ast.ID) and node.name.name in _FREE_NAMES:
+        if _is_dealloc_name(self._callee_name(node.name)):
             if node.args:
                 for e in node.args.exprs:
                     if isinstance(e, c_ast.ID):
@@ -92,12 +116,16 @@ def _records_from_pycparser(source: str) -> dict[str, HandleRecord]:
     return recs
 
 
+# --------------------------------------------------------------------------
 # engine-agnostic classification
+# --------------------------------------------------------------------------
 def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, HandleFacts], set[str]]:
     returned = {r.return_pointee for r in records.values() if r.return_pointee}
     facts: dict[str, HandleFacts] = {}
     for name, r in records.items():
         f = HandleFacts(function=name)
+        # every param that is a pointer to a handed-out type is a handle input
+        f.handle_params = [p for p, tn in r.struct_ptr_params.items() if tn in returned]
         if r.return_pointee:
             f.role, f.handle_type = "creates", r.return_pointee
         else:
@@ -139,10 +167,13 @@ def apply_handle_facts(spec, facts: dict[str, HandleFacts]) -> list[str]:
         fn.lifecycle = f.role
         fn.handle_type = f.handle_type
         notes.append(f"{fname}: {f.role} {f.handle_type}")
-        if f.handle_param:
-            for p in fn.params:
-                if p.name == f.handle_param:
-                    p.role = Role.HANDLE
-                    p.handle_type = f.handle_type
-                    p.intent = Evidenced(Intent.IN, ["handle_analysis"], 0.9, verified=False)
+        # mark EVERY handle-typed param (not just the freed one): a `creates` that
+        # also TAKES a handle (cJSON_GetObjectItem(object, key)) must bind that
+        # input as a handle id, not a raw int.
+        marks = set(f.handle_params) | ({f.handle_param} if f.handle_param else set())
+        for p in fn.params:
+            if p.name in marks:
+                p.role = Role.HANDLE
+                p.handle_type = f.handle_type
+                p.intent = Evidenced(Intent.IN, ["handle_analysis"], 0.9, verified=False)
     return notes

@@ -12,6 +12,8 @@ come in later phases.)
 from __future__ import annotations
 
 import ctypes
+
+from .handles import OwnershipError
 import math
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -54,10 +56,24 @@ class ToolDescriptor:
     params: list[tuple[str, type]]     # visible (name, python_type) for the schema
     returns_dict: bool                 # True if it returns {result, out...}
     invoke: Callable[..., Any]
+    ret_type: type = None              # python type of the return value
+
+    def __post_init__(self):
+        if self.ret_type is None:
+            self.ret_type = dict if self.returns_dict else type(None)
 
 
 class SpecViolation(Exception):
     pass
+
+
+def _py_restype(fn) -> type:
+    """Python type a tool actually returns. Never guess from a PARAM type -- that
+    annotated cJSON_Print (char* -> str) as `int` because its only param is the
+    handle, and pydantic then rejected the JSON string."""
+    if fn.restype is None:
+        return type(None)
+    return CTYPE_TO_PY.get(ctype_by_name(fn.restype), int)
 
 
 def _arg_ctype(p: ParamSpec):
@@ -67,6 +83,13 @@ def _arg_ctype(p: ParamSpec):
 
 
 def _check_safe(fn: FunctionSpec) -> None:
+    # a raw void* return that is NOT a managed handle would hand the client a bare
+    # pointer address as an int (cJSON_malloc). Refuse.
+    if fn.restype == "c_void_p" and fn.lifecycle not in ("creates", "borrows"):
+        raise SpecViolation(
+            f"{fn.name}: returns a raw void* that is not a managed handle; "
+            f"refuse to auto-generate (fail-safe)."
+        )
     for p in fn.params:
         if p.role is Role.HANDLE:            # handled by the lifecycle builder
             continue
@@ -90,40 +113,63 @@ def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
         argtypes.append(ctypes.c_void_p if p.role is Role.HANDLE else _arg_ctype(p))
     cfn.argtypes = argtypes
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
-    if fn.lifecycle == "creates":
+    if fn.lifecycle in ("creates", "borrows"):
         cfn.restype = ctypes.c_void_p        # returned handle is an opaque address
+
+    hparams = [p for p in fn.params if p.role is Role.HANDLE]
+    single = len(hparams) == 1
+    hkey = {p.name: ("handle" if single else p.name) for p in hparams}
 
     non_handle = [p for p in fn.params if p.role is not Role.HANDLE
                   and p.intent.value is not Intent.OUT]
     schema = [(p.name, CTYPE_TO_PY.get(ctype_by_name(p.ctype), int)) for p in non_handle]
-    if fn.lifecycle in ("uses", "destroys"):
-        schema = [("handle", int)] + schema
+    schema = [(hkey[p.name], int) for p in hparams] + schema
 
     def invoke(**kwargs):
+        # SAFETY: for a destroy, validate ownership BEFORE the C call. Checking
+        # afterwards would already have freed a borrowed pointer (real double-free
+        # observed in testing).
+        if fn.lifecycle == "destroys":
+            hid = kwargs[hkey[hparams[0].name]]
+            if not handles.is_owned(hid):
+                raise OwnershipError(
+                    f"handle {hid} is BORROWED (owned by the library); freeing it "
+                    f"would double-free. Delete its owner instead."
+                )
+
         call_args = []
         for p in fn.params:
             if p.role is Role.HANDLE:
-                call_args.append(handles.get(kwargs["handle"]))
+                call_args.append(handles.get(kwargs[hkey[p.name]]))
             else:
                 base = ctype_by_name(p.ctype)
                 call_args.append(_to_c(kwargs[p.name], base))
         ret = cfn(*call_args)
-        if fn.lifecycle == "creates":
+        if fn.lifecycle in ("creates", "borrows"):
             if not ret:
                 return {"handle": None}
-            return {"handle": handles.put(ret)}
+            owned = (fn.lifecycle == "creates")      # borrows -> caller must NOT free
+            hid = handles.put(ret, owned=owned)
+            if owned:
+                return {"handle": hid}
+            return {"handle": hid, "borrowed": True,
+                    "note": "owned by the library; do not free (delete its owner instead)"}
         if fn.lifecycle == "destroys":
-            handles.pop(kwargs["handle"])
-            return {"freed": kwargs["handle"], "live_handles": len(handles)}
+            hid = kwargs[hkey[hparams[0].name]]
+            handles.pop(hid)                       # raises OwnershipError if borrowed
+            return {"freed": hid, "live_handles": len(handles)}
         rtype = None if fn.restype is None else ctype_by_name(fn.restype)
         return _from_c(ret, rtype)
 
-    doc = f"{fn.name}({', '.join(n for n, _ in schema)}) [handle:{fn.lifecycle} {fn.handle_type}]"
-    return ToolDescriptor(fn.name, doc, schema, fn.lifecycle in ("creates", "destroys"), invoke)
+    own = " owner=caller" if fn.lifecycle == "creates" else (" owner=library (do not free)" if fn.lifecycle == "borrows" else "")
+    doc = f"{fn.name}({', '.join(n for n, _ in schema)}) [handle:{fn.lifecycle} {fn.handle_type}{own}]"
+    returns_dict = fn.lifecycle in ("creates", "borrows", "destroys")
+    rt = dict if returns_dict else _py_restype(fn)
+    return ToolDescriptor(fn.name, doc, schema, returns_dict, invoke, rt)
 
 
 def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
-    if fn.lifecycle in ("creates", "uses", "destroys"):
+    if fn.lifecycle in ("creates", "borrows", "uses", "destroys"):
         if handles is None:
             raise SpecViolation(f"{fn.name}: lifecycle tool needs a handle table")
         return build_handle_tool(lib, fn, handles)
@@ -175,7 +221,8 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
         return result
 
     doc = f"{fn.name}({', '.join(n for n, _ in param_schema)}) [spec-driven]"
-    return ToolDescriptor(fn.name, doc, param_schema, has_out, invoke)
+    rt = dict if has_out else _py_restype(fn)
+    return ToolDescriptor(fn.name, doc, param_schema, has_out, invoke, rt)
 
 
 def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
@@ -234,11 +281,11 @@ def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
         return _from_c(ret, rtype)
 
     doc = f"{fn.name}({', '.join(n for n, _ in schema)}) [array; length auto-filled]"
-    return ToolDescriptor(fn.name, doc, schema, False, invoke)
+    return ToolDescriptor(fn.name, doc, schema, False, invoke, _py_restype(fn))
 
 
 def build_tools(lib, spec: LibrarySpec, handles=None) -> list[ToolDescriptor]:
     if handles is None:
-        from .handles import HandleTable
+        from .handles import HandleTable, OwnershipError
         handles = HandleTable()
     return [build_tool(lib, fn, handles) for fn in spec.functions.values()]
