@@ -1,10 +1,5 @@
 """
-Thin FastMCP wrapper: load a capability spec, build spec-driven tools, register.
-
-This is the ONLY MCP-coupled file; all the logic lives in build.py and is
-testable without the `mcp` package. On a machine with `mcp` installed:
-
-    python -m ferrule.server.mcp_server  <lib.so>  <spec.yaml>
+DEPRECATED: This module is deprecated and will be removed 
 """
 import ctypes
 import inspect
@@ -17,17 +12,15 @@ from .handles import HandleTable
 
 
 def make_server(so_path: str, spec_path: str, name: str = "ferrule"):
-    from mcp.server.fastmcp import FastMCP     # imported lazily so tests don't need it
+    from mcp.server.fastmcp import FastMCP    
 
     lib = ctypes.CDLL(so_path)
     spec = load_yaml(spec_path)
-    apply_verification(lib, spec)              # promote inferred facts before exposing
+    apply_verification(lib, spec)              
 
     mcp = FastMCP(name)
     handles = HandleTable()
 
-    # A refused function must be SKIPPED, not fatal. The fail-safe guard exists to
-    # drop what we can't expose safely -- it should never take the whole server down.
     tools, refused = [], []
     for fn in spec.functions.values():
         try:
@@ -47,7 +40,7 @@ def make_server(so_path: str, spec_path: str, name: str = "ferrule"):
             inspect.Parameter(n, inspect.Parameter.POSITIONAL_OR_KEYWORD, annotation=pt)
             for n, pt in tool.params
         ]
-        ret = tool.ret_type          # the tool knows what it returns (never guess from a param)
+        ret = tool.ret_type         
 
         def _make(descriptor):
             def fn(**kwargs):
@@ -64,6 +57,6 @@ def make_server(so_path: str, spec_path: str, name: str = "ferrule"):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("usage: python -m ferrule.server.mcp_server <lib.so> <spec.yaml>", file=sys.stderr)
+        print("usage: python -m src.server.mcp_server <lib.so> <spec.yaml>", file=sys.stderr)
         sys.exit(2)
     make_server(sys.argv[1], sys.argv[2]).run()

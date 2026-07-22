@@ -57,7 +57,6 @@ def spec():
     return spec_from_signatures("testlib", SIGNATURES, OVERRIDES)
 
 
-# --- L1 -------------------------------------------------------------------
 def _param(spec, fn, name):
     return next(p for p in spec.functions[fn].params if p.name == name)
 
@@ -87,7 +86,6 @@ def test_void_restype_none(spec):
     assert spec.functions["imax"].restype == "c_int"
 
 
-# --- io -------------------------------------------------------------------
 def test_yaml_round_trip_stable(spec):
     once = dumps_yaml(spec)
     assert dumps_yaml(loads_yaml(once)) == once
@@ -98,7 +96,6 @@ def test_yaml_preserves_evidence(spec):
     assert p.intent.value is Intent.OUT and p.intent.confidence == 0.9
 
 
-# --- verification ---------------------------------------------------------
 def test_probe_confirms_real_out_params(lib, spec):
     apply_verification(lib, spec)
     q = _param(spec, "divmod", "q")
@@ -117,7 +114,6 @@ def test_probe_downgrades_a_false_out(lib):
     assert p.intent.confidence < before   # halved because no write observed
 
 
-# --- spec-driven tools ----------------------------------------------------
 def test_tools_call_real_library(lib, spec):
     apply_verification(lib, spec)
     t = {x.name: x for x in build_tools(lib, spec)}
@@ -133,7 +129,6 @@ def test_out_params_hidden_inout_visible(lib, spec):
     assert [n for n, _ in t["scale_inplace"].params] == ["v", "k"]   # v visible
 
 
-# --- fail-safe guard ------------------------------------------------------
 def test_opaque_pointer_refused(lib):
     sig = {"weird": {"argnames": ["p"], "argtypes": [ctypes.POINTER(ctypes.c_int)],
                      "restype": None, "pointers": {}}}   # pointer, unclassified

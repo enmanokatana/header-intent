@@ -1,7 +1,4 @@
-"""
-Phase 2 slice 2: handle-lifecycle analysis (creates/uses/destroys) derived from
-source, applied to the spec, and generated into create/use/destroy tools.
-"""
+
 import ctypes
 import subprocess
 import sys
@@ -17,7 +14,6 @@ from src.layers.l2_handles import analyze_handles, apply_handle_facts
 from src.server.build import build_tools, build_tool, SpecViolation
 from src.server.handles import HandleTable
 
-# real library (with includes) -- compiled and loaded
 C_SO = r"""
 #include <stdlib.h>
 typedef struct expr { double v; } expr;
@@ -26,7 +22,6 @@ double expr_eval(expr *e) { return e->v; }
 void expr_free(expr *e) { free(e); }
 """
 
-# preprocessed/self-contained variant for pycparser (no #include)
 C_SRC = r"""
 typedef unsigned long size_t;
 void *malloc(size_t); void free(void *);
@@ -55,7 +50,6 @@ def lib(tmp_path_factory):
     return ctypes.CDLL(str(so))
 
 
-# --- analysis -------------------------------------------------------------
 def test_lifecycle_roles_derived():
     facts, htypes = analyze_handles(C_SRC)
     assert htypes == {"expr"}
@@ -65,7 +59,6 @@ def test_lifecycle_roles_derived():
     assert facts["expr_free"].handle_param == "e"
 
 def test_only_handed_out_types_are_handles():
-    # a struct pointer only ever passed in (never returned) is NOT a handle
     src = r"""
     typedef struct opts { int n; } opts;
     int use_opts(opts *o) { return o->n; }
@@ -75,7 +68,6 @@ def test_only_handed_out_types_are_handles():
     assert facts == {}
 
 
-# --- apply to spec --------------------------------------------------------
 def test_apply_upgrades_opaque_to_handle():
     spec = spec_from_signatures("expr", SIGNATURES)
     # before: e is a raw void* -> OPAQUE (unsafe to expose as a value)
@@ -87,13 +79,11 @@ def test_apply_upgrades_opaque_to_handle():
     assert spec.functions["expr_free"].lifecycle == "destroys"
 
 def test_raw_void_ptr_refused_without_handle_analysis(lib):
-    # without handle analysis, a raw void* must be REFUSED (never exposed as an int)
     spec = spec_from_signatures("expr", SIGNATURES)
     with pytest.raises(SpecViolation):
         build_tool(lib, spec.functions["expr_eval"], HandleTable())
 
 
-# --- end-to-end lifecycle -------------------------------------------------
 def test_generated_lifecycle_tools(lib):
     spec = spec_from_signatures("expr", SIGNATURES)
     apply_handle_facts(spec, analyze_handles(C_SRC)[0])

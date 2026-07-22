@@ -1,0 +1,8 @@
+pytest
+PyYAML
+pycparser
+libclang
+grpcio
+grpcio-tools
+protobuf
+mcp

@@ -1,10 +1,4 @@
-"""
-Phase 3 slice 1: ownership inference (creates vs BORROWED) -- the gap cJSON forced.
 
-cJSON_GetObjectItem returns a pointer INTO the tree you passed in (owned by the
-parent). Freeing it double-frees. These tests use cJSON-shaped source and a real
-compiled .so to prove the double-free is prevented.
-"""
 import ctypes
 import subprocess
 import sys
@@ -21,7 +15,6 @@ from src.layers.l2_ownership import (analyze_ownership, apply_ownership_facts,
 from src.server.build import build_tools
 from src.server.handles import HandleTable, OwnershipError
 
-# cJSON-shaped patterns (parse chain, borrowed getter, escape-into-parent)
 SRC = r"""
 typedef unsigned long size_t;
 void *malloc(size_t); void free(void *);
@@ -44,7 +37,6 @@ int tree_value(node *item) { return item->v; }
 void tree_delete(node *item) { global_hooks.deallocate(item); }
 """
 
-# real compiled library (the .so we actually call)
 REAL = r"""
 #include <stdlib.h>
 typedef struct node { int v; struct node *child; struct node *next; } node;
@@ -76,7 +68,6 @@ def lib(tmp_path_factory):
     return ctypes.CDLL(str(so))
 
 
-# --- ownership analysis ---------------------------------------------------
 def test_allocation_is_owned():
     f = analyze_ownership(SRC)
     assert f["new_item"].owner == OWNED
@@ -85,7 +76,7 @@ def test_allocation_is_owned():
 def test_call_chain_propagates_ownership():
     f = analyze_ownership(SRC)
     assert f["tree_parse_opts"].owner == OWNED
-    assert f["tree_parse"].owner == OWNED          # via tree_parse_opts -> new_item
+    assert f["tree_parse"].owner == OWNED          
 
 def test_pointer_from_parameter_is_borrowed():
     f = analyze_ownership(SRC)
@@ -104,13 +95,11 @@ def test_escape_into_parent_is_borrowed():
     assert "stored into a parameter" in f["tree_add_child"].reason
 
 
-# --- deallocator detection (cJSON frees via a hooks function pointer) -----
 def test_hooks_deallocator_detected_as_destroys():
     facts, _ = analyze_handles(SRC)
     assert facts["tree_delete"].role == "destroys"   # global_hooks.deallocate(item)
 
 
-# --- spec + runtime enforcement ------------------------------------------
 def _spec():
     s = spec_from_signatures("own", SIG)
     apply_handle_facts(s, analyze_handles(SRC)[0])
@@ -141,11 +130,9 @@ def test_freeing_a_borrowed_handle_is_refused(lib):
     child = t["tree_get_child"].invoke(handle=root["handle"])
     with pytest.raises(OwnershipError):
         t["tree_delete"].invoke(handle=child["handle"])
-    # and the owner still frees cleanly -> no double free, process survives
     assert t["tree_delete"].invoke(handle=root["handle"])["freed"] == root["handle"]
 
 def test_guard_runs_before_the_c_call(lib):
-    # the check must precede the C free; otherwise the memory is already gone
     s = _spec()
     H = HandleTable()
     t = {x.name: x for x in build_tools(lib, s, H)}
@@ -153,4 +140,4 @@ def test_guard_runs_before_the_c_call(lib):
     child = t["tree_get_child"].invoke(handle=root["handle"])
     with pytest.raises(OwnershipError):
         t["tree_delete"].invoke(handle=child["handle"])
-    assert t["tree_value"].invoke(handle=child["handle"]) == 42   # still alive!
+    assert t["tree_value"].invoke(handle=child["handle"]) == 42   

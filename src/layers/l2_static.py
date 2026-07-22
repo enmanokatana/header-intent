@@ -1,21 +1,3 @@
-"""
-interprocedural-lite static analysis: derive pointer intent from what a
-function body DOES, not from const-ness. def-use for
-in/out/inout.
-
-The decisive rule (PLDI'09 / classic dataflow): classify a pointer parameter by
-the FIRST access to its pointee in program order 
-    write first            -> out
-    read first, later write -> inout
-    read only               -> in  
-
-The C source is walked by a pluggable engine (SourceEngine). The default engine
-is pycparser-backed (pure Python, no libclang); a libclang engine can be
-swapped in for sources with system includes or C++ (see the engine interface).
-
-Note: pycparser needs preprocessed source (no #include resolution). For real
-libraries, preprocess first (cpp + fake libc headers) or use a libclang engine.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -31,7 +13,7 @@ from ..spec.schema import Evidenced
 class FunctionAccesses:
     name: str
     pointer_params: list[str]
-    events: list[tuple[str, str]]          # ordered (param, "read"|"write")
+    events: list[tuple[str, str]]        
     escaped: set[str] = field(default_factory=set)   # params passed whole to a call
 
 
@@ -41,7 +23,6 @@ class SourceEngine(Protocol):
         ...
 
 
-# pycparser-backed engine 
 class _AccessCollector(c_ast.NodeVisitor):
     def __init__(self, params: set[str]):
         self.params = params
@@ -61,14 +42,14 @@ class _AccessCollector(c_ast.NodeVisitor):
         return None
 
     def visit_Assignment(self, node):
-        self.visit(node.rvalue)                       # RHS reads first
+        self.visit(node.rvalue)                      
         tgt = self._target(node.lvalue)
         if tgt is not None:
-            if node.op != "=":                        # compound (+=) reads then writes
+            if node.op != "=":                        
                 self.events.append((tgt, "read"))
             self.events.append((tgt, "write"))
             if isinstance(node.lvalue, c_ast.ArrayRef):
-                self.visit(node.lvalue.subscript)     # index may read other params
+                self.visit(node.lvalue.subscript)     #
         else:
             self.visit(node.lvalue)
 
@@ -92,7 +73,6 @@ class _AccessCollector(c_ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_FuncCall(self, node):
-        # a pointer param passed WHOLE to another call escapes intraprocedural view
         if node.args:
             for expr in node.args.exprs:
                 if isinstance(expr, c_ast.ID) and expr.name in self.params:
@@ -128,8 +108,7 @@ class PycparserEngine:
     def function_accesses_file(self, path, cpp_args=None) -> dict[str, FunctionAccesses]:
         """Parse a real .c via the preprocessor (needs cpp + fake libc headers)."""
         ast = parse_file(path, use_cpp=True, cpp_args=cpp_args or [])
-        # reuse the same collection over the parsed tree
-        text = ""  # not used; walk the ast directly
+        text = ""  
         out = {}
         for node in ast.ext:
             if isinstance(node, c_ast.FuncDef):
@@ -143,7 +122,6 @@ class PycparserEngine:
         return out
 
 
-# def-use classifier 
 def _intent_of(seq: list[str]) -> Intent | None:
     if not seq:
         return None
@@ -165,7 +143,7 @@ def l2_intents(source: str, engine: SourceEngine | None = None) -> dict[str, dic
             seq = [kind for (n, kind) in fa.events if n == p]
             intent = _intent_of(seq)
             if intent is None:
-                continue                              # unused pointer -> defer to L1
+                continue                             
             if p in fa.escaped:
                 facts[p] = Evidenced(intent, ["def_use", "escape_unresolved"], 0.5, verified=False)
             else:
@@ -173,3 +151,8 @@ def l2_intents(source: str, engine: SourceEngine | None = None) -> dict[str, dic
         if facts:
             result[fname] = facts
     return result
+
+
+def l2_param_order(source: str, engine: SourceEngine | None = None) -> dict[str, list[str]]:
+    engine = engine or PycparserEngine()
+    return {fname: fa.pointer_params for fname, fa in engine.function_accesses(source).items()}

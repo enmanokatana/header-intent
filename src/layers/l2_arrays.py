@@ -1,20 +1,3 @@
-"""
-L2 array<->length pairing (Phase 2 slice 3).
-
-Recovers the array-parameter idiom (PLDI'09): in f(const int *arr, int n), the
-`n` is arr's length -- a fact NOT in the types. Two evidence signals:
-
-  * loop-bound (strong): an index variable that subscripts the pointer is bounded
-    by an int parameter in a for-condition (i < n). Confidence 0.9.
-  * adjacency (weak): an int parameter immediately following the pointer.
-    Confidence 0.6 -- a fallback when no loop bound is found.
-
-Populates ParamSpec.role=ARRAY (with dimension=<length_param>) and the length
-param role=LENGTH_OF. Only const/scalar element arrays are handled here; the
-element type comes from the pointee.
-
-pycparser engine below; a libclang path can be added behind the same shape.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -31,8 +14,8 @@ class ArrayFact:
     function: str
     array_param: str
     length_param: str
-    element: str                 # pointee type name (e.g. "int", "double")
-    source: str                  # "loop_bound" | "adjacency"
+    element: str                 
+    source: str                  
     confidence: float
 
 
@@ -62,7 +45,7 @@ class _Subscripts(c_ast.NodeVisitor):
 
 class _LoopBounds(c_ast.NodeVisitor):
     def __init__(self):
-        self.bounds: list[tuple[str, str]] = []      # (index_var, bound_var)
+        self.bounds: list[tuple[str, str]] = []     
 
     def visit_For(self, node):
         cond = node.cond
@@ -88,7 +71,6 @@ def analyze_arrays(source: str) -> dict[str, list[ArrayFact]]:
                 continue
             if isinstance(pd.type, c_ast.PtrDecl):
                 nm = _pointee_name(pd.type)
-                # only scalar-element arrays here (char* is a string; struct* is a handle)
                 if nm and nm in ("int", "long", "short", "double", "float",
                                  "unsigned", "unsigned int", "size_t"):
                     ptrs.append(pd.name)
@@ -111,12 +93,10 @@ def analyze_arrays(source: str) -> dict[str, list[ArrayFact]]:
         facts = []
         for aptr in ptrs:
             length, source, conf = None, None, 0.0
-            # strong: loop bound whose index subscripts this pointer
             for idx, bound in lb.bounds:
                 if idx in subs.idx_vars and bound in ints:
                     length, source, conf = bound, "loop_bound", 0.9
                     break
-            # weak: an int immediately after this pointer in the signature
             if length is None:
                 for i, (kind, name) in enumerate(order):
                     if kind == "ptr" and name == aptr and i + 1 < len(order) \
@@ -131,8 +111,6 @@ def analyze_arrays(source: str) -> dict[str, list[ArrayFact]]:
 
 
 def apply_array_facts(spec, arrays: dict[str, list[ArrayFact]]) -> list[str]:
-    """Set array params role=ARRAY (dimension=length_param) and length params
-    role=LENGTH_OF. Facts are unverified until a probe confirms them."""
     from ..spec.vocab import Role, Intent
     from ..spec.schema import Evidenced
 

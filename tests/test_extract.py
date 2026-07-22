@@ -1,9 +1,3 @@
-"""
-L0 extractor tests. The type-mapping logic is tested against a mock clang
-interface (no libclang needed) so the canonical-typedef resolution -- the
-cJSON_bool crash fix -- is covered everywhere. A live libclang test runs where
-libclang is installed.
-"""
 import ctypes
 import enum
 import sys
@@ -47,7 +41,7 @@ def ex():
 
 
 def test_typedef_resolved_canonically(ex):
-    # typedef int cJSON_bool  -- the crash case: canonical is INT
+    # typedef int cJSON_bool the crash case: canonical is INT
     int_t = _T(_TK.INT)
     cjson_bool = _T(_TK.INT, canonical=int_t, spelling="cJSON_bool")
     assert ex._map_type(cjson_bool) is ctypes.c_int
@@ -80,7 +74,6 @@ def test_out_classification(ex):
     assert ex._pointer_is_out(cchar) is False
 
 
-# --- live libclang test (skips if absent) ---------------------------------
 def test_live_extract_resolves_typedef(tmp_path):
     pytest.importorskip("clang.cindex")
     import importlib

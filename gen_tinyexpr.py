@@ -11,7 +11,6 @@ LIBC = "/tmp/tinyexpr/tinyexpr.c"
 SHIM = "/tmp/tinyexpr/te_shim.c"
 ARGS = ["-I/tmp/tinyexpr"]
 
-# L0/L1 signatures for the functions we expose (struct ptrs -> c_void_p).
 SIG = {
   "te_interp":    {"argnames": ["expression", "error"],
                    "argtypes": [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)],
@@ -26,7 +25,6 @@ SIG = {
 
 spec = spec_from_signatures("tinyexpr", SIG)
 
-# handle lifecycle from BOTH files, via libclang (no cpp)
 records = handle_records_files([LIBC, SHIM], ARGS)
 facts, htypes = classify_records(records)
 print("handle types:", htypes)
@@ -35,7 +33,6 @@ for n, f in facts.items():
         print(f"  {n}: {f.role} {f.handle_type}")
 apply_handle_facts(spec, facts)
 
-# verify out-params against the real .so, then save
 apply_verification(ctypes.CDLL(SO), spec)
 dump_yaml(spec, "tinyexpr.spec.yaml")
 print("wrote tinyexpr.spec.yaml")

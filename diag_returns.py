@@ -1,19 +1,3 @@
-"""
-Pin down why cJSON_ParseWithOpts -> origin='unknown'.
-
-It is structurally identical to cJSON_ParseWithLength (which now resolves), EXCEPT
-it has TWO return statements:
-
-    if (NULL == value) { return NULL; }        <- return #1
-    ...
-    return cJSON_ParseWithLengthOpts(...);     <- return #2  (the one that matters)
-
-This prints every RETURN_STMT the walker finds, its tokens, and the origin computed
-for it -- so we can see whether return #2 is being seen at all.
-
-Run from ~/header-intent:
-    python3 diag_returns.py
-"""
 from clang import cindex
 
 from src.layers.libclang_engine import (LibclangEngine, _unwrap, _callee_name_of,

@@ -1,12 +1,4 @@
-"""
-cJSON_ParseWithOpts yields ZERO return statements -- so libclang isn't giving us its
-BODY. This prints, for each candidate cursor: which file/line it came from, whether
-it's a definition, its child kinds (a real body has a COMPOUND_STMT), and any parse
-diagnostics for the TU.
 
-Run from ~/header-intent:
-    python3 diag_body.py
-"""
 from clang import cindex
 
 SRC = "/tmp/cjson/cJSON.c"

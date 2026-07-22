@@ -1,6 +1,4 @@
-"""
-I'ma be using a closed vocab of the capability spec , the inspo for this is from Shroud / and Microsoft SAL.
-"""
+"""The closed vocabulary of the capability spec (Shroud/SAL-derived)."""
 from enum import Enum
 
 
@@ -17,5 +15,6 @@ class Role(str, Enum):
     LENGTH_OF = "length_of" # the integer giving an array's length 
     BUFFER = "buffer"       # caller-sized char* out 
     HANDLE = "handle"       # opaque pointer with a lifecycle 
-    CALLBACK = "callback"   # function pointer -- flagged, not exposable
+    OUT_HANDLE = "out_handle"  # T** that RECEIVES a new handle 
+    CALLBACK = "callback"   # function pointer  flagged, not exposable
     OPAQUE = "opaque"       # unknown/unhandled pointer

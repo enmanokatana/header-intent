@@ -1,4 +1,3 @@
-"""Phase 2 slice 3: array<->length pairing, applied to spec + generated tools."""
 import ctypes
 import subprocess
 import sys

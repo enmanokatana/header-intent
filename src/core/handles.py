@@ -1,8 +1,10 @@
+
 import itertools
 import threading
 
 
 class OwnershipError(Exception):
+    """Raised when a borrowed handle is asked to be freed."""
 
 
 class HandleTable:
@@ -26,7 +28,7 @@ class HandleTable:
             raise KeyError(f"unknown or freed handle: {hid}") from None
 
     def is_owned(self, hid: int) -> bool:
-        self.get(hid)                       # existence check
+        self.get(hid)                                        
         return self._owned.get(hid, False)
 
     def pop(self, hid: int):

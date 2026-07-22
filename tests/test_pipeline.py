@@ -1,4 +1,3 @@
-"""Unified pipeline: L1+L2+fuse+verify in one call, with buildability report."""
 import ctypes
 import subprocess
 import sys
@@ -12,7 +11,6 @@ from src.pipeline import infer_spec
 from src.server.build import build_tools
 from src.server.handles import HandleTable
 
-# fake-decl source (parses without cpp) covering all idioms
 PP = r"""
 typedef unsigned long size_t;
 void *malloc(size_t); void free(void *);
@@ -55,7 +53,7 @@ def test_pipeline_all_idioms_buildable(env):
     src, so = env
     spec, report = infer_spec("pl", signatures=SIG, source=src, so=so,
                               engine="pycparser", preprocessed_source=PP)
-    assert set(report.buildable) == set(SIG)      # all 8 build
+    assert set(report.buildable) == set(SIG)     
     assert report.refused == []
 
 def test_pipeline_derives_handles_and_arrays(env):
@@ -86,7 +84,6 @@ def test_pipeline_tools_execute(env):
     assert t["expr_eval"].invoke(handle=c["handle"]) == 8.0
 
 def test_pipeline_degrades_without_source():
-    # no source -> L1 + verify only, arrays/handles skipped, scalars still fine
     spec, report = infer_spec("pl", signatures={
         "imax": SIG["imax"], "str_len": SIG["str_len"]})
     assert "imax" in {f for f in spec.functions}

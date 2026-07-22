@@ -1,17 +1,3 @@
-"""
-Diagnose the ownership extraction on cJSON's parse chain.
-
-Bug: cJSON_Parse -> "ownership unresolved" (should be creates/owner=caller),
-even though cJSON_ParseWithLengthOpts resolved to OWNED. The chain is:
-
-    cJSON_Parse -> cJSON_ParseWithOpts -> cJSON_ParseWithLengthOpts -> cJSON_New_Item(alloc)
-
-so the propagation should reach it. This prints the RAW extracted record for each
-link so we can see where it breaks.
-
-Run from ~/header-intent:
-    python3 diag_ownership.py
-"""
 from src.layers.libclang_engine import LibclangEngine
 from src.layers.l2_ownership import classify_ownership, _is_alloc_name
 

@@ -1,14 +1,3 @@
-"""
-Build callable tools from a capability spec + a loaded ctypes library.
-
-Pattern handlers keyed on (role, intent). The server used to classify inline;
-now it just reads the spec and routes. Returns ToolDescriptors that a thin
-FastMCP wrapper registers -- but they're plain callables, so they're testable
-without the mcp package.
-
-Phase 1 handles: scalar in, string in, scalar out, scalar inout. (handle/array
-come in later phases.)
-"""
 from __future__ import annotations
 
 import ctypes
@@ -28,7 +17,6 @@ CTYPE_TO_PY = {
     ctypes.c_bool: bool, ctypes.c_char_p: str, ctypes.c_char: str,
 }
 
-# Confidence below which an unverified fact is treated as unsafe (fail-safe).
 CONFIDENCE_THRESHOLD = 0.5
 
 
@@ -53,10 +41,10 @@ def _from_c(value, ctype):
 class ToolDescriptor:
     name: str
     doc: str
-    params: list[tuple[str, type]]     # visible (name, python_type) for the schema
-    returns_dict: bool                 # True if it returns {result, out...}
+    params: list[tuple[str, type]]   
+    returns_dict: bool                
     invoke: Callable[..., Any]
-    ret_type: type = None              # python type of the return value
+    ret_type: type = None              
 
     def __post_init__(self):
         if self.ret_type is None:
@@ -68,23 +56,17 @@ class SpecViolation(Exception):
 
 
 def _py_restype(fn) -> type:
-    """Python type a tool actually returns. Never guess from a PARAM type -- that
-    annotated cJSON_Print (char* -> str) as `int` because its only param is the
-    handle, and pydantic then rejected the JSON string."""
     if fn.restype is None:
         return type(None)
     return CTYPE_TO_PY.get(ctype_by_name(fn.restype), int)
 
 
 def _arg_ctype(p: ParamSpec):
-    """The ctypes type to bind for this param (POINTER whenever it's by_ref)."""
     base = ctype_by_name(p.ctype)
     return ctypes.POINTER(base) if p.by_ref else base
 
 
 def _check_safe(fn: FunctionSpec) -> None:
-    # a raw void* return that is NOT a managed handle would hand the client a bare
-    # pointer address as an int (cJSON_malloc). Refuse.
     if fn.restype == "c_void_p" and fn.lifecycle not in ("creates", "borrows"):
         raise SpecViolation(
             f"{fn.name}: returns a raw void* that is not a managed handle; "
@@ -104,9 +86,6 @@ def _check_safe(fn: FunctionSpec) -> None:
 
 
 def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
-    """Generate a create/use/destroy tool from lifecycle facts. Opaque handle
-    pointers are bound as c_void_p; the real pointer lives in `handles`, the
-    client sees an integer id."""
     cfn = getattr(lib, fn.name)
     argtypes = []
     for p in fn.params:
@@ -126,9 +105,6 @@ def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
     schema = [(hkey[p.name], int) for p in hparams] + schema
 
     def invoke(**kwargs):
-        # SAFETY: for a destroy, validate ownership BEFORE the C call. Checking
-        # afterwards would already have freed a borrowed pointer (real double-free
-        # observed in testing).
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
             if not handles.is_owned(hid):
@@ -226,10 +202,6 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
 
 
 def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
-    """Function with an input array + companion length. The array param takes a
-    JSON list; the length param is hidden and filled from len(list). Other params
-    pass through as scalars/strings. (Input arrays only; out-arrays are later.)"""
-    # names of length params (hidden) and array->length map
     length_names = {p.dimension for p in fn.params if p.role is Role.ARRAY}
     arrays = {p.name: p for p in fn.params if p.role is Role.ARRAY}
 
@@ -259,7 +231,6 @@ def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
             schema.append((p.name, CTYPE_TO_PY.get(ctype_by_name(p.ctype), int)))
 
     def invoke(**kwargs):
-        # build C arrays first so lengths are known
         built = {}
         for name, p in arrays.items():
             elem = ctype_by_name(p.ctype)

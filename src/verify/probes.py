@@ -23,9 +23,6 @@ def _benign_input(base):
 
 
 def verify_out_params(lib, fn: FunctionSpec) -> dict[str, bool]:
-    """For each param inferred out/inout, probe whether it's actually written.
-    Returns {param_name: written?}. Skips functions with string/opaque/handle/
-    array args """
     if any(p.role in (Role.STRING, Role.OPAQUE, Role.HANDLE, Role.ARRAY) for p in fn.params):
         return {}
 
@@ -63,8 +60,6 @@ def verify_out_params(lib, fn: FunctionSpec) -> dict[str, bool]:
 
 
 def apply_verification(lib, spec) -> None:
-    """Run probes and set `verified=True` on out/inout facts confirmed written;
-    downgrade (verified stays False, confidence halved) if not observed."""
     for fn in spec.functions.values():
         written = verify_out_params(lib, fn)
         for p in fn.params:

@@ -1,7 +1,3 @@
-"""
-Ferrule Phase 2 tests: L2 def-use analysis, evidence fusion, and the by_ref /
-probe fixes it surfaced. Compiles a small real .so and parses the same source.
-"""
 import ctypes
 import subprocess
 import sys
@@ -54,7 +50,6 @@ def lib(tmp_path_factory):
     return ctypes.CDLL(str(so))
 
 
-# --- L2 def-use -----------------------------------------------------------
 def test_defuse_classifier_units():
     assert _intent_of(["write"]) is Intent.OUT
     assert _intent_of(["read", "write"]) is Intent.INOUT
@@ -74,7 +69,6 @@ def test_l2_confidence_and_sources():
     assert ev.sources == ["def_use"] and ev.confidence == 0.95 and not ev.verified
 
 
-# --- fusion ---------------------------------------------------------------
 def test_fusion_agreement_compounds():
     l1 = Evidenced(Intent.OUT, ["const_ness"], 0.9)
     l2 = Evidenced(Intent.OUT, ["def_use"], 0.95)
@@ -100,12 +94,11 @@ def test_fusion_respects_manual_override():
     l1 = Evidenced(Intent.INOUT, ["manual"], 1.0, verified=True)
     l2 = Evidenced(Intent.OUT, ["def_use"], 0.95)
     fused, conflict = fuse_intent(l1, l2)
-    assert fused.value is Intent.INOUT and conflict is None   # operator wins
+    assert fused.value is Intent.INOUT and conflict is None  
 
 
-# --- end to end (no manual overrides) -------------------------------------
 def test_inout_derived_without_override(lib):
-    spec = spec_from_signatures("p2", SIGNATURES)            # no overrides!
+    spec = spec_from_signatures("p2", SIGNATURES)            
     fuse_l2_into_spec(spec, l2_intents(C_SRC))
     apply_verification(lib, spec)
     v = next(p for p in spec.functions["scale_inplace"].params if p.name == "v")
