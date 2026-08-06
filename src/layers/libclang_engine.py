@@ -37,7 +37,7 @@ def builtin_include_args() -> list:
     for pat in ("/usr/lib/llvm-*/lib/clang/*/include",
                 "/usr/lib/clang/*/include",
                 "/usr/local/lib/clang/*/include",
-                "/usr/lib/gcc/*/*/include",          # gcc ships stddef.h too
+                "/usr/lib/gcc/*/*/include",        
                 "/usr/lib/gcc/*/*/include-fixed"):
         cands.extend(sorted(glob.glob(pat)))
 
@@ -280,15 +280,6 @@ def _callee_is_dealloc(call) -> bool:
 
 
 def _callee_name_of(call) -> str:
-    """Callee name of a CALL_EXPR -- token-based, so it does not depend on how
-    libclang happens to wrap the callee (implicit casts / UNEXPOSED_EXPR nesting,
-    which defeated every AST-shape heuristic: some calls resolved, others came back
-    empty or picked up the first ARGUMENT).
-
-    The callee is simply the identifier immediately before the first '(':
-        cJSON_ParseWithLengthOpts(value, len, ...)  -> "cJSON_ParseWithLengthOpts"
-        hooks->allocate(sizeof(cJSON))              -> "allocate"
-    """
     try:
         ref = call.referenced
         if ref is not None and ref.spelling:
@@ -332,8 +323,6 @@ def _unwrap(n):
 _TRANSPARENT = None
 
 def _direct_ref(node, names):
-    """Name of a DIRECT reference to one of `names`, unwrapping only casts/parens.
-    Returns None for member access (p->f), calls, or anything derived."""
     global _TRANSPARENT
     if _TRANSPARENT is None:
         ck = cindex.CursorKind
@@ -360,10 +349,6 @@ def _root_param(node, params):
 
 class _OwnershipMixin:
     def ownership_records(self, path, clang_args=None) -> dict:
-        """Extract ownership evidence per function: where the returned pointer came
-        from, whether it escaped into a handle-typed parameter, and (for the
-        ownership-TRANSFER rule) whether it mutates a DIFFERENT parameter's
-        structure while returning one parameter unchanged."""
         tu = self._parse(path, clang_args)
         recs: dict[str, OwnRecord] = {}
         for c in self._defined_functions(tu, path):
@@ -508,10 +493,6 @@ def _returns_char_ptr_clang(t) -> bool:
 
 class _StringOwnershipMixin:
     def string_ownership_records(self, path, clang_args=None) -> dict:
-        """Same origin-tracing as ownership_records, retargeted at char* returns,
-        with the SAME simpler rule set as the pycparser path: no escape rule, no
-        transfer rule -- a wrong deallocator call here is heap corruption, not a
-        leak, so only unambiguous evidence is trusted."""
         tu = self._parse(path, clang_args)
         recs: dict = {}
         for c in self._defined_functions(tu, path):
@@ -619,18 +600,6 @@ class _OutHandleMixin:
 
             for pname, struct_name in cands.items():
                 rec = OutHandleRecord(fname, pname, struct_name)
-
-                # local-variable origin tracing ACCUMULATES a SET of every
-                # origin a variable is ever assigned, rather than overwriting.
-                # Real sqlite3 does this in openDatabase:
-                #     db = sqlite3MallocZero(...);   // success path
-                #     ...
-                #     if (rc != SQLITE_OK) { db = 0; }  // an error path
-                #     opendb_out: *ppDb = db;         // reached from EVERY path
-                # "last assignment wins" forgets the allocation once it sees
-                # the later reset. The real question does an execution path
-                # EXIST where this out-param receives a fresh allocation  is
-                # answered by checking whether "alloc" is in the set at all.
                 origin: dict = {}
                 direct_rhs = None
 
