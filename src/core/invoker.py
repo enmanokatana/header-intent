@@ -1,3 +1,19 @@
+"""
+The core invoker -- PROTOCOL-AGNOSTIC.
+
+This is the product. Everything a protocol backend needs is a `Capability`:
+neutral input/output field descriptions plus `invoke(**kwargs)` with ctypes
+marshalling, handle management and OWNERSHIP ENFORCEMENT already applied.
+
+Protocol emitters (MCP, gRPC, plain Python, ...) are thin adapters over these.
+Safety cannot diverge between protocols because there is exactly one enforcement
+point -- here and in core/policy.py.
+
+    spec ──► build_capabilities(lib, spec) ──► [Capability, ...]
+                                                   │
+                            ┌──────────────────────┼──────────────────────┐
+                        emit/mcp.py           emit/grpc.py          emit/python.py
+"""
 from __future__ import annotations
 
 import ctypes
@@ -11,6 +27,7 @@ from .types import CTYPE_TO_PY, py_type_of, py_restype, arg_ctype, to_c, from_c
 from .handles import HandleTable, OwnershipError
 from ..layers.l2_handles import _is_dealloc_name
 
+# neutral field kinds an emitter maps into its own type system
 SCALAR, STRING, ARRAY, HANDLE = "scalar", "string", "array", "handle"
 
 
@@ -57,7 +74,21 @@ def _bind(lib, fn: FunctionSpec):
 
 
 def _find_string_deallocator(lib, spec: LibrarySpec):
-    
+    '''Find a raw C function to free an OWNED string return (cJSON_Print's
+    malloc\'d buffer). This is the one place a WRONG choice is worse than doing
+    nothing: calling a struct destructor (cJSON_Delete) on a string buffer is
+    memory corruption, not a leak. Disambiguation rule, in order of safety:
+
+      1. name matches the deallocator family (free/dealloc/destroy/...)
+      2. takes exactly one parameter (a buffer deallocator is never n-ary)
+      3. is NOT already claimed as a struct/handle destructor by handle analysis
+         (fn.lifecycle is None) -- this is what rules OUT cJSON_Delete(cJSON*)
+         and leaves only cJSON_free(void*).
+
+    If no unambiguous candidate exists, return None: an owned string is then
+    left un-freed (the same small, bounded, SAFE leak as before this feature --
+    never guess when a wrong guess corrupts the heap).
+    '''
     candidates = [
         fn for fn in spec.functions.values()
         if _is_dealloc_name(fn.name) and len(fn.params) == 1 and fn.lifecycle is None
@@ -97,9 +128,18 @@ def _field_for(p: ParamSpec) -> Field:
     return Field(p.name, pt, STRING if pt is str else SCALAR)
 
 
-
+# --------------------------------------------------------------------------
+# capability builders (one per C calling shape)
+# --------------------------------------------------------------------------
 def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capability:
-    
+    """sqlite3_open(path, &db)-shaped: the NEW handle comes out through a T**
+    parameter, not the return value -- the return value is typically a status
+    code (SQLITE_OK / an error code), which is surfaced alongside the handle.
+
+    This is a distinct calling shape from _lifecycle_capability's "creates"
+    (which assumes the return value itself is the handle) and must be checked
+    BEFORE it in build_capability's dispatch.
+    """
     cfn = getattr(lib, fn.name)
     out_param = next(p for p in fn.params if p.name == fn.handle_out_param)
     in_params = [p for p in fn.params if p.name != fn.handle_out_param]
@@ -139,7 +179,7 @@ def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capab
 
 def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
                           string_dealloc=None) -> Capability:
-    """creates / borrows / uses / destroys  handle-managed.
+    """creates / borrows / uses / destroys -- handle-managed.
 
     SAFETY BUG THIS FIXES: this path never called check_exposable(). A function
     with a lifecycle (e.g. cJSON_PrintPreallocated, lifecycle="uses") skipped the
@@ -147,7 +187,7 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
     Result: a non-const char* WRITE BUFFER param (role=OPAQUE, meant to be refused)
     was silently bound as a generic int64 in the .proto instead of being rejected.
     Every capability must clear the SAME policy regardless of which builder it
-    goes through that is the whole point of a shared core.
+    goes through -- that is the whole point of a shared core.
     """
     check_exposable(fn)
     cfn = _bind(lib, fn)
@@ -179,7 +219,11 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
         # have freed a borrowed pointer (a real double-free, observed in testing).
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
-            if not handles.is_owned(hid):
+            # A None handle -> C NULL; NULL cannot be owned or freed, and
+            # freeing NULL is a documented no-op in well-behaved C APIs
+            # (cJSON_Delete(NULL) included), so skip the ownership check and
+            # let it forward as NULL rather than raising on a missing handle.
+            if hid is not None and not handles.is_owned(hid):
                 raise OwnershipError(
                     f"handle {hid} is BORROWED (owned by the library); freeing it "
                     f"would double-free. Delete its owner instead."
@@ -187,7 +231,20 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
         args = []
         for p in fn.params:
             if p.role is Role.HANDLE:
-                args.append(handles.get(kwargs[hkey[p.name]]))
+                hval = kwargs[hkey[p.name]]
+                if hval is None:
+                    # An explicit None handle maps to a C NULL pointer. This is
+                    # the ONE non-registered handle value we forward, because
+                    # NULL is the universal "no object" sentinel that C APIs are
+                    # expected to handle defensively, and expressing it is
+                    # necessary to reuse a library's own NULL-argument tests
+                    # (e.g. cJSON's cjson_functions_shouldnt_crash_with_null_
+                    # pointers). An arbitrary UNREGISTERED INTEGER is still an
+                    # error, not forwarded: that would let a caller fabricate a
+                    # pointer, defeating the whole point of the handle table.
+                    args.append(None)
+                else:
+                    args.append(handles.get(hval))
             else:
                 args.append(to_c(kwargs[p.name], ctype_by_name(p.ctype)))
         ret = cfn(*args)
@@ -203,9 +260,13 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
                     "note": "owned by the library; do not free (delete its owner instead)"}
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
+            if hid is None:
+                # forwarded as C NULL; a documented no-op, nothing in the table
+                # to release. Report freed=0 rather than raising on pop(None).
+                return {"freed": 0, "live_handles": len(handles)}
             handles.pop(hid)
             return {"freed": hid, "live_handles": len(handles)}
-        # uses an OWNED string return is copied then the C buffer freed
+        # uses -- an OWNED string return is copied then the C buffer freed
         # (cJSON_Print's malloc'd result was previously leaked, bounded but real).
         if fn.restype == "c_char_p" and fn.string_owner == "caller":
             return _read_and_free_string(ret, string_dealloc)
@@ -243,7 +304,7 @@ def _array_capability(lib, fn: FunctionSpec) -> Capability:
             if p.role is Role.ARRAY:
                 args.append(built[p.name])
             elif p.role is Role.LENGTH_OF:
-                args.append(len(kwargs[p.dimension]))         
+                args.append(len(kwargs[p.dimension]))          # hidden, auto-filled
             elif p.by_ref:
                 base = ctype_by_name(p.ctype)
                 args.append(ctypes.byref(base(to_c(kwargs[p.name], base))))
@@ -282,7 +343,7 @@ def _plain_capability(lib, fn: FunctionSpec, string_dealloc=None) -> Capability:
                 elif p.intent.value is Intent.INOUT:
                     cell = base(to_c(kwargs[p.name], base))
                     cells[p.name] = cell
-                else:                                  
+                else:                                   # in-by-reference
                     cell = base(to_c(kwargs[p.name], base))
                 args.append(ctypes.byref(cell))
             else:
@@ -305,10 +366,26 @@ def _plain_capability(lib, fn: FunctionSpec, string_dealloc=None) -> Capability:
     return Capability(fn.name, doc, inputs, outputs, returns_mapping, invoke)
 
 
-
+# --------------------------------------------------------------------------
+# public API
+# --------------------------------------------------------------------------
 def build_capability(lib, fn: FunctionSpec, handles: HandleTable | None = None,
                      string_dealloc=None) -> Capability:
-   
+    """One spec function -> one protocol-neutral Capability. Raises SpecViolation
+    if policy refuses it.
+
+    The policy check lives HERE, at the single dispatch point, so no calling shape
+    can skip it. It previously ran only in the plain/array builders, so anything
+    with a handle lifecycle bypassed safety entirely -- that is how
+    cJSON_PrintPreallocated's raw `char *buffer` got advertised as an int64
+    (an arbitrary-memory-write hole) despite the char* rule being in place.
+
+    `string_dealloc`, if given, is a bound raw C function used to free an OWNED
+    string return (see _find_string_deallocator) after it has been copied into
+    Python -- resolves cJSON_Print's small per-call leak. Called directly with a
+    single function (no `spec`), auto-free is simply unavailable; pass it via
+    `build_capabilities` for the library-wide, disambiguated lookup.
+    """
     check_exposable(fn)
     if fn.handle_out_param:
         if handles is None:
@@ -325,9 +402,17 @@ def build_capability(lib, fn: FunctionSpec, handles: HandleTable | None = None,
 
 def build_capabilities(lib, spec: LibrarySpec, handles: HandleTable | None = None,
                        strict: bool = False):
-   
+    """All exposable capabilities. Returns (capabilities, refused[(name, reason)]).
+
+    Refusals are DATA, not failures: a protocol server serves what it can and
+    reports the rest (aborting on the first refusal took down whole servers).
+    """
     if handles is None:
         handles = HandleTable()
+    # computed ONCE for the whole library: the disambiguated string deallocator
+    # (see _find_string_deallocator) shared by every OWNED-string-returning
+    # capability, e.g. cJSON_Print -- resolves the small per-call leak noted in
+    # Phase 3 without risking a wrong-deallocator call on any single function.
     string_dealloc = _find_string_deallocator(lib, spec)
     caps, refused = [], []
     for fn in spec.functions.values():
@@ -338,6 +423,9 @@ def build_capabilities(lib, spec: LibrarySpec, handles: HandleTable | None = Non
                 raise
             refused.append((fn.name, str(e).split(";")[0]))
         except AttributeError as e:
+            # the header declares it but the .so doesn't export it -- usually a
+            # platform-specific symbol (e.g. sqlite3_win32_set_directory8 in a
+            # Linux build). A clean, specific reason beats a raw exception repr.
             if strict:
                 raise
             refused.append((fn.name, f"symbol not found in the .so (platform-specific "

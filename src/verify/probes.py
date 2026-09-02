@@ -44,7 +44,20 @@ def verify_out_params(lib, fn: FunctionSpec) -> dict[str, bool]:
     for p in fn.params:
         base = ctype_by_name(p.ctype)
         argtypes.append(ctypes.POINTER(base) if p.by_ref else base)
-    cfn = getattr(lib, fn.name)
+    try:
+        cfn = getattr(lib, fn.name)
+    except AttributeError:
+        # The extracted name is not an exported symbol in this .so. This happens
+        # when a header declares something libclang sees as a function but the
+        # library does not actually export: a macro/alias (zlib's compressBound_z,
+        # deflateBound_z), a static inline, or a symbol gated out of this build.
+        # Verification simply cannot probe it; leave it unverified (the fail-safe
+        # already treats an unverified out-param conservatively) rather than
+        # crashing the whole run. NOTE: ctypes falls through to the main-program
+        # symbol table on a miss, so the raised message may name an unrelated
+        # missing symbol (e.g. __bswap_16) -- the real cause is that fn.name
+        # itself is absent from this library.
+        return {}
     cfn.argtypes = argtypes
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
 

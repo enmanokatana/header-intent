@@ -1,3 +1,10 @@
+"""
+Capability spec schema (dataclass-based; swap to Pydantic in a richer env).
+
+Every semantic fact is wrapped in Evidenced: the value plus where it came from,
+how confident we are, and whether a behavioral probe confirmed it. The spec is
+"the answer plus how much to trust it and why."
+"""
 from __future__ import annotations
 
 import ctypes
@@ -21,7 +28,7 @@ _CTYPES = {
     "c_size_t": ctypes.c_size_t, "c_ssize_t": ctypes.c_ssize_t,
     # fixed-width aliases: distinct NAMES some extractors may emit, even though
     # ctypes implements them as aliases of the types above on most platforms
-    # (e.g. c_int64 is c_longlong)  registering the alias name avoids a
+    # (e.g. c_int64 is c_longlong) -- registering the alias name avoids a
     # KeyError while `ctype_by_name` still returns a working, identical type.
     "c_int8": ctypes.c_int8, "c_uint8": ctypes.c_uint8,
     "c_int16": ctypes.c_int16, "c_uint16": ctypes.c_uint16,
@@ -30,12 +37,27 @@ _CTYPES = {
 }
 
 def ctype_by_name(name: str):
+    # pointer types serialize as "POINTER(<inner>)"; rebuild by recursion.
+    if name.startswith("POINTER(") and name.endswith(")"):
+        inner = name[len("POINTER("):-1]
+        return ctypes.POINTER(ctype_by_name(inner))
     return _CTYPES[name]
 
 def name_of_ctype(t) -> str:
     for k, v in _CTYPES.items():
         if v is t:
             return k
+    # A pointer type (e.g. POINTER(c_uint) == LP_c_uint) has no entry in the
+    # scalar registry. cJSON and SQLite never exercised a pointer-to-arithmetic
+    # parameter (their pointers were all char*/void*/struct*, handled as
+    # c_char_p/c_void_p), so this path was never hit until a third library
+    # (zlib's unsigned int*, libgit2's unsigned short*) used one. Recurse on the
+    # pointee and serialize as POINTER(<inner>).
+    if isinstance(t, type) and issubclass(t, ctypes._Pointer):
+        try:
+            return f"POINTER({name_of_ctype(t._type_)})"
+        except KeyError:
+            pass
     raise KeyError(f"no registered ctype name for {t!r}")
 
 
@@ -55,7 +77,7 @@ class ParamSpec:
     intent: Evidenced           # Evidenced[Intent]
     ctype: str                  # value type name; for a pointer this is the POINTEE
     by_ref: bool = False        # True if the C param is a pointer (bind POINTER(ctype))
-    # for later(unused now): dimension, owner, handle_type
+    # phase 2/3 fields (unused now): dimension, owner, handle_type
     dimension: Optional[str] = None
     owner: Optional[str] = None
     handle_type: Optional[str] = None
@@ -83,6 +105,7 @@ class LibrarySpec:
     functions: dict[str, FunctionSpec] = field(default_factory=dict)
 
 
+# --- (de)serialization to plain dicts (for YAML) ----------------------------
 def to_dict(spec: LibrarySpec) -> dict:
     out = {"library": spec.library, "functions": {}}
     for fname, fn in spec.functions.items():
