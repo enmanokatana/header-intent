@@ -1,140 +1,174 @@
-# Ferrule (header-intent)
 
-Ferrule turns C library signatures and source behavior into an evidenced capability spec, verifies risky pointer claims against the real `.so`, and builds spec-driven call surfaces (including MCP tools).
-
-The core design choice is simple: every semantic fact carries provenance, confidence, and verification state, so the runtime can refuse unsafe guesses instead of silently exposing them.
-
-## What This Repo Does
-
-- Infers a first-pass spec from parsed C signatures (L1).
-- Refines pointer intent from function-body behavior when C source is available (L2 static def-use).
-- Fuses evidence from multiple layers with conflict tracking.
-- Probes inferred `out` and `inout` params against the compiled library.
-- Builds tools from spec facts, with fail-safe checks on low-confidence or opaque parameters.
-
-## Current Status
-
-- L1 signature inference is implemented and used by the CLI.
-- L2 static analysis (`in`/`out`/`inout`) is implemented in library code.
-- L2 handle lifecycle analysis (`creates`/`uses`/`destroys`) is implemented in library code.
-- Fusion and conflict reporting are implemented.
-- Behavioral verification is implemented.
-- MCP server wrapper is implemented.
-- Some planned surfaces are still placeholders (`src/layers/l3_naming.py`, `src/layers/l4_docs.py`, and several files under `src/mcp/`).
-
-## Repository Layout
-
-- `src/cli.py`: `infer` and `verify` commands.
-- `src/spec/`: schema, vocabulary, YAML I/O.
-- `src/layers/l1_signature.py`: signature-to-spec conversion.
-- `src/layers/l2_static.py`: source def-use pointer intent analysis.
-- `src/layers/l2_handles.py`: source-based handle lifecycle analysis.
-- `src/fuse/fusion.py`: evidence fusion and conflict handling.
-- `src/verify/probes.py`: behavioral verification gate.
-- `src/server/build.py`: spec-driven tool generation + fail-safe checks.
-- `src/server/mcp_server.py`: FastMCP registration wrapper.
-- `tests/`: phase-oriented and feature tests.
-- `docs/`: design notes, runnable entrypoints, verification details.
-
-## Requirements
-
-Minimum runtime:
-
-- Python 3.10+
-- `pyyaml`
-- `pycparser`
-
-For tests:
-
-- `pytest`
-- `gcc` (tests compile tiny shared libraries)
-
-For CLI `infer` from real headers:
-
-- `header_parser_cast` importable on `PYTHONPATH` (from the cToMcp toolkit)
-
-For MCP serving:
-
-- `mcp` package
-
-Optional (for direct libclang-based source analysis):
-
-- `libclang` Python bindings (`pip install libclang`)
-
-## Quick Start
-
-From the repo root:
+## 1. Setup
 
 ```bash
-python -m venv venv
-. venv/bin/activate
-pip install pyyaml pycparser pytest
+python3 -m venv venv
+source venv/bin/activate
+pip install pyyaml pycparser libclang mcp grpcio grpcio-tools
 ```
 
-Run tests:
+You'll also want a working gcc (it's used to compile test .so files, and its
+bundled stddef.h is a useful fallback for libclang) and ideally the clang
+binary itself (sudo apt install clang), though there's a gcc-based fallback
+if you don't have clang.
+
+Everything below assumes you're running from the repo root, with the package
+living under `src/` and imported as `src.*` (e.g. `python3 -m src.cli infer ...`).
+That's the layout I've been using this whole time, so copy things in as-is.
+
+---
+
+## 2. The core workflow: infer, then emit
+
+### Step 1, infer a capability spec from a real library
 
 ```bash
-./venv/bin/pytest -q
+python3 -m src.cli infer <header.h> <library.so> \
+    --source <library.c> --engine libclang -I <include-dir> \
+    --library-name <name> -o <name>.spec.yaml
 ```
 
-## CLI Usage
-
-The main entrypoint is `src.cli`.
-
-### 1) Infer a spec from a header
+Example, cJSON:
 
 ```bash
-python -m src.cli infer <header.h> [lib.so] [--overrides overrides.yaml] [--library-name NAME] [-o spec.yaml]
+git clone --depth 1 https://github.com/DaveGamble/cJSON /tmp/cjson
+gcc -shared -fPIC -o /tmp/cjson/libcjson.so /tmp/cjson/cJSON.c
+
+python3 -m src.cli infer /tmp/cjson/cJSON.h /tmp/cjson/libcjson.so \
+    --source /tmp/cjson/cJSON.c --engine libclang -I /tmp/cjson \
+    --library-name cjson -o cjson.spec.yaml
 ```
 
-Notes:
+This prints a report: which functions are buildable, which are refused (and
+why, every refusal has a specific reason string), the inferred handle
+lifecycle, ownership verdicts, and anything skipped. It writes the full spec
+to `cjson.spec.yaml`.
 
-- This command imports `header_parser_cast.parse_header` at runtime.
-- If optional `lib.so` is provided, behavioral verification runs before output.
+A refusal is not a bug. The whole point here is to refuse to bind anything
+that can't be verified as safe (raw void* returns, write buffers, callbacks,
+unresolved pointers). If a fix makes the refused list grow, that's usually
+the fail-safe doing its job correctly, not a regression, so don't panic when
+you see it.
 
-### 2) Verify an existing spec against a real library
+### Step 2, emit a protocol target from the spec
 
 ```bash
-python -m src.cli verify <lib.so> <spec.yaml>
+python3 -m src.cli emit <name>.spec.yaml <library.so> \
+    --target proto|python|list [--package NAME] [--service NAME] [-o OUTFILE]
 ```
 
-This updates `verified` and `confidence` fields in place based on probe results.
+- `--target list` just prints every buildable capability and its shape. Good
+  first sanity check.
+- `--target python` emits a plain, readable .py file with real function
+  signatures, generated straight from the spec.
+- `--target proto` emits a .proto file (see the gRPC section below).
 
-## MCP Server
-
-Serve generated tools from a `.so` + spec:
+### Step 3, optional, re-verify a spec against a .so
 
 ```bash
-python -m src.server.mcp_server <lib.so> <spec.yaml>
+python3 -m src.cli verify <library.so> <name>.spec.yaml
 ```
 
-At startup, the server loads the spec, runs verification, builds tools, and registers them with FastMCP.
+Re-runs the behavioral probes (does an inferred out param actually get
+written to, etc) and updates the spec's verified flags in place.
 
-## Static Analysis in Practice
+---
 
-`l2_static` classifies pointer params by first access to pointee in program order:
+## 3. Serving it over a real protocol
 
-- write first -> `out`
-- read first then write -> `inout`
-- read only -> `in`
+### MCP
 
-Read the detailed walkthrough and diagram:
+```bash
+npx @modelcontextprotocol/inspector \
+    python3 -m src.emit.mcp <library.so> <name>.spec.yaml
+```
 
-- `docs/l2_static_read_write_intent.md`
+Opens the MCP Inspector UI where you can call each tool directly. Worth
+trying on cJSON: cJSON_Parse, then cJSON_Print, then cJSON_GetObjectItem
+(comes back borrowed: true), then try to cJSON_Delete that borrowed handle
+(should be refused), then cJSON_Delete the root (frees cleanly). That
+refusal is the double free protection actually working.
 
-## Safety Model
+### gRPC
 
-Two guards prevent unsafe tool exposure:
+```bash
+# 1. generate the .proto
+python3 -m src.cli emit cjson.spec.yaml /tmp/cjson/libcjson.so \
+    --target proto --package cjson --service CJson -o cjson.proto
 
-- Behavioral gate: inferred pointer-write facts must be observed at runtime to be promoted.
-- Build-time fail-safe: low-confidence/unverified or opaque params are refused with `SpecViolation`.
+# 2. generate the python stubs
+pip install grpcio grpcio-tools
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. cjson.proto
 
-This keeps generation conservative by default.
+# 3. run the server (edit SO/SPEC/PORT at the top of serve_cjson.py first)
+python3 serve_cjson.py
 
+# 4. in another terminal, run the demo client
+python3 grpc_client_demo.py
+```
 
-## Development Notes
+grpc_client_demo.py runs the same parse, print, borrowed get, refused
+delete, clean delete sequence as the MCP walkthrough, but over a real
+network channel. That's the proof the safety guarantee holds no matter the
+protocol, since it's enforced once in core/, not per emitter.
 
-- Keep specs checked in when useful for reproducibility (`*.spec.yaml`).
-- Prefer adding evidence sources over hardcoding behavior in server code.
-- If a new inference signal is uncertain, emit it with lower confidence and let verification/fail-safe policy decide.
+One note on gRPC sessions: handles are scoped to a session (OpenSession /
+CloseSession), since gRPC doesn't have the single long lived process MCP
+gets for free. Pure functions that never touch a handle don't need a
+session at all, the .proto marks them stateless.
+
+### Plain Python
+
+```python
+from src.emit.python import bind_module
+m = bind_module("/tmp/cjson/libcjson.so", "cjson.spec.yaml")
+root = m.cJSON_Parse(value='{"a":1}')
+print(m.cJSON_Print(handle=root["handle"]))
+```
+
+No protocol at all, useful for embedding or just as the cheapest way to
+sanity check a spec.
+
+---
+
+## 4. Running the tests
+
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+Some tests compile small synthetic .so files on the fly (gcc required) to
+test against real compiled code instead of mocks. That's deliberate, a
+handful of real bugs in this project were only ever caught by compiling and
+running actual machine code, not by unit testing the analysis logic alone.
+
+Files worth knowing about specifically:
+
+| File | Covers |
+|---|---|
+| test_ownership_loose_ends.py | ownership transfer detection, returned string auto free |
+| test_out_handle.py, test_out_handle_confirmation.py | the sqlite3_open(path, &db) out param handle idiom |
+| test_naming_conventions.py | camelCase vs snake_case allocator/deallocator name recognition |
+| test_core_emitters.py, test_emit_proto.py | the protocol agnostic core plus MCP/gRPC emitters, including that ownership enforcement holds with zero protocol specific safety code |
+
+---
+
+## 5. The diag_*.py scripts
+
+These are one off diagnostics I built while chasing specific libclang
+AST-shape bugs against real sqlite3 and cJSON source. They're not part of
+the library itself, they're debugging tools I'm keeping around in case I
+(or you) hit a similar wall extending this to a new library. Run any of them
+directly:
+
+```bash
+python3 diag_ownership.py          # dump raw and classified ownership verdicts for a function set
+python3 diag_returns.py            # inspect every return statement in a function, with raw tokens
+python3 diag_body.py               # check whether libclang actually saw a function's full body
+python3 diag_out_handle.py         # check L0's out param handle CANDIDATE detection
+python3 diag_out_handle_confirm.py # check L2's out param handle CONFIRMATION (the harder part)
+python3 diag_open_database.py      # dump every assignment in a specific function, in source order
+```
+
 
