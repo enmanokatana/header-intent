@@ -23,7 +23,14 @@ def register(mcp, cap) -> None:
 
     def make(c):
         def fn(**kwargs):
-            return c.invoke(**kwargs)
+            with open("/tmp/mcp_debug.log", "a") as f:
+                f.write(f"{c.name} called with kwargs={kwargs!r}\n")
+                f.flush()
+            result = c.invoke(**kwargs)
+            with open("/tmp/mcp_debug.log", "a") as f:
+                f.write(f"{c.name} returned {result!r}\n")
+                f.flush()
+            return result
         return fn
 
     fn = make(cap)

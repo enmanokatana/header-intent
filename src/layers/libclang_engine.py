@@ -1,3 +1,14 @@
+"""
+Libclang-backed L2 engine -- reads real .c/.h directly (resolves #include and
+system headers), so NO cpp/fake-header preprocessing is needed.
+
+Provides the same outputs as the pycparser engine:
+  * handle_records(path)      -> {fn: HandleRecord}   (robust: types + free() calls)
+  * function_accesses(path)   -> {fn: FunctionAccesses} (def-use for in/out/inout)
+
+Only functions DEFINED in the given file are analyzed (not included-header
+declarations). Requires the `libclang` python bindings.
+"""
 from __future__ import annotations
 
 import os
@@ -5,7 +16,7 @@ import os
 try:
     from clang import cindex
     _HAVE = True
-except Exception:                     
+except Exception:                      # pragma: no cover
     cindex = None
     _HAVE = False
 
@@ -23,6 +34,22 @@ def _has_stddef(d: str) -> bool:
 
 
 def builtin_include_args() -> list:
+    """clang's OWN builtin headers (stddef.h, stdarg.h, ...).
+
+    Without these libclang emits a FATAL "'stddef.h' file not found" and then
+    ERROR-RECOVERS BY TRUNCATING FUNCTION BODIES -- silently. That is exactly what
+    corrupted cJSON: `size_t buffer_length;` inside cJSON_ParseWithOpts made clang
+    drop the rest of the body, so `return cJSON_ParseWithLengthOpts(...)` never
+    appeared in the AST and ownership came out 'unknown'.
+
+    Search order (all validated by actually containing stddef.h):
+      1. clang's resource dir, if the clang binary is installed
+      2. common LLVM install paths
+      3. GCC's builtin include dir -- works fine for clang, and gcc is almost
+         always present even when the clang *compiler* is not (only the libclang
+         bindings are needed otherwise)
+      4. headers bundled with the `libclang` pip wheel
+    """
     cands = []
 
     for exe in ("clang", "clang-19", "clang-18", "clang-17", "clang-16", "clang-15"):
@@ -54,7 +81,7 @@ def builtin_include_args() -> list:
 
 
 class ParseTruncated(RuntimeError):
-    """A fatal clang diagnostic means bodies may be missing never analyze that."""
+    """A fatal clang diagnostic means bodies may be missing -- never analyze that."""
 
 
 def check_diagnostics(tu, path, strict=True):
@@ -77,6 +104,7 @@ def _require():
         raise ImportError("libclang bindings not available; `pip install libclang`")
 
 
+# --- type helpers -----------------------------------------------------------
 def _struct_pointee_name(t):
     """If t is a pointer to a struct/typedef-to-struct, return the type name."""
     if t.kind != cindex.TypeKind.POINTER:
@@ -105,6 +133,7 @@ def _is_scalar_pointer(t) -> bool:
     return t.get_pointee().get_canonical().kind in _ARITH
 
 
+# --- AST helpers ------------------------------------------------------------
 def _decl_ref_name(node, params):
     """Unwrap casts/parens to a DECL_REF_EXPR; return its name if in params."""
     n = node
@@ -150,7 +179,7 @@ def _collect_events(node, params, events):
     k = node.kind
     if k == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(node):
         kids = list(node.get_children())
-        _collect_events(kids[1], params, events)               
+        _collect_events(kids[1], params, events)               # RHS reads first
         tgt = _root_lvalue_param(kids[0], params)
         if tgt:
             events.append((tgt, "write"))
@@ -191,6 +220,7 @@ def _collect_events(node, params, events):
         _collect_events(ch, params, events)
 
 
+# --- the engine -------------------------------------------------------------
 class LibclangEngine:
     def __init__(self, clang_args=None, strict=True):
         self.args = list(clang_args or [])
@@ -199,7 +229,7 @@ class LibclangEngine:
     def _parse(self, path, clang_args=None):
         _require()
         args = list(clang_args or self.args)
-        args = builtin_include_args() + args      # stddef.h etc. or bodies truncate
+        args = builtin_include_args() + args      # stddef.h etc. -- or bodies truncate
         idx = cindex.Index.create()
         tu = idx.parse(path, args=args)
         check_diagnostics(tu, path, strict=self.strict)
@@ -232,11 +262,44 @@ class LibclangEngine:
                     continue
                 if not _callee_is_dealloc(d):
                     continue
-                for arg in d.get_arguments():
-                    nm = _direct_ref(arg, struct_params)
+                args = list(d.get_arguments())
+                if args:
+                    # ONLY the LAST argument is the thing being freed. cJSON's
+                    # deallocators are single-arg (free(ptr), hooks->deallocate(item)),
+                    # where last==only, so this is unchanged there. sqlite3's actual
+                    # convention is sqlite3DbFree(sqlite3 *db, void *p): db is the
+                    # ALLOCATOR CONTEXT (arg 0), p is what's freed (last arg). Checking
+                    # every argument wrongly flagged `db` as destroyed on every function
+                    # that calls sqlite3DbFree internally (sqlite3_exec, sqlite3_blob_open,
+                    # sqlite3_declare_vtab, ...) even though db itself is never freed.
+                    nm = _direct_ref(args[-1], struct_params)
                     if nm:
                         freed.add(nm)
-            recs[name] = HandleRecord(name, ret, struct_params, freed, param_order)
+
+            # Every DIRECT argument-position appearance of a not-yet-freed
+            # struct-typed param, across every call in the body -- resolves
+            # lifecycle classification through wrapper functions. sqlite3_close
+            # forwards through TWO hops before the real free (sqlite3_close ->
+            # sqlite3Close -> sqlite3LeaveMutexAndCloseZombie -> sqlite3_free(db)),
+            # and the middle hop passes `db` directly to SIX different helper
+            # calls, only one of which is the real closer -- see
+            # l2_handles.classify_records for the fixed-point resolution this
+            # feeds into.
+            candidate_names = set(struct_params) - freed
+            forwards = {n: [] for n in candidate_names}
+            if candidate_names:
+                for n in c.walk_preorder():
+                    if n.kind != cindex.CursorKind.CALL_EXPR:
+                        continue
+                    callee = _callee_name_of(n)
+                    if not callee:
+                        continue
+                    for i, a in enumerate(n.get_arguments()):
+                        nm2 = _decl_ref_name(a, candidate_names)
+                        if nm2:
+                            forwards[nm2].append((callee, i))
+
+            recs[name] = HandleRecord(name, ret, struct_params, freed, param_order, forwards)
         return recs
 
     def function_accesses(self, path, clang_args=None) -> dict[str, FunctionAccesses]:
@@ -268,7 +331,7 @@ def handle_records_files(paths, clang_args=None) -> dict[str, HandleRecord]:
 
 def _callee_is_dealloc(call) -> bool:
     """A deallocator may be free(), a custom name, or a function POINTER through a
-    hooks struct: global_hooks.deallocate(item) which is what cJSON does."""
+    hooks struct: global_hooks.deallocate(item) -- which is what cJSON does."""
     if _is_dealloc_name(call.spelling):
         return True
     for ch in call.get_children():
@@ -312,7 +375,7 @@ def _callee_name_of(call) -> str:
 def _unwrap(n):
     """Strip transparent wrappers (implicit casts, parens) to the real expression.
 
-    NOTE: a CSTYLE_CAST_EXPR's children are [TYPE_REF, expr] TWO nodes. Requiring
+    NOTE: a CSTYLE_CAST_EXPR's children are [TYPE_REF, expr] -- TWO nodes. Requiring
     exactly one child made `(cJSON*)hooks->allocate(...)` fail to unwrap, so the
     allocation was invisible and cJSON_New_Item came out `unknown`.
     """
@@ -322,7 +385,7 @@ def _unwrap(n):
         _TRANSPARENT = {ck.UNEXPOSED_EXPR, ck.PAREN_EXPR, ck.CSTYLE_CAST_EXPR}
     while n is not None and n.kind in _TRANSPARENT:
         kids = [k for k in n.get_children()
-                if k.kind != cindex.CursorKind.TYPE_REF]    
+                if k.kind != cindex.CursorKind.TYPE_REF]     # drop the cast's type
         if len(kids) != 1:
             return n
         n = kids[0]
@@ -346,7 +409,7 @@ def _direct_ref(node, names):
             kids = list(n.get_children())
             n = kids[0] if len(kids) == 1 else None
             continue
-        return None                       
+        return None                       # member ref, call, binary op, ... -> not direct
     return None
 
 
@@ -393,18 +456,18 @@ class _OwnershipMixin:
                     if _is_alloc_name(cn):
                         return "alloc"
                     return f"call:{cn}" if cn else "unknown"
-                if k == cindex.CursorKind.MEMBER_REF_EXPR:         
+                if k == cindex.CursorKind.MEMBER_REF_EXPR:            # DERIVED (p->child)
                     if _root_param(n, params):
                         return "param_member"
                     base = next((x.spelling for x in n.walk_preorder()
                                  if x.kind == cindex.CursorKind.DECL_REF_EXPR), None)
                     bo = origin.get(base, "")
                     if bo == "param_member" or bo.startswith("param_direct"):
-                        return "param_member"       
+                        return "param_member"       # cur = cur->next : stays in the borrow
                     return "unknown"
                 if k == cindex.CursorKind.DECL_REF_EXPR:
                     if n.spelling in params:
-                        return f"param_direct:{n.spelling}"   
+                        return f"param_direct:{n.spelling}"   # the parameter ITSELF
                     return origin.get(n.spelling, "unknown")
                 return "unknown"
 
@@ -412,16 +475,16 @@ class _OwnershipMixin:
                 if n.kind == cindex.CursorKind.VAR_DECL:
                     kids = [k for k in n.get_children()
                             if k.kind != cindex.CursorKind.TYPE_REF]
-                    if kids:                       
+                    if kids:                       # last child is the initializer
                         origin[n.spelling] = origin_of(kids[-1])
                 elif n.kind == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(n):
                     kids = list(n.get_children())
                     if len(kids) == 2:
-                        lhs = _unwrap(kids[0])      
+                        lhs = _unwrap(kids[0])       # may be wrapped
                         if lhs is not None and lhs.kind == cindex.CursorKind.DECL_REF_EXPR:
                             origin[lhs.spelling] = origin_of(kids[1])
                         elif lhs is not None and lhs.kind == cindex.CursorKind.MEMBER_REF_EXPR:
-                            # a WRITE through a member (p->field = ...) unlink evidence.
+                            # a WRITE through a member (p->field = ...) -- unlink evidence.
                             root = _root_param(lhs, params)
                             if root:
                                 mutated_param_roots.add(root)
@@ -438,7 +501,7 @@ class _OwnershipMixin:
                 elif n.kind == cindex.CursorKind.CALL_EXPR:
                     roots = []
                     for a in n.get_arguments():
-                        nm = _direct_ref(a, params | set(origin))   
+                        nm = _direct_ref(a, params | set(origin))   # direct args only
                         if nm:
                             roots.append(nm)
                     calls.append((_callee_name_of(n), roots))
@@ -468,15 +531,15 @@ class _OwnershipMixin:
                     call_origins = [o for o in origins if o.startswith("call:")]
                     rec.origin = call_origins[0] if call_origins else "unknown"
 
-            # ESCAPE applies whenever the return is freshly PRODUCED here either
+            # ESCAPE applies whenever the return is freshly PRODUCED here -- either
             # a direct alloc, or a call to a wrapper that allocates (cJSON_AddNullToObject
             # calls cJSON_CreateNull(), it does not malloc directly; gating this on
-            # origin=="alloc" literally missed every Add*ToObject function a REAL
+            # origin=="alloc" literally missed every Add*ToObject function -- a REAL
             # regression: silently reclassified caller-owned instead of BORROWED, a
             # live double-free risk).
             #
             # The PRODUCER call itself is excluded from the scan, or its own
-            # arguments falsely look like an escape target this is what caused the
+            # arguments falsely look like an escape target -- this is what caused the
             # ORIGINAL cJSON_Duplicate bug: `return dup_rec(item, hooks, recurse);`
             # walks `item` into ret_ids (inside the return expression's subtree), and
             # dup_rec's own args re-match against handle_params, making the producer
@@ -495,6 +558,7 @@ class _OwnershipMixin:
         return recs
 
 
+# mix ownership extraction into the engine
 LibclangEngine.ownership_records = _OwnershipMixin.ownership_records
 
 
@@ -535,7 +599,7 @@ class _StringOwnershipMixin:
                     return "param_member" if _root_param(n, params) else "unknown"
                 if k == cindex.CursorKind.DECL_REF_EXPR:
                     if n.spelling in params:
-                        return "param_member"     
+                        return "param_member"     # any param-derived string: don't free
                     return origin.get(n.spelling, "unknown")
                 if k == cindex.CursorKind.STRING_LITERAL:
                     return "static"
@@ -578,12 +642,29 @@ LibclangEngine.string_ownership_records = _StringOwnershipMixin.string_ownership
 
 class _OutHandleMixin:
     def out_handle_records(self, path, candidates: dict, clang_args=None) -> dict:
+        """libclang mirror of l2_out_handles._records_from_pycparser. Same two
+        confirmation forms (direct alloc-write, one-level forward), same
+        auto-discovery of INTERNAL (non-header) T**-to-struct candidates so a
+        forwarding wrapper (sqlite3_open -> static openDatabase) still resolves.
+
+        UNVERIFIED against real libclang in this sandbox (no libclang available
+        here) -- mirrors the pycparser implementation's proven logic structurally,
+        but the AST-shape assumptions (cursor kinds, child ordering) carry the
+        same risk every libclang-side addition in this project has needed at
+        least one round of live correction for. Test against real sqlite3 before
+        trusting it; if a candidate that should confirm doesn't, the likely cause
+        is the same class of AST-shape mismatch fixed repeatedly in
+        ownership_records (see FERRULE docs) -- a targeted diag script beats
+        guessing at the shape again.
+        """
         from .l2_ownership import OwnRecord
         from .l2_out_handles import OutHandleRecord, _SCALAR_NAMES
 
         tu = self._parse(path, clang_args)
         funcs = list(self._defined_functions(tu, path))
 
+        # discover ALL functions' double-pointer-to-struct params (source-wide,
+        # not just header-declared ones) so internal helpers resolve too.
         all_candidates: dict = {}
         all_params: dict = {}
         for c in funcs:
@@ -605,7 +686,7 @@ class _OutHandleMixin:
                     if name:
                         found[a.spelling] = name
             merged = dict(found)
-            merged.update(candidates.get(c.spelling, {})) 
+            merged.update(candidates.get(c.spelling, {}))    # header hint wins
             if merged:
                 all_candidates[c.spelling] = merged
 
@@ -615,77 +696,94 @@ class _OutHandleMixin:
             cands = all_candidates.get(fname, {})
             if not cands:
                 continue
-            params = {a.spelling for a in c.get_arguments()}
+
+            # local-variable origin tracing -- ACCUMULATES a SET of every
+            # origin a variable is ever assigned, rather than overwriting.
+            # Real sqlite3 does this in openDatabase:
+            #     db = sqlite3MallocZero(...);   // success path
+            #     ...
+            #     if (rc != SQLITE_OK) { db = 0; }  // an error path
+            #     opendb_out: *ppDb = db;         // reached from EVERY path
+            # "last assignment wins" forgets the allocation once it sees
+            # the later reset. The real question -- does an execution path
+            # EXIST where this out-param receives a fresh allocation -- is
+            # answered by checking whether "alloc" is in the set at all.
+            #
+            # PERFORMANCE: walk the function body ONCE for ALL of its
+            # candidate params, not once per param -- a full walk_preorder()
+            # over a large function (sqlite3's VDBE/parser functions run to
+            # thousands of nodes) is the expensive part; re-walking it once
+            # per T** parameter when a function has several was pure waste.
+            origin: dict = {}
+            direct_rhs_by_param: dict = {}
+            forward_target_by_param: dict = {}
+            cand_names = set(cands)
+
+            def origin_of(expr):
+                n = _unwrap(expr)
+                if n is None:
+                    return "unknown"
+                k = n.kind
+                if k == cindex.CursorKind.CALL_EXPR:
+                    cn = _callee_name_of(n)
+                    return "alloc" if _is_alloc_name(cn) else (f"call:{cn}" if cn else "unknown")
+                if k == cindex.CursorKind.DECL_REF_EXPR:
+                    s = origin.get(n.spelling)
+                    return "alloc" if s and "alloc" in s else "unknown"
+                return "unknown"
+
+            for n in c.walk_preorder():
+                if n.kind == cindex.CursorKind.VAR_DECL:
+                    kids = [k for k in n.get_children() if k.kind != cindex.CursorKind.TYPE_REF]
+                    if kids:
+                        origin.setdefault(n.spelling, set()).add(origin_of(kids[-1]))
+                elif n.kind == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(n):
+                    kids = list(n.get_children())
+                    if len(kids) == 2:
+                        lhs = _unwrap(kids[0])
+                        if lhs is not None and lhs.kind == cindex.CursorKind.DECL_REF_EXPR:
+                            origin.setdefault(lhs.spelling, set()).add(origin_of(kids[1]))
+                        elif lhs is not None and lhs.kind == cindex.CursorKind.UNARY_OPERATOR \
+                                and _is_deref(lhs):
+                            # *pname = expr -- the dereference operand must be
+                            # unwrapped too (libclang wraps it in UNEXPOSED_EXPR);
+                            # _decl_ref_name already exists and handles it.
+                            #
+                            # LAST write wins, not first. openDatabase does
+                            # `*ppDb = 0;` as a defensive reset near the top,
+                            # THEN the real `*ppDb = db;` at a cleanup label
+                            # near the bottom. A first-wins guard here locks in
+                            # the defensive reset and the real write is never
+                            # recorded -- this was a real regression introduced
+                            # by the single-walk-per-function restructuring
+                            # (the original per-parameter walk overwrote
+                            # unconditionally on every match, which is correct;
+                            # this rewrite accidentally added a "only if not
+                            # already seen" guard while consolidating the walk).
+                            sub = list(lhs.get_children())
+                            if sub:
+                                nm = _decl_ref_name(sub[0], cand_names)
+                                if nm:
+                                    direct_rhs_by_param[nm] = kids[1]
+                elif n.kind == cindex.CursorKind.CALL_EXPR:
+                    callee = _callee_name_of(n)
+                    for i, a in enumerate(n.get_arguments()):
+                        nm = _decl_ref_name(a, cand_names)
+                        if nm and nm not in direct_rhs_by_param and nm not in forward_target_by_param:
+                            forward_target_by_param[nm] = (callee, i)
 
             for pname, struct_name in cands.items():
                 rec = OutHandleRecord(fname, pname, struct_name)
-
-                # local-variable origin tracing ACCUMULATES a SET of every
-                # origin a variable is ever assigned, rather than overwriting.
-                # Real sqlite3 does this in openDatabase:
-                #     db = sqlite3MallocZero(...);   // success path
-                #     ...
-                #     if (rc != SQLITE_OK) { db = 0; }  // an error path
-                #     opendb_out: *ppDb = db;         // reached from EVERY path
-                # "last assignment wins" forgets the allocation once it sees
-                # the later reset. The real question does an execution path
-                # EXIST where this out-param receives a fresh allocation  is
-                # answered by checking whether "alloc" is in the set at all.
-                origin: dict = {}
-                direct_rhs = None
-
-                def origin_of(expr):
-                    n = _unwrap(expr)
-                    if n is None:
-                        return "unknown"
-                    k = n.kind
-                    if k == cindex.CursorKind.CALL_EXPR:
-                        cn = _callee_name_of(n)
-                        return "alloc" if _is_alloc_name(cn) else (f"call:{cn}" if cn else "unknown")
-                    if k == cindex.CursorKind.DECL_REF_EXPR:
-                        s = origin.get(n.spelling)
-                        return "alloc" if s and "alloc" in s else "unknown"
-                    return "unknown"
-
-                forward_target = None
-                for n in c.walk_preorder():
-                    if n.kind == cindex.CursorKind.VAR_DECL:
-                        kids = [k for k in n.get_children() if k.kind != cindex.CursorKind.TYPE_REF]
-                        if kids:
-                            origin.setdefault(n.spelling, set()).add(origin_of(kids[-1]))
-                    elif n.kind == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(n):
-                        kids = list(n.get_children())
-                        if len(kids) == 2:
-                            lhs = _unwrap(kids[0])
-                            if lhs is not None and lhs.kind == cindex.CursorKind.DECL_REF_EXPR:
-                                origin.setdefault(lhs.spelling, set()).add(origin_of(kids[1]))
-                            elif lhs is not None and lhs.kind == cindex.CursorKind.UNARY_OPERATOR:
-                                # *pname = expr
-                                sub = list(lhs.get_children())
-                                if sub and sub[0].kind == cindex.CursorKind.DECL_REF_EXPR \
-                                        and sub[0].spelling == pname:
-                                    direct_rhs = kids[1]
-                    elif n.kind == cindex.CursorKind.CALL_EXPR and direct_rhs is None:
-                        callee = _callee_name_of(n)
-                        for i, a in enumerate(n.get_arguments()):
-                            if a.kind == cindex.CursorKind.DECL_REF_EXPR and a.spelling == pname:
-                                forward_target = (callee, i)
-                            elif a.kind == cindex.CursorKind.UNEXPOSED_EXPR:
-                                inner_refs = [x for x in a.walk_preorder()
-                                             if x.kind == cindex.CursorKind.DECL_REF_EXPR]
-                                if len(inner_refs) == 1 and inner_refs[0].spelling == pname:
-                                    forward_target = (callee, i)
-
+                direct_rhs = direct_rhs_by_param.get(pname)
                 if direct_rhs is not None:
                     o = origin_of(direct_rhs)
                     if o == "alloc" or o.startswith("call:"):
                         rec.origin = o
-                elif forward_target is not None:
-                    callee, idx = forward_target
+                elif pname in forward_target_by_param:
+                    callee, idx = forward_target_by_param[pname]
                     callee_params = all_params.get(callee, [])
                     if idx < len(callee_params):
                         rec.origin = f"forward:{callee}:{callee_params[idx]}"
-
                 recs[(fname, pname)] = rec
         return recs
 

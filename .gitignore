@@ -9,6 +9,8 @@ __pycache__/
 venv/
 env/
 ENV/
+scripts/
+graphify-out/
 
 # Test and type-check caches
 .pytest_cache/
@@ -30,7 +32,7 @@ dist/
 *.egg-info/
 .eggs/
 pip-wheel-metadata/
-
+*.db
 # Logs and runtime files
 *.log
 *.pid
