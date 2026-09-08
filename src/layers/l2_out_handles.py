@@ -1,3 +1,26 @@
+"""
+L2 out-param-handle confirmation (sqlite3_open(path, &db) idiom).
+
+L0 detects CANDIDATES: any T** parameter where T is a struct (see
+model/extract.py's _out_handle_candidate). A candidate is not trusted until
+confirmed here -- staying OPAQUE (refused) is the fail-safe default, same as
+every other unresolved pointer shape in this project.
+
+Confirmation has two forms, because sqlite3_open itself is a one-line wrapper
+around an internal helper (openDatabase) that does the actual allocation:
+
+  1. DIRECT: the function's body writes `*out = <alloc-derived expr>;`
+     (or `out[0] = ...`) -- resolved with the SAME alloc/call-chain origin
+     tracing already proven for return-value ownership (l2_ownership.py).
+  2. FORWARD: the function's only use of `out` is passing it BYREF, unmodified,
+     to exactly one other call -- resolved via a fixed point over that callee's
+     OWN verdict for the out-param at the same argument position, mirroring the
+     call-chain propagation already proven for ownership's "call:X" origin.
+
+Both forms are deliberately conservative: anything more complex (branching
+writes, multiple candidate calls, the pointer read before written) is left
+UNCONFIRMED -- the candidate stays a candidate, the param stays refused.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,6 +31,28 @@ from .l2_ownership import _is_alloc_name, _callee_name
 
 
 class _MultiOriginCollector(c_ast.NodeVisitor):
+    """Tracks, per local variable, the SET of every origin it is ever assigned --
+    not just the last one. This is deliberately DIFFERENT from l2_ownership's
+    _OwnCollector (which tracks a single overwriting value per name, correct for
+    return-value tracing) because real sqlite3 code does this:
+
+        db = sqlite3MallocZero(sizeof(sqlite3));   // success path: alloc
+        ...
+        if (rc != SQLITE_OK) { ...; db = 0; }      // an error path: reset to NULL
+        ...
+        opendb_out:
+        *ppDb = db;                                 // reached from EVERY path
+
+    `db` legitimately holds EITHER the allocated pointer OR NULL depending on
+    which branch executed, and BOTH values flow into the same final write.
+    "Last assignment wins" forgets the allocation entirely once it sees the
+    later `db = 0` reset. The question we actually care about -- does there
+    EXIST an execution path where this out-param receives a fresh allocation --
+    is answered correctly by checking whether "alloc" is anywhere in the set,
+    regardless of what else the variable was also assigned on other paths (a
+    null-reset on failure is not a competing claim on ownership; it correctly
+    becomes `handle: None` at runtime either way).
+    """
     def __init__(self):
         self.origin: dict[str, set[str]] = {}
 
@@ -28,6 +73,10 @@ class _MultiOriginCollector(c_ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Assignment(self, node):
+        # ONLY a bare-identifier reassignment changes what the POINTER VARIABLE
+        # itself refers to. `db->mutex = ...` writes a FIELD of *db -- it must
+        # NOT be recorded as a new origin for `db` (the variable's own identity
+        # is unchanged); only `isinstance(lvalue, c_ast.ID)` counts.
         if node.op == "=" and isinstance(node.lvalue, c_ast.ID):
             self.origin.setdefault(node.lvalue.name, set()).add(self._origin_of_expr(node.rvalue))
         self.generic_visit(node)
@@ -43,7 +92,7 @@ class OutHandleRecord:
     function: str
     param: str
     struct_name: str
-    origin: str = "unknown"         
+    origin: str = "unknown"          # "alloc" | "forward:<callee>:<argindex>" | "unknown"
 
 
 @dataclass
@@ -80,7 +129,7 @@ def _direct_write_expr(body, param: str):
 def _forward_call(body, param: str):
     """If `param`'s ONLY appearance is as a direct, unmodified argument to ONE
     call, return (callee_name, arg_index). Else None (too complex to trust)."""
-    appearances = []          # (kind, extra)  kind in {"call_arg", "other"}
+    appearances = []          # (kind, extra) -- kind in {"call_arg", "other"}
 
     class V(c_ast.NodeVisitor):
         def visit_FuncCall(self, node):
@@ -108,6 +157,17 @@ _SCALAR_NAMES = {"char", "void", "int", "float", "double", "unsigned", "signed",
 
 
 def _double_ptr_struct_params(fd) -> dict:
+    """T** params where T is a struct/typedef-to-struct, detected directly from
+    pycparser's AST -- mirrors model/extract.py's _out_handle_candidate but for
+    the .c SOURCE, so INTERNAL static helpers (never declared in the header,
+    hence never in L0's candidate dict) still get discovered here. sqlite3_open
+    forwards to exactly such a helper (openDatabase); without this, the fixed
+    point in classify_out_handles would have nothing to resolve the forward TO.
+
+    NOTE: real code almost always uses the TYPEDEF name (`sqlite3 **ppDb`), which
+    pycparser represents as IdentifierType(['sqlite3']), not c_ast.Struct -- the
+    same distinction l2_handles._pointee_typename already has to make.
+    """
     out = {}
     args = fd.decl.type.args
     if not args:
@@ -130,18 +190,23 @@ def _double_ptr_struct_params(fd) -> dict:
 
 
 def _records_from_pycparser(source: str, candidates: dict) -> dict:
+    """`candidates`: {fname: {argname: struct_name}} from L0 (header-declared
+    functions only). Internal source-only helpers are discovered separately
+    (see _double_ptr_struct_params) so forwarding through them still resolves."""
     ast = c_parser.CParser().parse(source)
 
-
+    # full param-order map for EVERY function, needed to resolve a forwarding
+    # call's argument INDEX to the callee's actual parameter NAME (the call site
+    # and the callee's own declaration can order/name things differently).
     all_params: dict[str, list[str]] = {}
-    all_candidates: dict[str, dict] = {}    
+    all_candidates: dict[str, dict] = {}      # header hints UNION source-discovered
     for fd in ast.ext:
         if isinstance(fd, c_ast.FuncDef) and fd.decl.type.args:
             all_params[fd.decl.name] = [p.name for p in fd.decl.type.args.params
                                         if isinstance(p, c_ast.Decl) and p.name]
         if isinstance(fd, c_ast.FuncDef):
             merged = dict(_double_ptr_struct_params(fd))
-            merged.update(candidates.get(fd.decl.name, {}))  
+            merged.update(candidates.get(fd.decl.name, {}))   # header hint wins on conflict
             if merged:
                 all_candidates[fd.decl.name] = merged
 
@@ -159,11 +224,16 @@ def _records_from_pycparser(source: str, candidates: dict) -> dict:
             col.visit(fd.body)
             direct = _direct_write_expr(fd.body, pname)
             if direct is not None:
+                # THE fix: _origin_of_expr checks the variable's ENTIRE
+                # assignment history (a SET), not just its last-seen value --
+                # db=alloc(...) then later db=0 on an error path must not erase
+                # the alloc evidence just because it's textually more recent.
                 origin = col._origin_of_expr(direct)
                 if origin == "alloc":
                     rec.origin = "alloc"
                 elif origin.startswith("call:"):
                     rec.origin = origin
+                # else: leaves rec.origin at "unknown" (conservative)
             else:
                 fwd = _forward_call(fd.body, pname)
                 if fwd:
@@ -176,7 +246,10 @@ def _records_from_pycparser(source: str, candidates: dict) -> dict:
 
 
 def classify_out_handles(records: dict) -> dict:
-    verdict: dict = {}  
+    """Fixed point: resolve 'call:X' (direct alloc-wrapper) and 'forward:F:name'
+    (byref passthrough, resolved by the callee's OWN parameter name) against
+    other records' verdicts."""
+    verdict: dict = {}   # (fname, pname) -> bool confirmed
 
     changed = True
     for _ in range(10):
@@ -190,6 +263,10 @@ def classify_out_handles(records: dict) -> dict:
                 verdict[key] = True
                 changed = True
             elif rec.origin.startswith("call:"):
+                # direct write is itself a call to a non-obviously-alloc wrapper;
+                # without interprocedural return-value tracing here, treat as
+                # unconfirmed (conservative) -- the ownership analysis already
+                # covers return-value cases; this module only covers out-params.
                 verdict[key] = False
                 changed = True
             elif rec.origin.startswith("forward:"):
@@ -199,6 +276,8 @@ def classify_out_handles(records: dict) -> dict:
                     verdict[key] = verdict[target]
                     changed = True
                 elif target not in records:
+                    # forwards to a param that isn't itself a candidate at all
+                    # (e.g. forwarded to a plain non-handle param) -> unconfirmed
                     verdict[key] = False
                     changed = True
             elif rec.origin == "unknown":
@@ -230,6 +309,8 @@ def analyze_out_handles(source: str | None = None, *, candidates: dict, engine=N
 
 
 def apply_out_handle_facts(spec, facts: dict) -> list:
+    """Promote a CONFIRMED candidate param to Role.OUT_HANDLE and set
+    FunctionSpec.handle_out_param (only one per function is supported)."""
     from ..spec.vocab import Role, Intent
     from ..spec.schema import Evidenced
 
@@ -251,3 +332,16 @@ def apply_out_handle_facts(spec, facts: dict) -> list:
         fn.handle_type = f.struct_name
         notes.append(f"{fname}: OUT_HANDLE param {pname!r} -> {f.struct_name} ({f.reason})")
     return notes
+
+
+def analyze_out_handles_multi(paths, *, candidates: dict, engine, clang_args=None):
+    """Multi-file out-handle analysis. out_handle_records auto-discovers internal
+    T** candidates within each file and also confirms forwarding wrappers; merging
+    the RAW records across files then classifying lets a public wrapper in one
+    file resolve against the internal allocator helper in another (the
+    sqlite3_open -> openDatabase pattern, but split across files). Returns
+    (facts, skipped_notes)."""
+    from .libclang_engine import _merge_multi
+    records, skipped = _merge_multi(engine, "out_handle_records", paths, clang_args,
+                                    extra_kwargs={"candidates": candidates})
+    return classify_out_handles(records), skipped

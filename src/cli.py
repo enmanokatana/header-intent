@@ -1,3 +1,12 @@
+"""
+ferrule CLI.
+
+  ferrule infer  <header.h> [lib.so] --source <src.c>  -> full L1+L2 stack -> spec
+  ferrule verify <lib.so> <spec.yaml>                  -> probes + updates spec
+
+Signature extraction (L0) is Ferrule's own libclang extractor -- self-contained,
+no external toolkit required.
+"""
 import argparse
 import ctypes
 import sys
@@ -11,6 +20,7 @@ from .verify.probes import apply_verification
 
 def cmd_infer(args):
     from .pipeline import infer_spec
+    import os, glob
 
     overrides = {}
     if args.overrides:
@@ -19,10 +29,31 @@ def cmd_infer(args):
     for inc in (args.include or []):
         clang_args += ["-I", inc]
 
+    # Resolve sources: explicit --source paths (repeatable) plus any *.c found
+    # under --source-dir. Preserve order and de-duplicate. A single source stays
+    # a plain string for back-compat; multiple become a list (multi-file).
+    src_list = list(args.source or [])
+    if args.source_dir:
+        src_list += sorted(glob.glob(os.path.join(args.source_dir, "**", "*.c"),
+                                     recursive=True))
+    seen, sources = set(), []
+    for s in src_list:
+        rp = os.path.abspath(s)
+        if rp not in seen:
+            seen.add(rp)
+            sources.append(s)
+    if not sources:
+        source_arg = None
+    elif len(sources) == 1:
+        source_arg = sources[0]
+    else:
+        source_arg = sources
+        print(f"[multi-file] {len(sources)} source files for L2 analysis")
+
     spec, report = infer_spec(
         args.library_name or "lib",
         header=args.header,
-        source=args.source,
+        source=source_arg,
         so=args.lib,
         engine=args.engine,
         clang_args=clang_args,
@@ -67,7 +98,7 @@ def cmd_emit(args):
     elif args.target == "python":
         from .emit.python import generate_source
         out = generate_source(spec, args.lib)
-    else:                                  
+    else:                                   # list
         out = "\n".join(f"{c.name}({', '.join(f.name for f in c.inputs)})"
                          f" -> {', '.join(f.name for f in c.outputs) or 'void'}"
                          + (f"  [{c.lifecycle} owner={c.owner}]" if c.lifecycle else "")
@@ -87,7 +118,12 @@ def main(argv=None):
     pi = sub.add_parser("infer", help="header + source -> capability spec (full L1+L2 stack)")
     pi.add_argument("header", help="C header to extract signatures from (libclang)")
     pi.add_argument("lib", nargs="?", help="optional .so to verify + report buildability")
-    pi.add_argument("--source", help="C source (.c) for L2 static analysis")
+    pi.add_argument("--source", action="append", default=None,
+                    help="C source (.c) for L2 static analysis. Repeatable: "
+                         "pass --source multiple times for a multi-file library.")
+    pi.add_argument("--source-dir", default=None,
+                    help="Directory to recursively glob for *.c files as L2 "
+                         "sources (multi-file). Combined with any --source paths.")
     pi.add_argument("--engine", default="libclang", choices=["libclang", "pycparser"],
                     help="L2 analysis engine (libclang reads .c directly; pycparser needs preprocessed)")
     pi.add_argument("--include", "-I", action="append", help="include dir for libclang (repeatable)")

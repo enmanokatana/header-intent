@@ -111,3 +111,38 @@ def test_cjson_direct_single_hop_free_unaffected():
 def test_cjson_member_access_still_excluded():
     facts, _ = analyze_handles(CJSON_SRC)
     assert facts["set_valuestring"].role == "uses"
+
+
+def test_cross_type_free_does_not_promote_destroys():
+    """Real libpq case: PQexec(PGconn *conn) calls pqClearAsyncResult(conn),
+    which frees conn->result (a PGresult MEMBER), not conn. The callee is a
+    PGresult destructor; forwarding must NOT promote PQexec to destroys-PGconn,
+    because that would free the live connection after one query (use-after-free).
+    The type-match guard rejects the cross-type promotion."""
+    src = '''
+    typedef struct PGresult { int x; } PGresult;
+    typedef struct PGconn { PGresult *result; } PGconn;
+    void free(void *p);
+    PGconn *PQconnectbootstrap(void) { PGconn *c = 0; return c; }
+    PGresult *PQmakeResult(PGconn *conn) { PGresult *r = 0; return r; }
+    void PQclear(PGresult *res) { free(res); }
+    void pqClearAsyncResult(PGconn *conn) { PQclear(conn->result); }
+    void PQexec(PGconn *conn) { pqClearAsyncResult(conn); }
+    void realClose(PGconn *conn) { free(conn); }
+    '''
+    facts, _ = analyze_handles(src)
+    # PQclear genuinely destroys a PGresult
+    assert facts["PQclear"].role == "destroys"
+    assert facts["PQclear"].handle_type == "PGresult"
+    # pqClearAsyncResult frees conn->result (member), NOT conn -> must NOT be destroys-PGconn
+    assert facts.get("pqClearAsyncResult") is None or \
+           facts["pqClearAsyncResult"].role != "destroys" or \
+           facts["pqClearAsyncResult"].handle_type != "PGconn"
+    # PQexec must NOT be promoted to destroys-PGconn via cross-type forwarding
+    assert facts.get("PQexec") is None or \
+           facts["PQexec"].role != "destroys" or \
+           facts["PQexec"].handle_type != "PGconn", \
+           "PQexec must not be a PGconn destructor -- it only frees a PGresult member"
+    # a genuine same-type destructor still works
+    assert facts["realClose"].role == "destroys"
+    assert facts["realClose"].handle_type == "PGconn"

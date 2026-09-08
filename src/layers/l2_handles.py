@@ -232,7 +232,18 @@ def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, Handle
                     callee_param = callee_rec.param_order[arg_idx]
                     callee_facts = facts.get(callee)
                     if (callee_facts and callee_facts.role == "destroys"
-                            and callee_facts.handle_param == callee_param):
+                            and callee_facts.handle_param == callee_param
+                            and callee_facts.handle_type == r.struct_ptr_params[pname]):
+                        # TYPE-MATCH GUARD: only propagate `destroys` when the callee
+                        # frees the SAME handle type the caller forwards. Without this,
+                        # a function that passes its handle to a callee which internally
+                        # frees a DIFFERENT object was mislabeled. Real case (libpq):
+                        # PQexec(PGconn *conn) calls pqClearAsyncResult(conn), which
+                        # frees conn->result (a PGresult MEMBER), not conn. The callee
+                        # is a PGresult destructor, not a PGconn destructor, so it must
+                        # not promote PQexec to `destroys PGconn` -- doing so would make
+                        # the handle table free the live connection after one query, a
+                        # use-after-free. The type check rejects the cross-type promotion.
                         f.role = "destroys"
                         f.handle_type = r.struct_ptr_params[pname]
                         f.handle_param = pname
@@ -313,3 +324,15 @@ def apply_handle_facts(spec, facts: dict[str, HandleFacts]) -> list[str]:
                 p.handle_type = f.handle_type
                 p.intent = Evidenced(Intent.IN, ["handle_analysis"], 0.9, verified=False)
     return notes
+
+
+def analyze_handles_multi(paths, *, engine, clang_args=None):
+    """Multi-file handle analysis. Merges the RAW HandleRecords across all files
+    FIRST, then classifies once, so that lifecycle forwarding (a destructor
+    reached only through a wrapper in another file) and the set of handed-out
+    handle types both resolve across the whole library rather than per file.
+    Returns (facts, handle_types, skipped_notes)."""
+    from .libclang_engine import _merge_multi
+    records, skipped = _merge_multi(engine, "handle_records", paths, clang_args)
+    facts, types = classify_records(records)
+    return facts, types, skipped

@@ -6,7 +6,9 @@ import yaml
 from .schema import LibrarySpec, to_dict, from_dict
 
 
-def dump_yaml(spec: LibrarySpec, path) -> None:
+def dump_yaml(spec, path):
+    from pathlib import Path
+    Path(path).parent.mkdir(parents=True, exist_ok=True)   # <-- add this line
     Path(path).write_text(yaml.safe_dump(to_dict(spec), sort_keys=False))
 
 def dumps_yaml(spec: LibrarySpec) -> str:

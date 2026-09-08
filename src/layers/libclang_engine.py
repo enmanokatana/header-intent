@@ -320,6 +320,45 @@ class LibclangEngine:
 _FREE = {"free"}
 
 
+def _merge_multi(eng, method_name, paths, clang_args, extra_kwargs=None):
+    """Run one engine analysis method across several source files and union the
+    per-function results, skipping any file that fails to parse (a real
+    multi-file library always has some files that need generated headers or
+    platform flags we don't have). Returns (merged_dict, skipped_notes).
+
+    This is the core of multi-file support: each analysis is keyed by function
+    name and a function is defined in exactly one .c, so a union across files
+    reconstructs the whole-library view. The one analysis this does NOT fully
+    resolve is cross-FILE ownership call chains (a function returning the result
+    of a callee in another file) -- that needs the merged-graph fixed point of
+    stage 2; here such a chain conservatively stays unresolved (fail-safe).
+
+    All engine analysis methods share the signature (path, [candidates,]
+    clang_args=...), so clang_args is passed as a keyword uniformly and any
+    method-specific argument (out_handle_records' `candidates`) rides in
+    extra_kwargs.
+    """
+    extra_kwargs = extra_kwargs or {}
+    merged: dict = {}
+    skipped: list = []
+    method = getattr(eng, method_name)
+    for p in paths:
+        try:
+            part = method(p, clang_args=clang_args, **extra_kwargs)
+        except ParseTruncated as e:
+            skipped.append(f"{os.path.basename(p)}: parse failed, skipped ({e})")
+            continue
+        except Exception as e:                       # never let one file abort all
+            skipped.append(f"{os.path.basename(p)}: {type(e).__name__}, skipped")
+            continue
+        # union; a function defined in multiple files (rare: weak symbols,
+        # platform variants) keeps the first file's verdict, which is stable
+        # across runs because `paths` is caller-ordered.
+        for k, v in part.items():
+            merged.setdefault(k, v)
+    return merged, skipped
+
+
 def handle_records_files(paths, clang_args=None) -> dict[str, HandleRecord]:
     """Merge handle records across several source files (e.g. lib + shim)."""
     eng = LibclangEngine(clang_args)

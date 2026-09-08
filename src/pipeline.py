@@ -14,15 +14,22 @@ from dataclasses import dataclass, field
 
 from .layers.l1_signature import spec_from_signatures
 from .layers.l2_static import l2_intents, l2_param_order
-from .layers.l2_handles import analyze_handles, apply_handle_facts
+from .layers.l2_handles import analyze_handles, apply_handle_facts, analyze_handles_multi
 from .layers.l2_ownership import (analyze_ownership, apply_ownership_facts,
-                                  analyze_string_ownership, apply_string_ownership_facts)
-from .layers.l2_out_handles import analyze_out_handles, apply_out_handle_facts
+                                  analyze_string_ownership, apply_string_ownership_facts,
+                                  analyze_ownership_multi, analyze_string_ownership_multi)
+from .layers.l2_out_handles import (analyze_out_handles, apply_out_handle_facts,
+                                    analyze_out_handles_multi)
 from .layers.l2_arrays import analyze_arrays, apply_array_facts
 from .fuse.fusion import fuse_l2_into_spec
 from .verify.probes import apply_verification
 from .core.invoker import build_capabilities
 from .core.policy import SpecViolation
+
+
+def _bn(path):
+    import os
+    return os.path.basename(path)
 from .core.handles import HandleTable
 
 
@@ -74,75 +81,109 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
     spec = spec_from_signatures(library, signatures, overrides)
 
     # --- L2 (needs source) ---
+    # `source` may be a single path (str, back-compat) or a list of paths
+    # (multi-file library). Normalize to a list; a single-element list takes the
+    # same code path, so single-file behavior is unchanged.
+    sources = None
     if source is not None:
+        sources = [source] if isinstance(source, str) else list(source)
+
+    if sources:
         eng = None
         if engine == "libclang":
             from .layers.libclang_engine import LibclangEngine
             eng = LibclangEngine(clang_args)      # strict: refuses a truncated AST
 
-        # def-use -> fuse
+        multi = len(sources) > 1
+
+        # def-use -> fuse. Per-function dicts; for multi-file we run each file and
+        # union (a function's own def-use is decided within its file).
         try:
-            src_arg = source if eng else (preprocessed_source or open(source).read())
-            intents = l2_intents(src_arg, engine=eng)
-            porder = l2_param_order(src_arg, engine=eng)
+            if eng:
+                intents, porder = {}, {}
+                for s in sources:
+                    try:
+                        i = l2_intents(s, engine=eng)   # engine reads path directly
+                        po = l2_param_order(s, engine=eng)
+                    except Exception as fe:
+                        report.skipped.append(f"def_use {_bn(s)}: {type(fe).__name__}, skipped")
+                        continue
+                    for k, v in i.items():
+                        intents.setdefault(k, v)
+                    for k, v in po.items():
+                        porder.setdefault(k, v)
+            else:
+                src_arg = preprocessed_source or open(sources[0]).read()
+                intents = l2_intents(src_arg, engine=eng)
+                porder = l2_param_order(src_arg, engine=eng)
             report.conflicts = fuse_l2_into_spec(spec, intents, porder)
         except Exception as e:
             report.skipped.append(f"def_use: {e!r}")
 
-        # handles
+        # handles (merge raw records across files, then classify once -> cross-file
+        # lifecycle forwarding resolves)
         try:
-            if eng:
-                facts, _ = analyze_handles(engine=eng, path=source, clang_args=clang_args)
+            if eng and multi:
+                facts, _, sk = analyze_handles_multi(sources, engine=eng, clang_args=clang_args)
+                report.skipped += [f"handles {n}" for n in sk]
+            elif eng:
+                facts, _ = analyze_handles(engine=eng, path=sources[0], clang_args=clang_args)
             else:
-                facts, _ = analyze_handles(preprocessed_source or open(source).read())
+                facts, _ = analyze_handles(preprocessed_source or open(sources[0]).read())
             report.handles = apply_handle_facts(spec, facts)
         except Exception as e:
             report.skipped.append(f"handles: {e!r}")
 
-        # ownership: creates vs borrowed (prevents double-free on borrowed returns)
+        # ownership: creates vs borrowed (cross-file call propagation via merged
+        # records; see analyze_ownership_multi)
         try:
-            if eng:
-                own = analyze_ownership(engine=eng, path=source, clang_args=clang_args)
+            if eng and multi:
+                own, sk = analyze_ownership_multi(sources, engine=eng, clang_args=clang_args)
+                report.skipped += [f"ownership {n}" for n in sk]
+            elif eng:
+                own = analyze_ownership(engine=eng, path=sources[0], clang_args=clang_args)
             else:
-                own = analyze_ownership(preprocessed_source or open(source).read())
+                own = analyze_ownership(preprocessed_source or open(sources[0]).read())
             report.ownership = apply_ownership_facts(spec, own)
         except Exception as e:
             report.skipped.append(f"ownership: {e!r}")
 
-        # string ownership: does a char* return need to be auto-freed after copy?
+        # string ownership
         try:
-            if eng:
-                sown = analyze_string_ownership(engine=eng, path=source, clang_args=clang_args)
+            if eng and multi:
+                sown, sk = analyze_string_ownership_multi(sources, engine=eng, clang_args=clang_args)
+                report.skipped += [f"string_ownership {n}" for n in sk]
+            elif eng:
+                sown = analyze_string_ownership(engine=eng, path=sources[0], clang_args=clang_args)
             else:
-                sown = analyze_string_ownership(preprocessed_source or open(source).read())
-            notes = apply_string_ownership_facts(spec, sown)
-            report.ownership += notes
+                sown = analyze_string_ownership(preprocessed_source or open(sources[0]).read())
+            report.ownership += apply_string_ownership_facts(spec, sown)
         except Exception as e:
             report.skipped.append(f"string_ownership: {e!r}")
 
-        # out-param handles: sqlite3_open(path, &db) -- a NEW handle written
-        # through a T** parameter rather than returned. L0 (`signatures`, still
-        # in scope) flags CANDIDATES via out_handle_candidates; this confirms
-        # which ones actually allocate (direct write, or forward through an
-        # internal wrapper) before promoting Role.OUT_HANDLE.
+        # out-param handles: sqlite3_open(path, &db)
         try:
             oh_candidates = {fn: sig.get("out_handle_candidates", {})
                              for fn, sig in signatures.items()
                              if sig.get("out_handle_candidates")}
             if oh_candidates:
-                if eng:
+                if eng and multi:
+                    oh_facts, sk = analyze_out_handles_multi(
+                        sources, candidates=oh_candidates, engine=eng, clang_args=clang_args)
+                    report.skipped += [f"out_handles {n}" for n in sk]
+                elif eng:
                     oh_facts = analyze_out_handles(candidates=oh_candidates, engine=eng,
-                                                   path=source, clang_args=clang_args)
+                                                   path=sources[0], clang_args=clang_args)
                 else:
                     oh_facts = analyze_out_handles(
-                        preprocessed_source or open(source).read(), candidates=oh_candidates)
-                notes = apply_out_handle_facts(spec, oh_facts)
-                report.ownership += notes
+                        preprocessed_source or open(sources[0]).read(), candidates=oh_candidates)
+                report.ownership += apply_out_handle_facts(spec, oh_facts)
         except Exception as e:
             report.skipped.append(f"out_handles: {e!r}")
 
-        # arrays (pycparser-only today: needs preprocessed text)
-        text = preprocessed_source if preprocessed_source else (open(source).read() if engine == "pycparser" else None)
+        # arrays (pycparser-only today: needs preprocessed text; single-file only)
+        text = preprocessed_source if preprocessed_source else (
+            open(sources[0]).read() if engine == "pycparser" else None)
         if text is not None:
             try:
                 report.arrays = apply_array_facts(spec, analyze_arrays(text))

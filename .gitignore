@@ -20,6 +20,9 @@ tests/.pytest_cache/
 .ruff_cache/
 .pyre/
 *.csv
+*.yaml
+*.tex
+*.txt
 # Coverage artifacts
 .coverage
 .coverage.*
@@ -36,7 +39,10 @@ pip-wheel-metadata/
 # Logs and runtime files
 *.log
 *.pid
-
+eval/
+eval_results/
+eval_specs/
+*.proto
 # Environment and local overrides
 .env
 .env.*
