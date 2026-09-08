@@ -24,7 +24,7 @@ import ctypes
 try:
     from clang import cindex
     _HAVE = True
-except Exception:                      # pragma: no cover
+except Exception:
     cindex = None
     _HAVE = False
 
@@ -60,7 +60,7 @@ def _map_type(t, is_param: bool = True):
     OPAQUE and the fail-safe guard refuses until out-buffer support exists.
     Only `const char *` params are true input strings.
     """
-    kind_map = _build_kind_map()            # built per call: no shared global state
+    kind_map = _build_kind_map()
 
     canon = t.get_canonical()
     kind = canon.kind
@@ -70,21 +70,20 @@ def _map_type(t, is_param: bool = True):
         return kind_map[kind]
 
     if kind == k.POINTER:
-        pointee_q = canon.get_pointee()             # keeps const qualification
+        pointee_q = canon.get_pointee()
         pointee = pointee_q.get_canonical()
         if pointee.kind in (k.CHAR_S, k.CHAR_U, k.SCHAR, k.UCHAR):
             if is_param and not pointee_q.is_const_qualified():
-                return ctypes.c_void_p              # writable buffer -> OPAQUE -> refused
-            return ctypes.c_char_p                  # const char* (or a return) -> string
+                return ctypes.c_void_p
+            return ctypes.c_char_p
         if pointee.kind in kind_map and kind_map[pointee.kind] is not None:
             return ctypes.POINTER(kind_map[pointee.kind])
-        # struct*/void*/func* -> opaque address (handle analysis resolves later)
         return ctypes.c_void_p
 
     if kind == k.ENUM:
-        return ctypes.c_int                 # C enums are int-compatible
+        return ctypes.c_int
 
-    if kind == k.CONSTANTARRAY:             # arrays decay to pointers at call sites
+    if kind == k.CONSTANTARRAY:
         elem = canon.get_array_element_type().get_canonical()
         if elem.kind in (k.CHAR_S, k.CHAR_U):
             return ctypes.c_char_p
@@ -125,7 +124,6 @@ def _pointer_is_out(arg_type) -> bool:
         return False
     pointee = canon.get_pointee()
     k = cindex.TypeKind
-    # char* and struct*/void* are not scalar-out
     pc = pointee.get_canonical().kind
     if pc in (k.CHAR_S, k.CHAR_U, k.SCHAR, k.UCHAR, k.RECORD, k.VOID, k.POINTER,
               k.FUNCTIONPROTO, k.FUNCTIONNOPROTO):
@@ -144,35 +142,18 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
 
     from ..layers.libclang_engine import builtin_include_args, check_diagnostics
 
-    args = builtin_include_args() + list(clang_args or [])   # stddef.h etc.
+    args = builtin_include_args() + list(clang_args or [])
     idx = cindex.Index.create()
     tu = idx.parse(header_path, args=args)
-    check_diagnostics(tu, header_path, strict=strict)         # never trust a truncated AST
+    check_diagnostics(tu, header_path, strict=strict)
 
     signatures: dict = {}
     skipped: list[str] = []
 
-    # Restrict extraction to the LIBRARY's own headers. A real library header
-    # (unlike a self-contained amalgamation such as cJSON or sqlite3) #includes
-    # system headers -- zlib.h pulls in unistd.h, git2.h pulls in stdlib.h --
-    # and walking the whole translation unit would extract libc (execve, div,
-    # getgroups, ...) instead of the library API.
-    #
-    # The subtlety: a SYSTEM-INSTALLED library (apt install libgit2-dev) puts
-    # its own headers UNDER /usr/include too -- /usr/include/git2.h with
-    # sub-headers in /usr/include/git2/. So we cannot blanket-reject
-    # /usr/include (that would reject the library itself) nor blanket-accept it
-    # (that lets libc back in). We resolve this by ACCEPTANCE-FIRST: a
-    # declaration is kept if it lives in the target header itself, its own
-    # directory subtree, OR a subdirectory named after the header stem (the
-    # umbrella-header convention: git2.h + git2/*.h). Only files that fail that
-    # acceptance are then rejected as system headers. realpath throughout
-    # because include dirs are frequently symlinked.
     _SYS_ROOTS = ("/usr/include", "/usr/lib", "/usr/local/include",
                   "/usr/lib/llvm", "/usr/lib/gcc")
     _target_real = os.path.realpath(os.path.abspath(header_path))
     _target_dir = os.path.dirname(_target_real)
-    # umbrella convention: git2.h -> also accept the git2/ subdirectory
     _stem = os.path.splitext(os.path.basename(_target_real))[0]
     _umbrella_dir = os.path.join(_target_dir, _stem)
 
@@ -182,16 +163,11 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
         if f is None:
             return False
         path = os.path.realpath(os.path.abspath(f.name))
-        # ACCEPT first: the target header, its subtree, or its umbrella subdir.
         if (path == _target_real
                 or path.startswith(_umbrella_dir + os.sep)
                 or (path.startswith(_target_dir + os.sep)
                     and _target_dir not in ("/usr/include", "/usr/local/include"))):
             return True
-        # Otherwise reject system headers. When the library is installed into a
-        # system root, _target_dir IS that root, so the subtree check above is
-        # narrowed to the umbrella subdir to avoid re-admitting libc that also
-        # lives directly in /usr/include.
         try:
             if loc.is_in_system_header:
                 return False
@@ -199,7 +175,6 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
             pass
         if any(path.startswith(os.path.realpath(r)) for r in _SYS_ROOTS):
             return False
-        # not a system header, and within the target dir subtree -> keep
         return path.startswith(_target_dir + os.sep)
 
     for c in tu.cursor.walk_preorder():
@@ -207,7 +182,6 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
             continue
         if not _in_library(c):
             continue
-        # declarations are enough for signatures; take each function once
         name = c.spelling
         if name in signatures:
             continue
@@ -233,7 +207,7 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
             }
         except UnmappableType as e:
             skipped.append(f"{name}: unmappable type {e}")
-        except Exception as e:                # never let one function abort the header
+        except Exception as e:
             skipped.append(f"{name}: {type(e).__name__}: {e}")
 
     return signatures, skipped

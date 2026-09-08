@@ -27,7 +27,6 @@ from .types import CTYPE_TO_PY, py_type_of, py_restype, arg_ctype, to_c, from_c
 from .handles import HandleTable, OwnershipError
 from ..layers.l2_handles import _is_dealloc_name
 
-# neutral field kinds an emitter maps into its own type system
 SCALAR, STRING, ARRAY, HANDLE = "scalar", "string", "array", "handle"
 
 
@@ -35,9 +34,9 @@ SCALAR, STRING, ARRAY, HANDLE = "scalar", "string", "array", "handle"
 class Field:
     """One neutral input or output field."""
     name: str
-    py_type: type                       # int | float | str | bool | list
-    kind: str = SCALAR                  # SCALAR | STRING | ARRAY | HANDLE
-    elem_type: Optional[type] = None    # element type when kind == ARRAY
+    py_type: type
+    kind: str = SCALAR
+    elem_type: Optional[type] = None
     doc: str = ""
 
 
@@ -47,12 +46,11 @@ class Capability:
     name: str
     doc: str
     inputs: list[Field]
-    outputs: list[Field]                # >1 when there are out-params; [] for void
-    returns_mapping: bool               # invoke() returns a dict of named outputs
+    outputs: list[Field]
+    returns_mapping: bool
     invoke: Callable[..., Any]
-    # semantic metadata emitters may use (gRPC streaming, docs, ...)
-    lifecycle: Optional[str] = None     # creates | borrows | uses | destroys
-    owner: Optional[str] = None         # caller | library
+    lifecycle: Optional[str] = None
+    owner: Optional[str] = None
     handle_type: Optional[str] = None
 
     @property
@@ -65,10 +63,8 @@ def _bind(lib, fn: FunctionSpec):
     cfn.argtypes = [arg_ctype(p) for p in fn.params]
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
     if fn.lifecycle in ("creates", "borrows"):
-        cfn.restype = ctypes.c_void_p          # a returned handle is an address
+        cfn.restype = ctypes.c_void_p
     elif fn.restype == "c_char_p" and fn.string_owner == "caller":
-        # an OWNED string: bind as a raw address (not ctypes' auto-copying
-        # c_char_p) so we can free the C buffer AFTER copying it ourselves.
         cfn.restype = ctypes.c_void_p
     return cfn
 
@@ -128,9 +124,6 @@ def _field_for(p: ParamSpec) -> Field:
     return Field(p.name, pt, STRING if pt is str else SCALAR)
 
 
-# --------------------------------------------------------------------------
-# capability builders (one per C calling shape)
-# --------------------------------------------------------------------------
 def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capability:
     """sqlite3_open(path, &db)-shaped: the NEW handle comes out through a T**
     parameter, not the return value -- the return value is typically a status
@@ -209,20 +202,14 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
     elif fn.lifecycle == "destroys":
         outputs = [Field("freed", int, SCALAR), Field("live_handles", int, SCALAR)]
         returns_mapping = True
-    else:                                       # uses
+    else:
         rt = py_restype(fn)
         outputs = [] if rt is type(None) else [Field("result", rt, STRING if rt is str else SCALAR)]
         returns_mapping = False
 
     def invoke(**kwargs):
-        # OWNERSHIP: validate BEFORE the C call. Checking afterwards would already
-        # have freed a borrowed pointer (a real double-free, observed in testing).
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
-            # A None handle -> C NULL; NULL cannot be owned or freed, and
-            # freeing NULL is a documented no-op in well-behaved C APIs
-            # (cJSON_Delete(NULL) included), so skip the ownership check and
-            # let it forward as NULL rather than raising on a missing handle.
             if hid is not None and not handles.is_owned(hid):
                 raise OwnershipError(
                     f"handle {hid} is BORROWED (owned by the library); freeing it "
@@ -233,15 +220,6 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
             if p.role is Role.HANDLE:
                 hval = kwargs[hkey[p.name]]
                 if hval is None:
-                    # An explicit None handle maps to a C NULL pointer. This is
-                    # the ONE non-registered handle value we forward, because
-                    # NULL is the universal "no object" sentinel that C APIs are
-                    # expected to handle defensively, and expressing it is
-                    # necessary to reuse a library's own NULL-argument tests
-                    # (e.g. cJSON's cjson_functions_shouldnt_crash_with_null_
-                    # pointers). An arbitrary UNREGISTERED INTEGER is still an
-                    # error, not forwarded: that would let a caller fabricate a
-                    # pointer, defeating the whole point of the handle table.
                     args.append(None)
                 else:
                     args.append(handles.get(hval))
@@ -261,13 +239,9 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
             if hid is None:
-                # forwarded as C NULL; a documented no-op, nothing in the table
-                # to release. Report freed=0 rather than raising on pop(None).
                 return {"freed": 0, "live_handles": len(handles)}
             handles.pop(hid)
             return {"freed": hid, "live_handles": len(handles)}
-        # uses -- an OWNED string return is copied then the C buffer freed
-        # (cJSON_Print's malloc'd result was previously leaked, bounded but real).
         if fn.restype == "c_char_p" and fn.string_owner == "caller":
             return _read_and_free_string(ret, string_dealloc)
         return from_c(ret, None if fn.restype is None else ctype_by_name(fn.restype))
@@ -304,7 +278,7 @@ def _array_capability(lib, fn: FunctionSpec) -> Capability:
             if p.role is Role.ARRAY:
                 args.append(built[p.name])
             elif p.role is Role.LENGTH_OF:
-                args.append(len(kwargs[p.dimension]))          # hidden, auto-filled
+                args.append(len(kwargs[p.dimension]))
             elif p.by_ref:
                 base = ctype_by_name(p.ctype)
                 args.append(ctypes.byref(base(to_c(kwargs[p.name], base))))
@@ -343,7 +317,7 @@ def _plain_capability(lib, fn: FunctionSpec, string_dealloc=None) -> Capability:
                 elif p.intent.value is Intent.INOUT:
                     cell = base(to_c(kwargs[p.name], base))
                     cells[p.name] = cell
-                else:                                   # in-by-reference
+                else:
                     cell = base(to_c(kwargs[p.name], base))
                 args.append(ctypes.byref(cell))
             else:
@@ -366,9 +340,6 @@ def _plain_capability(lib, fn: FunctionSpec, string_dealloc=None) -> Capability:
     return Capability(fn.name, doc, inputs, outputs, returns_mapping, invoke)
 
 
-# --------------------------------------------------------------------------
-# public API
-# --------------------------------------------------------------------------
 def build_capability(lib, fn: FunctionSpec, handles: HandleTable | None = None,
                      string_dealloc=None) -> Capability:
     """One spec function -> one protocol-neutral Capability. Raises SpecViolation
@@ -409,10 +380,6 @@ def build_capabilities(lib, spec: LibrarySpec, handles: HandleTable | None = Non
     """
     if handles is None:
         handles = HandleTable()
-    # computed ONCE for the whole library: the disambiguated string deallocator
-    # (see _find_string_deallocator) shared by every OWNED-string-returning
-    # capability, e.g. cJSON_Print -- resolves the small per-call leak noted in
-    # Phase 3 without risking a wrong-deallocator call on any single function.
     string_dealloc = _find_string_deallocator(lib, spec)
     caps, refused = [], []
     for fn in spec.functions.values():
@@ -423,9 +390,6 @@ def build_capabilities(lib, spec: LibrarySpec, handles: HandleTable | None = Non
                 raise
             refused.append((fn.name, str(e).split(";")[0]))
         except AttributeError as e:
-            # the header declares it but the .so doesn't export it -- usually a
-            # platform-specific symbol (e.g. sqlite3_win32_set_directory8 in a
-            # Linux build). A clean, specific reason beats a raw exception repr.
             if strict:
                 raise
             refused.append((fn.name, f"symbol not found in the .so (platform-specific "

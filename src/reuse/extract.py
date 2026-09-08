@@ -25,10 +25,6 @@ import re
 from dataclasses import dataclass, field
 
 
-# ---------------------------------------------------------------------------
-# 1. A minimal C tokenizer -- enough to walk balanced parentheses correctly
-#    while respecting string literals, char literals, and both comment styles.
-# ---------------------------------------------------------------------------
 def strip_comments_and_strings_aware(src: str) -> str:
     """Return src with comments removed but string/char literals preserved
     (their contents replaced by a placeholder so a ')' or '->' inside a string
@@ -80,18 +76,15 @@ def _match_paren(src: str, open_idx: int) -> int:
     return -1
 
 
-# ---------------------------------------------------------------------------
-# 2. Assertion + test-function model
-# ---------------------------------------------------------------------------
 @dataclass
 class Assertion:
-    macro: str            # e.g. TEST_ASSERT_NULL
-    raw_arg: str          # the full text inside the macro's parentheses
+    macro: str
+    raw_arg: str
     reusable: bool = False
-    reason: str = ""      # why reusable, or why blocked
-    call: str | None = None       # the cJSON function called, if recognized
-    call_args: list = field(default_factory=list)  # parsed literal args
-    expected: str | None = None   # expected value for EQUAL-style macros
+    reason: str = ""
+    call: str | None = None
+    call_args: list = field(default_factory=list)
+    expected: str | None = None
 
 
 @dataclass
@@ -100,12 +93,6 @@ class TestFunction:
     assertions: list = field(default_factory=list)
 
 
-# recognized Unity assertion macros and how many "value" operands precede the
-# call/expression we care about.
-#   TEST_ASSERT_NULL(x)              -> expect x == NULL
-#   TEST_ASSERT_NOT_NULL(x)          -> expect x != NULL
-#   TEST_ASSERT_TRUE(x) / _FALSE(x)  -> expect truthy / falsy
-#   TEST_ASSERT_EQUAL_INT(exp, x)    -> expect x == exp   (two operands)
 _NULL_MACROS = {"TEST_ASSERT_NULL": "null", "TEST_ASSERT_NOT_NULL": "not_null"}
 _BOOL_MACROS = {"TEST_ASSERT_TRUE": "true", "TEST_ASSERT_FALSE": "false"}
 _EQ_MACROS = {
@@ -115,9 +102,6 @@ _EQ_MACROS = {
 _ALL_MACROS = set(_NULL_MACROS) | set(_BOOL_MACROS) | set(_EQ_MACROS)
 
 
-# ---------------------------------------------------------------------------
-# 3. Extraction
-# ---------------------------------------------------------------------------
 _FUNC_DEF = re.compile(r"static\s+void\s+([A-Za-z_]\w*)\s*\(\s*void\s*\)\s*\{")
 _CALL = re.compile(r"^\s*([A-Za-z_]\w*)\s*\(")
 
@@ -128,11 +112,10 @@ def extract_file(path: str, lib_prefix: str = "cJSON") -> list[TestFunction]:
         raw = f.read()
     src = strip_comments_and_strings_aware(raw)
 
-    # locate each static-void test function and its body span (brace-matched)
     tests: list[TestFunction] = []
     for m in _FUNC_DEF.finditer(src):
         name = m.group(1)
-        body_start = m.end() - 1        # at the '{'
+        body_start = m.end() - 1
         body_end = _match_brace(src, body_start)
         if body_end == -1:
             continue
@@ -209,8 +192,6 @@ def _is_literal(tok: str) -> bool:
 
 
 def _has_struct_access(s: str) -> bool:
-    # `->` is unambiguous; for `.` avoid matching a float literal like `1.5`
-    # by requiring an identifier on the left of the dot.
     return "->" in s or bool(re.search(r"[A-Za-z_]\w*\s*\.\s*[A-Za-z_]", s))
 
 
@@ -222,19 +203,9 @@ def _classify(a: Assertion, lib_prefix: str) -> None:
         if len(parts) != 2:
             a.reason = "EQUAL macro without exactly two operands"
             return
-        # BLOCKER 1 must consider BOTH operands: Unity's convention is
-        # TEST_ASSERT_EQUAL_*(expected, actual), and in real cJSON tests the
-        # struct-field read is almost always the FIRST operand
-        # (TEST_ASSERT_EQUAL_INT(number->type, cJSON_Number)). Checking only
-        # the "actual" operand would misclassify these white-box asserts as
-        # reusable -- the single most important thing this classifier must not
-        # get wrong, since it would silently claim a struct-access test is
-        # black-box.
         if _has_struct_access(parts[0]) or _has_struct_access(parts[1]):
             a.reason = "white-box: asserts on a struct field the binding does not expose"
             return
-        # the operand we further scrutinize as "the call" is whichever one is
-        # a library call; prefer the second (Unity's "actual"), fall back to first.
         if _CALL.match(parts[1]) and parts[1].lstrip().startswith(("cJSON", lib_prefix)):
             a.expected, operand = parts[0], parts[1]
         elif _CALL.match(parts[0]) and parts[0].lstrip().startswith(("cJSON", lib_prefix)):
@@ -243,18 +214,15 @@ def _classify(a: Assertion, lib_prefix: str) -> None:
             a.expected, operand = parts[0], parts[1]
     else:
         operand = a.raw_arg
-        # BLOCKER 1: struct-field access anywhere in the operand -> white-box.
         if _has_struct_access(operand):
             a.reason = "white-box: asserts on a struct field the binding does not expose"
             return
 
-    # A bare literal operand (rare but possible) is trivially reusable.
     if _is_literal(operand):
         a.reusable = True
         a.reason = "literal operand"
         return
 
-    # Otherwise the operand must be a SINGLE call to a library function.
     cm = _CALL.match(operand)
     if not cm:
         a.reason = "operand is not a single library call (variable, cast, or expression)"
@@ -264,7 +232,6 @@ def _classify(a: Assertion, lib_prefix: str) -> None:
         a.reason = f"operand calls '{callee}', not a {lib_prefix} function"
         return
 
-    # the call must span the whole operand (no trailing arithmetic like `+ 1`)
     call_open = operand.index("(")
     call_close = _match_paren(operand, call_open)
     if call_close != len(operand) - 1:
@@ -274,9 +241,6 @@ def _classify(a: Assertion, lib_prefix: str) -> None:
     inner = operand[call_open + 1:call_close].strip()
     call_args = _split_top_level_commas(inner) if inner else []
 
-    # BLOCKER 2: every argument must be a literal (or NULL). A nested call or a
-    # variable reference means the test depends on prior state we would have to
-    # reconstruct -- out of scope for the mechanical v1.
     for arg in call_args:
         if not _is_literal(arg):
             a.reason = (f"call argument {arg!r} is not a literal "
@@ -290,9 +254,6 @@ def _classify(a: Assertion, lib_prefix: str) -> None:
     a.reason = "black-box: single library call over literal arguments"
 
 
-# ---------------------------------------------------------------------------
-# 4. Summary
-# ---------------------------------------------------------------------------
 def summarize(tests: list[TestFunction]) -> dict:
     total = reusable = 0
     reasons: dict[str, int] = {}

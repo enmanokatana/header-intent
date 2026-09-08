@@ -73,7 +73,7 @@ def _check_safe(fn: FunctionSpec) -> None:
             f"refuse to auto-generate (fail-safe)."
         )
     for p in fn.params:
-        if p.role is Role.HANDLE:            # handled by the lifecycle builder
+        if p.role is Role.HANDLE:
             continue
         if p.role is Role.OPAQUE or (
             not p.intent.verified and p.intent.confidence < CONFIDENCE_THRESHOLD
@@ -93,7 +93,7 @@ def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
     cfn.argtypes = argtypes
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
     if fn.lifecycle in ("creates", "borrows"):
-        cfn.restype = ctypes.c_void_p        # returned handle is an opaque address
+        cfn.restype = ctypes.c_void_p
 
     hparams = [p for p in fn.params if p.role is Role.HANDLE]
     single = len(hparams) == 1
@@ -124,7 +124,7 @@ def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
         if fn.lifecycle in ("creates", "borrows"):
             if not ret:
                 return {"handle": None}
-            owned = (fn.lifecycle == "creates")      # borrows -> caller must NOT free
+            owned = (fn.lifecycle == "creates")
             hid = handles.put(ret, owned=owned)
             if owned:
                 return {"handle": hid}
@@ -132,7 +132,7 @@ def build_handle_tool(lib, fn: FunctionSpec, handles) -> ToolDescriptor:
                     "note": "owned by the library; do not free (delete its owner instead)"}
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
-            handles.pop(hid)                       # raises OwnershipError if borrowed
+            handles.pop(hid)
             return {"freed": hid, "live_handles": len(handles)}
         rtype = None if fn.restype is None else ctype_by_name(fn.restype)
         return _from_c(ret, rtype)
@@ -161,7 +161,7 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
     cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
 
     has_out = any(p.intent.value in (Intent.OUT, Intent.INOUT) for p in fn.params)
-    visible = [p for p in fn.params if p.intent.value is not Intent.OUT]  # inout stays visible
+    visible = [p for p in fn.params if p.intent.value is not Intent.OUT]
 
     def py_for(p: ParamSpec):
         base = ctype_by_name(p.ctype)
@@ -174,17 +174,17 @@ def build_tool(lib, fn: FunctionSpec, handles=None) -> ToolDescriptor:
         for p in fn.params:
             base = ctype_by_name(p.ctype)
             if p.by_ref:
-                if p.intent.value is Intent.OUT:                 # allocate, return
+                if p.intent.value is Intent.OUT:
                     cell = base()
                     outs[p.name] = cell
-                elif p.intent.value is Intent.INOUT:             # seed, return
+                elif p.intent.value is Intent.INOUT:
                     cell = base(_to_c(kwargs[p.name], base))
                     outs[p.name] = cell
-                else:                                            # IN by reference: seed, don't return
+                else:
                     cell = base(_to_c(kwargs[p.name], base))
                 call_args.append(ctypes.byref(cell))
             else:
-                call_args.append(_to_c(kwargs[p.name], base))    # by value
+                call_args.append(_to_c(kwargs[p.name], base))
         ret = cfn(*call_args)
         rtype = None if fn.restype is None else ctype_by_name(fn.restype)
         if not has_out:
@@ -205,7 +205,7 @@ def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
     length_names = {p.dimension for p in fn.params if p.role is Role.ARRAY}
     arrays = {p.name: p for p in fn.params if p.role is Role.ARRAY}
 
-    for p in fn.params:                     # fail-safe: unresolved pointer stays refused
+    for p in fn.params:
         if p.role is Role.OPAQUE:
             raise SpecViolation(f"{fn.name}: opaque param {p.name!r} alongside array; refusing.")
 
@@ -241,7 +241,7 @@ def build_array_tool(lib, fn: FunctionSpec) -> ToolDescriptor:
             if p.role is Role.ARRAY:
                 call_args.append(built[p.name])
             elif p.role is Role.LENGTH_OF:
-                call_args.append(len(kwargs[p.dimension]))     # auto length
+                call_args.append(len(kwargs[p.dimension]))
             elif p.by_ref:
                 base = ctype_by_name(p.ctype)
                 call_args.append(ctypes.byref(base(_to_c(kwargs[p.name], base))))

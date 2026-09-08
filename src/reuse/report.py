@@ -19,8 +19,6 @@ def _c_files(target: str) -> list[str]:
         return [target]
     out = []
     for root, _dirs, files in os.walk(target):
-        # skip the vendored Unity framework itself -- we classify the LIBRARY's
-        # tests, not the test framework's own self-tests.
         if "unity" in root.split(os.sep):
             continue
         for fn in files:

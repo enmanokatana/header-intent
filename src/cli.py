@@ -29,9 +29,6 @@ def cmd_infer(args):
     for inc in (args.include or []):
         clang_args += ["-I", inc]
 
-    # Resolve sources: explicit --source paths (repeatable) plus any *.c found
-    # under --source-dir. Preserve order and de-duplicate. A single source stays
-    # a plain string for back-compat; multiple become a list (multi-file).
     src_list = list(args.source or [])
     if args.source_dir:
         src_list += sorted(glob.glob(os.path.join(args.source_dir, "**", "*.c"),
@@ -98,7 +95,7 @@ def cmd_emit(args):
     elif args.target == "python":
         from .emit.python import generate_source
         out = generate_source(spec, args.lib)
-    else:                                   # list
+    else:
         out = "\n".join(f"{c.name}({', '.join(f.name for f in c.inputs)})"
                          f" -> {', '.join(f.name for f in c.outputs) or 'void'}"
                          + (f"  [{c.lifecycle} owner={c.owner}]" if c.lifecycle else "")

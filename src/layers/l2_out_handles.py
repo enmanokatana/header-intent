@@ -73,10 +73,6 @@ class _MultiOriginCollector(c_ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Assignment(self, node):
-        # ONLY a bare-identifier reassignment changes what the POINTER VARIABLE
-        # itself refers to. `db->mutex = ...` writes a FIELD of *db -- it must
-        # NOT be recorded as a new origin for `db` (the variable's own identity
-        # is unchanged); only `isinstance(lvalue, c_ast.ID)` counts.
         if node.op == "=" and isinstance(node.lvalue, c_ast.ID):
             self.origin.setdefault(node.lvalue.name, set()).add(self._origin_of_expr(node.rvalue))
         self.generic_visit(node)
@@ -92,7 +88,7 @@ class OutHandleRecord:
     function: str
     param: str
     struct_name: str
-    origin: str = "unknown"          # "alloc" | "forward:<callee>:<argindex>" | "unknown"
+    origin: str = "unknown"
 
 
 @dataclass
@@ -129,7 +125,7 @@ def _direct_write_expr(body, param: str):
 def _forward_call(body, param: str):
     """If `param`'s ONLY appearance is as a direct, unmodified argument to ONE
     call, return (callee_name, arg_index). Else None (too complex to trust)."""
-    appearances = []          # (kind, extra) -- kind in {"call_arg", "other"}
+    appearances = []
 
     class V(c_ast.NodeVisitor):
         def visit_FuncCall(self, node):
@@ -140,9 +136,6 @@ def _forward_call(body, param: str):
             self.generic_visit(node)
 
         def visit_ID(self, node):
-            # any OTHER bare use of the name outside a call arg counts as "other"
-            # (visit_FuncCall's generic_visit will also re-visit args as ID nodes,
-            # so we only flag names NOT already recorded as a call_arg at this spot)
             pass
 
     V().visit(body)
@@ -195,18 +188,15 @@ def _records_from_pycparser(source: str, candidates: dict) -> dict:
     (see _double_ptr_struct_params) so forwarding through them still resolves."""
     ast = c_parser.CParser().parse(source)
 
-    # full param-order map for EVERY function, needed to resolve a forwarding
-    # call's argument INDEX to the callee's actual parameter NAME (the call site
-    # and the callee's own declaration can order/name things differently).
     all_params: dict[str, list[str]] = {}
-    all_candidates: dict[str, dict] = {}      # header hints UNION source-discovered
+    all_candidates: dict[str, dict] = {}
     for fd in ast.ext:
         if isinstance(fd, c_ast.FuncDef) and fd.decl.type.args:
             all_params[fd.decl.name] = [p.name for p in fd.decl.type.args.params
                                         if isinstance(p, c_ast.Decl) and p.name]
         if isinstance(fd, c_ast.FuncDef):
             merged = dict(_double_ptr_struct_params(fd))
-            merged.update(candidates.get(fd.decl.name, {}))   # header hint wins on conflict
+            merged.update(candidates.get(fd.decl.name, {}))
             if merged:
                 all_candidates[fd.decl.name] = merged
 
@@ -224,16 +214,11 @@ def _records_from_pycparser(source: str, candidates: dict) -> dict:
             col.visit(fd.body)
             direct = _direct_write_expr(fd.body, pname)
             if direct is not None:
-                # THE fix: _origin_of_expr checks the variable's ENTIRE
-                # assignment history (a SET), not just its last-seen value --
-                # db=alloc(...) then later db=0 on an error path must not erase
-                # the alloc evidence just because it's textually more recent.
                 origin = col._origin_of_expr(direct)
                 if origin == "alloc":
                     rec.origin = "alloc"
                 elif origin.startswith("call:"):
                     rec.origin = origin
-                # else: leaves rec.origin at "unknown" (conservative)
             else:
                 fwd = _forward_call(fd.body, pname)
                 if fwd:
@@ -249,7 +234,7 @@ def classify_out_handles(records: dict) -> dict:
     """Fixed point: resolve 'call:X' (direct alloc-wrapper) and 'forward:F:name'
     (byref passthrough, resolved by the callee's OWN parameter name) against
     other records' verdicts."""
-    verdict: dict = {}   # (fname, pname) -> bool confirmed
+    verdict: dict = {}
 
     changed = True
     for _ in range(10):
@@ -263,10 +248,6 @@ def classify_out_handles(records: dict) -> dict:
                 verdict[key] = True
                 changed = True
             elif rec.origin.startswith("call:"):
-                # direct write is itself a call to a non-obviously-alloc wrapper;
-                # without interprocedural return-value tracing here, treat as
-                # unconfirmed (conservative) -- the ownership analysis already
-                # covers return-value cases; this module only covers out-params.
                 verdict[key] = False
                 changed = True
             elif rec.origin.startswith("forward:"):
@@ -276,8 +257,6 @@ def classify_out_handles(records: dict) -> dict:
                     verdict[key] = verdict[target]
                     changed = True
                 elif target not in records:
-                    # forwards to a param that isn't itself a candidate at all
-                    # (e.g. forwarded to a plain non-handle param) -> unconfirmed
                     verdict[key] = False
                     changed = True
             elif rec.origin == "unknown":

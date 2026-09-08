@@ -9,12 +9,12 @@ class Intent(str, Enum):
 
 
 class Role(str, Enum):
-    SCALAR = "scalar"       # int/float/bool/char value
-    STRING = "string"       # const char*
-    ARRAY = "array"         # T* with a companion length 
-    LENGTH_OF = "length_of" # the integer giving an array's length 
-    BUFFER = "buffer"       # caller-sized char* out 
-    HANDLE = "handle"       # opaque pointer with a lifecycle 
-    OUT_HANDLE = "out_handle"  # T** that RECEIVES a new handle 
-    CALLBACK = "callback"   # function pointer  flagged, not exposable
-    OPAQUE = "opaque"       # unknown/unhandled pointer
+    SCALAR = "scalar"
+    STRING = "string"
+    ARRAY = "array"
+    LENGTH_OF = "length_of"
+    BUFFER = "buffer"
+    HANDLE = "handle"
+    OUT_HANDLE = "out_handle"
+    CALLBACK = "callback"
+    OPAQUE = "opaque"

@@ -13,7 +13,6 @@ from typing import Any, Optional
 
 from .vocab import Intent, Role
 
-# --- ctype-name <-> ctypes object registry (so specs serialize as strings) ---
 _CTYPES = {
     "c_int": ctypes.c_int, "c_uint": ctypes.c_uint,
     "c_long": ctypes.c_long, "c_ulong": ctypes.c_ulong,
@@ -26,10 +25,6 @@ _CTYPES = {
     "c_char_p": ctypes.c_char_p, "c_void_p": ctypes.c_void_p,
     "c_wchar": ctypes.c_wchar, "c_wchar_p": ctypes.c_wchar_p,
     "c_size_t": ctypes.c_size_t, "c_ssize_t": ctypes.c_ssize_t,
-    # fixed-width aliases: distinct NAMES some extractors may emit, even though
-    # ctypes implements them as aliases of the types above on most platforms
-    # (e.g. c_int64 is c_longlong) -- registering the alias name avoids a
-    # KeyError while `ctype_by_name` still returns a working, identical type.
     "c_int8": ctypes.c_int8, "c_uint8": ctypes.c_uint8,
     "c_int16": ctypes.c_int16, "c_uint16": ctypes.c_uint16,
     "c_int32": ctypes.c_int32, "c_uint32": ctypes.c_uint32,
@@ -37,7 +32,6 @@ _CTYPES = {
 }
 
 def ctype_by_name(name: str):
-    # pointer types serialize as "POINTER(<inner>)"; rebuild by recursion.
     if name.startswith("POINTER(") and name.endswith(")"):
         inner = name[len("POINTER("):-1]
         return ctypes.POINTER(ctype_by_name(inner))
@@ -47,12 +41,6 @@ def name_of_ctype(t) -> str:
     for k, v in _CTYPES.items():
         if v is t:
             return k
-    # A pointer type (e.g. POINTER(c_uint) == LP_c_uint) has no entry in the
-    # scalar registry. cJSON and SQLite never exercised a pointer-to-arithmetic
-    # parameter (their pointers were all char*/void*/struct*, handled as
-    # c_char_p/c_void_p), so this path was never hit until a third library
-    # (zlib's unsigned int*, libgit2's unsigned short*) used one. Recurse on the
-    # pointee and serialize as POINTER(<inner>).
     if isinstance(t, type) and issubclass(t, ctypes._Pointer):
         try:
             return f"POINTER({name_of_ctype(t._type_)})"
@@ -74,10 +62,9 @@ class Evidenced:
 class ParamSpec:
     name: str
     role: Role
-    intent: Evidenced           # Evidenced[Intent]
-    ctype: str                  # value type name; for a pointer this is the POINTEE
-    by_ref: bool = False        # True if the C param is a pointer (bind POINTER(ctype))
-    # phase 2/3 fields (unused now): dimension, owner, handle_type
+    intent: Evidenced
+    ctype: str
+    by_ref: bool = False
     dimension: Optional[str] = None
     owner: Optional[str] = None
     handle_type: Optional[str] = None
@@ -87,16 +74,12 @@ class ParamSpec:
 class FunctionSpec:
     name: str
     params: list[ParamSpec] = field(default_factory=list)
-    restype: Optional[str] = None          # ctype name, or None for void
-    lifecycle: Optional[str] = None        # "creates" | "borrows" | "uses" | "destroys"
-    handle_type: Optional[str] = None      # the opaque type this fn's lifecycle concerns
-    owner: Optional[str] = None            # "caller" (may free) | "library" (borrowed)
-    string_owner: Optional[str] = None     # for char* returns: "caller" (we auto-free
-                                            # after copying) | "library" (never free)
-    handle_out_param: Optional[str] = None # name of a T** param that RECEIVES a new
-                                            # handle (sqlite3_open(path, &db) idiom);
-                                            # the handle comes from this param, not
-                                            # the return value (which is often a status)
+    restype: Optional[str] = None
+    lifecycle: Optional[str] = None
+    handle_type: Optional[str] = None
+    owner: Optional[str] = None
+    string_owner: Optional[str] = None
+    handle_out_param: Optional[str] = None
 
 
 @dataclass
@@ -105,7 +88,6 @@ class LibrarySpec:
     functions: dict[str, FunctionSpec] = field(default_factory=dict)
 
 
-# --- (de)serialization to plain dicts (for YAML) ----------------------------
 def to_dict(spec: LibrarySpec) -> dict:
     out = {"library": spec.library, "functions": {}}
     for fname, fn in spec.functions.items():

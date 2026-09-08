@@ -41,7 +41,7 @@ class InferReport:
     ownership: list = field(default_factory=list)
     skipped: list = field(default_factory=list)
     buildable: list = field(default_factory=list)
-    refused: list = field(default_factory=list)   # (fn, reason)
+    refused: list = field(default_factory=list)
 
     def summary(self) -> str:
         lines = [
@@ -70,20 +70,15 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
     """Run the whole inference stack. Returns (LibrarySpec, InferReport)."""
     report = InferReport()
 
-    # --- signatures (L0) ---
     if signatures is None:
         if header is None:
             raise ValueError("provide `signatures` or `header`")
-        from .models.extract import extract_signatures      # Ferrule's own L0 (no cToMcp)
+        from .models.extract import extract_signatures
         signatures, skipped_sigs = extract_signatures(header, clang_args=clang_args)
         for s in skipped_sigs:
             report.skipped.append(f"L0 {s}")
     spec = spec_from_signatures(library, signatures, overrides)
 
-    # --- L2 (needs source) ---
-    # `source` may be a single path (str, back-compat) or a list of paths
-    # (multi-file library). Normalize to a list; a single-element list takes the
-    # same code path, so single-file behavior is unchanged.
     sources = None
     if source is not None:
         sources = [source] if isinstance(source, str) else list(source)
@@ -92,18 +87,16 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         eng = None
         if engine == "libclang":
             from .layers.libclang_engine import LibclangEngine
-            eng = LibclangEngine(clang_args)      # strict: refuses a truncated AST
+            eng = LibclangEngine(clang_args)
 
         multi = len(sources) > 1
 
-        # def-use -> fuse. Per-function dicts; for multi-file we run each file and
-        # union (a function's own def-use is decided within its file).
         try:
             if eng:
                 intents, porder = {}, {}
                 for s in sources:
                     try:
-                        i = l2_intents(s, engine=eng)   # engine reads path directly
+                        i = l2_intents(s, engine=eng)
                         po = l2_param_order(s, engine=eng)
                     except Exception as fe:
                         report.skipped.append(f"def_use {_bn(s)}: {type(fe).__name__}, skipped")
@@ -120,8 +113,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         except Exception as e:
             report.skipped.append(f"def_use: {e!r}")
 
-        # handles (merge raw records across files, then classify once -> cross-file
-        # lifecycle forwarding resolves)
         try:
             if eng and multi:
                 facts, _, sk = analyze_handles_multi(sources, engine=eng, clang_args=clang_args)
@@ -134,8 +125,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         except Exception as e:
             report.skipped.append(f"handles: {e!r}")
 
-        # ownership: creates vs borrowed (cross-file call propagation via merged
-        # records; see analyze_ownership_multi)
         try:
             if eng and multi:
                 own, sk = analyze_ownership_multi(sources, engine=eng, clang_args=clang_args)
@@ -148,7 +137,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         except Exception as e:
             report.skipped.append(f"ownership: {e!r}")
 
-        # string ownership
         try:
             if eng and multi:
                 sown, sk = analyze_string_ownership_multi(sources, engine=eng, clang_args=clang_args)
@@ -161,7 +149,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         except Exception as e:
             report.skipped.append(f"string_ownership: {e!r}")
 
-        # out-param handles: sqlite3_open(path, &db)
         try:
             oh_candidates = {fn: sig.get("out_handle_candidates", {})
                              for fn, sig in signatures.items()
@@ -181,7 +168,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         except Exception as e:
             report.skipped.append(f"out_handles: {e!r}")
 
-        # arrays (pycparser-only today: needs preprocessed text; single-file only)
         text = preprocessed_source if preprocessed_source else (
             open(sources[0]).read() if engine == "pycparser" else None)
         if text is not None:
@@ -194,7 +180,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
     else:
         report.skipped.append("all L2: no source given (L1 + verify only)")
 
-    # --- verify + buildability (needs .so) ---
     if so is not None:
         lib = ctypes.CDLL(so)
         apply_verification(lib, spec)
@@ -203,12 +188,6 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
         report.buildable = [c.name for c in caps]
         report.refused = refused
     else:
-        # No .so given (or it will not load): we cannot behaviorally verify or
-        # bind ctypes functions, but buildability is a STATIC policy decision
-        # (check_exposable) that needs only the spec. Report coverage from that
-        # so a library whose .so is unavailable still yields buildable/refused
-        # counts -- the `verified` flags are simply absent, which the fail-safe
-        # already treats conservatively.
         from .core.policy import check_exposable, SpecViolation as _SV
         buildable, refused = [], []
         for name, fn in spec.functions.items():
@@ -216,7 +195,7 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
                 check_exposable(fn)
                 buildable.append(name)
             except _SV as e:
-                refused.append((name, str(e)))   # (fn, why) tuple, as summary() expects
+                refused.append((name, str(e)))
         report.buildable = buildable
         report.refused = refused
 

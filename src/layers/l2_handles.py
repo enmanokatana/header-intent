@@ -24,10 +24,6 @@ from pycparser import c_ast, c_parser
 
 import re as _re
 
-# A deallocator may be free(), a custom name (cJSON_free), or a FUNCTION POINTER
-# reached through a hooks struct: global_hooks.deallocate(item)  <- cJSON does this.
-# Matching only "free" missed cJSON_Delete entirely (it derived as `uses`, leaving
-# a dangling handle after delete). Match the dealloc FAMILY by name instead.
 from .l2_ownership import _tokenize_ident
 
 _DEALLOC_WORDS = {"free", "dealloc", "deallocate", "destroy", "delete", "release", "dispose"}
@@ -43,47 +39,30 @@ def _is_dealloc_name(name: str) -> bool:
     return any(w in _DEALLOC_WORDS for w in _tokenize_ident(name))
 
 
-_FREE_NAMES = {"free"}          # kept for back-compat; _is_dealloc_name is the real test
+_FREE_NAMES = {"free"}
 
 
 @dataclass
 class HandleRecord:
     """Engine-neutral extraction for one function."""
     name: str
-    return_pointee: str | None = None            # struct/typedef name if returns T*
-    struct_ptr_params: dict = field(default_factory=dict)  # param -> type name
-    freed: set = field(default_factory=set)      # params passed to free()
-    param_order: list = field(default_factory=list)  # ALL param names, SOURCE order.
-    # Needed because a header prototype and its .c definition can legally use
-    # DIFFERENT parameter names (or the header may omit them entirely --
-    # sqlite3.h declares many functions as `int sqlite3_close(sqlite3*);` with
-    # no name at all, so L0 auto-names that param "a0"). Facts computed here
-    # come from the SOURCE file's real names ("db"); apply_handle_facts must
-    # fall back to matching by POSITION when the name itself doesn't match.
+    return_pointee: str | None = None
+    struct_ptr_params: dict = field(default_factory=dict)
+    freed: set = field(default_factory=set)
+    param_order: list = field(default_factory=list)
     forwards: dict = field(default_factory=dict)
-    # {param_name: [(callee_name, callee_arg_index), ...]} -- every DIRECT
-    # argument-position appearance of this param in a call within the body.
-    # Needed because sqlite3_close forwards through TWO hops before the real
-    # free (sqlite3_close -> sqlite3Close -> sqlite3LeaveMutexAndCloseZombie ->
-    # sqlite3_free(db)), and the middle hop's body passes `db` directly to SIX
-    # different helper calls, only one of which is the real closer -- a
-    # single-hop or single-target forwarding rule (as used for out-param-handle
-    # confirmation) is both too shallow and too strict for this idiom.
 
 
 @dataclass
 class HandleFacts:
     function: str
-    role: str | None = None                       # creates | uses | destroys
+    role: str | None = None
     handle_type: str | None = None
-    handle_param: str | None = None               # the one freed/used (destroys/uses)
-    handle_params: list = field(default_factory=list)   # ALL handle-typed params
-    param_order: list = field(default_factory=list)     # SOURCE-side param order (see HandleRecord)
+    handle_param: str | None = None
+    handle_params: list = field(default_factory=list)
+    param_order: list = field(default_factory=list)
 
 
-# --------------------------------------------------------------------------
-# pycparser extraction
-# --------------------------------------------------------------------------
 def _pointee_typename(node) -> str | None:
     if isinstance(node, c_ast.PtrDecl):
         inner = node.type
@@ -104,17 +83,14 @@ class _FreeFinder(c_ast.NodeVisitor):
     @staticmethod
     def _callee_name(nm) -> str:
         if isinstance(nm, c_ast.ID):
-            return nm.name                       # free(p)
+            return nm.name
         if isinstance(nm, c_ast.StructRef):
-            return nm.field.name                 # hooks.deallocate(p) / hooks->free(p)
+            return nm.field.name
         return ""
 
     def visit_FuncCall(self, node):
         if _is_dealloc_name(self._callee_name(node.name)):
             if node.args and node.args.exprs:
-                # ONLY the LAST argument is the thing being freed -- see the
-                # matching fix in libclang_engine.py's handle_records for why
-                # (sqlite3DbFree(db, p): db is context, p is what's freed).
                 last = node.args.exprs[-1]
                 if isinstance(last, c_ast.ID):
                     self.freed_ids.add(last.name)
@@ -173,16 +149,12 @@ def _records_from_pycparser(source: str) -> dict[str, HandleRecord]:
     return recs
 
 
-# --------------------------------------------------------------------------
-# engine-agnostic classification
-# --------------------------------------------------------------------------
 def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, HandleFacts], set[str]]:
     returned = {r.return_pointee for r in records.values() if r.return_pointee}
     facts: dict[str, HandleFacts] = {}
     for name, r in records.items():
         f = HandleFacts(function=name)
         f.param_order = r.param_order
-        # every param that is a pointer to a handed-out type is a handle input
         f.handle_params = [p for p, tn in r.struct_ptr_params.items() if tn in returned]
         if r.return_pointee:
             f.role, f.handle_type = "creates", r.return_pointee
@@ -195,27 +167,6 @@ def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, Handle
                 f.role, f.handle_type, f.handle_param = "uses", tn, p
         facts[name] = f
 
-    # Fixed-point forward-resolution: a function whose body never directly frees
-    # its handle param may still genuinely destroy it through one or more layers
-    # of wrapper calls (sqlite3_close -> sqlite3Close -> sqlite3LeaveMutexAnd
-    # CloseZombie -> sqlite3_free(db), a TWO-hop chain). Missing this is not
-    # cosmetic: sqlite3_close would bind as "uses", our HandleTable would never
-    # pop the handle after a REAL, successful C-level close, and reusing that
-    # handle afterward would hand an already-freed pointer straight into C --
-    # a genuine use-after-free, the opposite failure mode from the double-free
-    # protection this whole ownership system exists to provide.
-    #
-    # The rule: if ANY callee that directly receives this param as an argument
-    # (there may be several -- sqlite3Close passes `db` to six different
-    # helpers, only one of which is the real closer) itself resolves, via this
-    # same fixed point, to "destroys" at the matching parameter position,
-    # promote this function to "destroys" too. This is grounded in an actual
-    # verified chain reaching a real free() call, not a naming guess, so a
-    # false positive would require an unrelated helper to ALSO transitively
-    # free its own first argument for a completely different reason --
-    # implausible for purpose-built helper functions, and even if it happened
-    # the failure mode is benign (a handle gets invalidated a little early,
-    # not a crash or corruption).
     for _ in range(10):
         changed = False
         for name, r in records.items():
@@ -234,16 +185,6 @@ def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, Handle
                     if (callee_facts and callee_facts.role == "destroys"
                             and callee_facts.handle_param == callee_param
                             and callee_facts.handle_type == r.struct_ptr_params[pname]):
-                        # TYPE-MATCH GUARD: only propagate `destroys` when the callee
-                        # frees the SAME handle type the caller forwards. Without this,
-                        # a function that passes its handle to a callee which internally
-                        # frees a DIFFERENT object was mislabeled. Real case (libpq):
-                        # PQexec(PGconn *conn) calls pqClearAsyncResult(conn), which
-                        # frees conn->result (a PGresult MEMBER), not conn. The callee
-                        # is a PGresult destructor, not a PGconn destructor, so it must
-                        # not promote PQexec to `destroys PGconn` -- doing so would make
-                        # the handle table free the live connection after one query, a
-                        # use-after-free. The type check rejects the cross-type promotion.
                         f.role = "destroys"
                         f.handle_type = r.struct_ptr_params[pname]
                         f.handle_param = pname
@@ -297,13 +238,8 @@ def apply_handle_facts(spec, facts: dict[str, HandleFacts]) -> list[str]:
         fn.lifecycle = f.role
         fn.handle_type = f.handle_type
         notes.append(f"{fname}: {f.role} {f.handle_type}")
-        # mark EVERY handle-typed param (not just the freed one): a `creates` that
-        # also TAKES a handle (cJSON_GetObjectItem(object, key)) must bind that
-        # input as a handle id, not a raw int.
         marks = set(f.handle_params) | ({f.handle_param} if f.handle_param else set())
 
-        # resolve each marked SOURCE name to a spec-side name: direct match first,
-        # positional fallback second.
         resolved = set()
         spec_names = [p.name for p in fn.params]
         for m in marks:

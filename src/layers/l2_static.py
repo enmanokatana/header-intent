@@ -14,7 +14,7 @@ class FunctionAccesses:
     name: str
     pointer_params: list[str]
     events: list[tuple[str, str]]        
-    escaped: set[str] = field(default_factory=set)   # params passed whole to a call
+    escaped: set[str] = field(default_factory=set)
 
 
 class SourceEngine(Protocol):
@@ -49,7 +49,7 @@ class _AccessCollector(c_ast.NodeVisitor):
                 self.events.append((tgt, "read"))
             self.events.append((tgt, "write"))
             if isinstance(node.lvalue, c_ast.ArrayRef):
-                self.visit(node.lvalue.subscript)     #
+                self.visit(node.lvalue.subscript)
         else:
             self.visit(node.lvalue)
 

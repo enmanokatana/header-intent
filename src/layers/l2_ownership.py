@@ -66,12 +66,6 @@ def _is_alloc_name(name: str) -> bool:
         return False
     return any(w in _ALLOC_WORDS for w in _tokenize_ident(name))
 
-# TRANSFER heuristic: a function whose NAME suggests unlinking (not just reading)
-# combined with STRUCTURAL evidence (it mutates a DIFFERENT parameter's structure)
-# distinguishes cJSON_DetachItemViaPointer (returns `item` unchanged, but sets
-# `parent->child = ...` -- a real unlink) from cJSON_GetObjectItem (returns
-# `object->child`, pure read, no mutation anywhere). Name alone is not trusted;
-# structural corroboration is required, per the project's fail-safe philosophy.
 _TRANSFER_NAME_RE = re.compile(r"(detach|remove|take|extract|unlink|pop)", re.I)
 
 
@@ -83,25 +77,22 @@ class OwnRecord:
     """Engine-neutral extraction for one function that returns a pointer."""
     name: str
     returns_pointer: bool = False
-    origin: str = UNKNOWN          # "alloc" | "param_member" | "param_direct:<n>" | "call:<fn>" | "unknown"
-    escaped: bool = False          # returned value stored into a handle-typed param
+    origin: str = UNKNOWN
+    escaped: bool = False
     handle_params: list = field(default_factory=list)
-    mutates_other_param: bool = False   # writes through a DIFFERENT param (unlink evidence)
+    mutates_other_param: bool = False
 
 
 @dataclass
 class OwnFact:
     function: str
-    owner: str                     # OWNED | BORROWED
+    owner: str
     reason: str
     confidence: float
 
 
-# --------------------------------------------------------------------------
-# pycparser extraction
-# --------------------------------------------------------------------------
 def _returns_struct_ptr(fd) -> bool:
-    t = fd.decl.type.type            # fd.decl.type is the FuncDecl; .type is the return type
+    t = fd.decl.type.type
     if not isinstance(t, c_ast.PtrDecl):
         return False
     inner = t.type
@@ -162,7 +153,7 @@ def _callee_name(nm) -> str:
     if isinstance(nm, c_ast.ID):
         return nm.name
     if isinstance(nm, c_ast.StructRef):
-        return nm.field.name          # hooks->allocate(...)
+        return nm.field.name
     return ""
 
 
@@ -170,10 +161,10 @@ class _OwnCollector(c_ast.NodeVisitor):
     def __init__(self, params: list[str], handle_params: list[str]):
         self.params = set(params)
         self.handle_params = set(handle_params)
-        self.origin: dict[str, str] = {}          # local var -> origin tag
-        self.returns: list = []                   # returned expressions
-        self.calls: list = []                     # (callee, [arg root ids])
-        self.mutated_param_roots: set[str] = set()  # params whose members were WRITTEN
+        self.origin: dict[str, str] = {}
+        self.returns: list = []
+        self.calls: list = []
+        self.mutated_param_roots: set[str] = set()
 
     def _origin_of_expr(self, expr) -> str:
         if expr is None:
@@ -184,18 +175,16 @@ class _OwnCollector(c_ast.NodeVisitor):
         if isinstance(e, c_ast.FuncCall):
             cn = _callee_name(e.name)
             return "alloc" if _is_alloc_name(cn) else f"call:{cn}"
-        if _is_member_expr(e):                    # p->child / cur->next -- DERIVED
+        if _is_member_expr(e):
             root = _root_id(e)
             if root in self.params:
-                return "param_member"             # object->child : into the caller's tree
-            # traversal STAYS inside a borrowed structure: cur = cur->next keeps the
-            # borrow (without this, a loop clobbers the taint and we lose the fact).
+                return "param_member"
             if self.origin.get(root) in ("param_member", "param_direct"):
                 return "param_member"
             return UNKNOWN
         if isinstance(e, c_ast.ID):
             if e.name in self.params:
-                return f"param_direct:{e.name}"   # the parameter ITSELF, unchanged
+                return f"param_direct:{e.name}"
             return self.origin.get(e.name, UNKNOWN)
         return UNKNOWN
 
@@ -208,10 +197,6 @@ class _OwnCollector(c_ast.NodeVisitor):
         if node.op == "=" and isinstance(node.lvalue, c_ast.ID):
             self.origin[node.lvalue.name] = self._origin_of_expr(node.rvalue)
         elif _is_member_expr(node.lvalue):
-            # a WRITE through a member access (p->field = ...) is evidence that
-            # whichever parameter `p` traces back to was MUTATED -- the signal
-            # that distinguishes an unlink (cJSON_DetachItemViaPointer sets
-            # `parent->child = ...`) from a pure read.
             root = _root_id(node.lvalue)
             if root in self.params:
                 self.mutated_param_roots.add(root)
@@ -256,8 +241,6 @@ def _records_from_pycparser(source: str) -> dict[str, OwnRecord]:
         col = _OwnCollector(params, rec.handle_params)
         col.visit(fd.body)
 
-        # Collect EVERY return's origin, then pick by priority (order-independent --
-        # an early `return NULL;` guard must not hide the real return path).
         origins, ret_ids = [], []
         for expr in col.returns:
             if isinstance(expr, c_ast.Constant):
@@ -268,7 +251,7 @@ def _records_from_pycparser(source: str) -> dict[str, OwnRecord]:
                 ret_ids.append(rid)
 
         if "param_member" in origins:
-            rec.origin = "param_member"                # derived-from-param wins (fail-safe)
+            rec.origin = "param_member"
         elif "alloc" in origins:
             rec.origin = "alloc"
         else:
@@ -281,19 +264,6 @@ def _records_from_pycparser(source: str) -> dict[str, OwnRecord]:
                 calls = [o for o in origins if o.startswith("call:")]
                 rec.origin = calls[0] if calls else UNKNOWN
 
-        # ESCAPE applies whenever the return is freshly PRODUCED here -- either a
-        # direct alloc, or a call to a wrapper that allocates (cJSON_AddNullToObject
-        # calls cJSON_CreateNull(), it does not malloc directly; gating this on
-        # origin=="alloc" literally missed every Add*ToObject function, which is a
-        # REAL regression: they were silently reclassified caller-owned instead of
-        # BORROWED, a live double-free risk).
-        #
-        # The PRODUCER call itself must be excluded from the scan, or its own
-        # arguments falsely look like an escape target -- this is what caused the
-        # ORIGINAL cJSON_Duplicate bug: `return dup_rec(item, hooks, recurse);`
-        # walks `item` into ret_ids (it's inside the return expression's subtree),
-        # and dup_rec's own args re-match against handle_params, making the
-        # producer look like a consumer of its own output.
         producer = rec.origin.split(":", 1)[1] if rec.origin.startswith("call:") else None
         if rec.origin == "alloc" or rec.origin.startswith("call:"):
           for callee, roots in col.calls:
@@ -308,9 +278,6 @@ def _records_from_pycparser(source: str) -> dict[str, OwnRecord]:
     return recs
 
 
-# --------------------------------------------------------------------------
-# engine-agnostic fixed-point classification
-# --------------------------------------------------------------------------
 def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
     verdict: dict[str, str] = {}
 
@@ -318,32 +285,23 @@ def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
         if not rec.returns_pointer:
             return None
         if rec.escaped:
-            return BORROWED                    # rule 3: parent took ownership
+            return BORROWED
         if rec.origin == "param_member":
-            return BORROWED                    # rule 2: read-only, derived from a param
+            return BORROWED
         if rec.origin.startswith("param_direct:"):
-            # rule 2b (TRANSFER): the function returns a parameter UNCHANGED, but
-            # its name suggests unlinking AND it mutates a DIFFERENT parameter's
-            # structure -- cJSON_DetachItemViaPointer sets `parent->child = ...`
-            # then returns `item` itself. Both signals are required; naming alone
-            # is not trusted (a function could be named "detach" and just be a
-            # getter). Missing either signal falls through to the old fail-safe
-            # (rule 5, BORROWED) -- this rule only ever makes things LESS
-            # conservative when it is confident, never more.
             fname = rec.name
             if rec.mutates_other_param and _TRANSFER_NAME_RE.search(fname):
                 return OWNED
-            return None                        # not confident enough -> rule 4/5
+            return None
         if rec.origin == "alloc":
-            return OWNED                       # rule 1
-        return None                            # rule 4/5: needs propagation
+            return OWNED
+        return None
 
     for n, r in records.items():
         b = base(r)
         if b:
             verdict[n] = b
 
-    # fixed point over call propagation (rule 4)
     for _ in range(10):
         changed = False
         for n, r in records.items():
@@ -399,28 +357,17 @@ def apply_ownership_facts(spec, facts: dict[str, OwnFact]) -> list[str]:
             continue
         fn.owner = f.owner
         if fn.lifecycle == "creates" and f.owner == BORROWED:
-            fn.lifecycle = "borrows"          # NOT a fresh handle the caller may free
+            fn.lifecycle = "borrows"
             notes.append(f"{fname}: creates -> BORROWS ({f.reason})")
         elif fn.lifecycle == "creates":
             notes.append(f"{fname}: creates (owner=caller)")
     return notes
 
 
-# --------------------------------------------------------------------------
-# STRING ownership: does an OWNED (caller-must-free) char* come back, or a
-# BORROWED/static one? Reuses the SAME origin-tracing machinery as pointer
-# ownership above (it is type-agnostic), with a DELIBERATELY SIMPLER rule set:
-# no escape rule, no transfer rule. A wrong verdict here means calling free()
-# on a pointer we do not actually own -- heap corruption, not just a leak -- so
-# only the highest-confidence signal (a return that traces cleanly to an
-# allocation, with NO other complicating origin among the returns) is trusted.
-# Everything else defaults to "do not free" (a small, bounded, safe leak),
-# matching cJSON_Print's malloc'd buffer that this was built to address.
-# --------------------------------------------------------------------------
 @dataclass
 class StringOwnFact:
     function: str
-    owns: bool              # True = caller (we) must free the returned buffer
+    owns: bool
     reason: str
     confidence: float
 
@@ -447,12 +394,12 @@ def _string_records_from_pycparser(source: str) -> dict:
         args = fd.decl.type.args
         params = [p.name for p in args.params
                   if isinstance(p, c_ast.Decl) and p.name] if args else []
-        col = _OwnCollector(params, [])       # no handle_params: no escape rule for strings
+        col = _OwnCollector(params, [])
         col.visit(fd.body)
 
         origins = []
         for expr in col.returns:
-            if isinstance(expr, c_ast.Constant):     # a string literal return -> static, never free
+            if isinstance(expr, c_ast.Constant):
                 origins.append("static")
                 continue
             origins.append(col._origin_of_expr(expr))
@@ -465,8 +412,6 @@ def _string_records_from_pycparser(source: str) -> dict:
             if all(o == "alloc" for o in origins):
                 recs[name] = ("alloc", "returns a freshly allocated string")
             else:
-                # every return path is a clean call-through with no complications;
-                # resolved by propagation below.
                 recs[name] = ("call", origins)
         else:
             recs[name] = ("not_owned", "ownership unresolved; fail-safe = do not free")

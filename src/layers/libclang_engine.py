@@ -16,7 +16,7 @@ import os
 try:
     from clang import cindex
     _HAVE = True
-except Exception:                      # pragma: no cover
+except Exception:
     cindex = None
     _HAVE = False
 
@@ -64,7 +64,7 @@ def builtin_include_args() -> list:
     for pat in ("/usr/lib/llvm-*/lib/clang/*/include",
                 "/usr/lib/clang/*/include",
                 "/usr/local/lib/clang/*/include",
-                "/usr/lib/gcc/*/*/include",          # gcc ships stddef.h too
+                "/usr/lib/gcc/*/*/include",
                 "/usr/lib/gcc/*/*/include-fixed"):
         cands.extend(sorted(glob.glob(pat)))
 
@@ -86,7 +86,7 @@ class ParseTruncated(RuntimeError):
 
 def check_diagnostics(tu, path, strict=True):
     """Return fatal diagnostics; raise if strict. NEVER analyze a truncated AST."""
-    fatal = [d for d in tu.diagnostics if d.severity >= 4]      # 4 == FATAL
+    fatal = [d for d in tu.diagnostics if d.severity >= 4]
     if fatal and strict:
         detail = "; ".join(f"{d.location}: {d.spelling}" for d in fatal[:3])
         raise ParseTruncated(
@@ -104,7 +104,6 @@ def _require():
         raise ImportError("libclang bindings not available; `pip install libclang`")
 
 
-# --- type helpers -----------------------------------------------------------
 def _struct_pointee_name(t):
     """If t is a pointer to a struct/typedef-to-struct, return the type name."""
     if t.kind != cindex.TypeKind.POINTER:
@@ -133,7 +132,6 @@ def _is_scalar_pointer(t) -> bool:
     return t.get_pointee().get_canonical().kind in _ARITH
 
 
-# --- AST helpers ------------------------------------------------------------
 def _decl_ref_name(node, params):
     """Unwrap casts/parens to a DECL_REF_EXPR; return its name if in params."""
     n = node
@@ -179,7 +177,7 @@ def _collect_events(node, params, events):
     k = node.kind
     if k == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(node):
         kids = list(node.get_children())
-        _collect_events(kids[1], params, events)               # RHS reads first
+        _collect_events(kids[1], params, events)
         tgt = _root_lvalue_param(kids[0], params)
         if tgt:
             events.append((tgt, "write"))
@@ -220,16 +218,15 @@ def _collect_events(node, params, events):
         _collect_events(ch, params, events)
 
 
-# --- the engine -------------------------------------------------------------
 class LibclangEngine:
     def __init__(self, clang_args=None, strict=True):
         self.args = list(clang_args or [])
-        self.strict = strict          # refuse to analyze a truncated AST
+        self.strict = strict
 
     def _parse(self, path, clang_args=None):
         _require()
         args = list(clang_args or self.args)
-        args = builtin_include_args() + args      # stddef.h etc. -- or bodies truncate
+        args = builtin_include_args() + args
         idx = cindex.Index.create()
         tu = idx.parse(path, args=args)
         check_diagnostics(tu, path, strict=self.strict)
@@ -264,27 +261,10 @@ class LibclangEngine:
                     continue
                 args = list(d.get_arguments())
                 if args:
-                    # ONLY the LAST argument is the thing being freed. cJSON's
-                    # deallocators are single-arg (free(ptr), hooks->deallocate(item)),
-                    # where last==only, so this is unchanged there. sqlite3's actual
-                    # convention is sqlite3DbFree(sqlite3 *db, void *p): db is the
-                    # ALLOCATOR CONTEXT (arg 0), p is what's freed (last arg). Checking
-                    # every argument wrongly flagged `db` as destroyed on every function
-                    # that calls sqlite3DbFree internally (sqlite3_exec, sqlite3_blob_open,
-                    # sqlite3_declare_vtab, ...) even though db itself is never freed.
                     nm = _direct_ref(args[-1], struct_params)
                     if nm:
                         freed.add(nm)
 
-            # Every DIRECT argument-position appearance of a not-yet-freed
-            # struct-typed param, across every call in the body -- resolves
-            # lifecycle classification through wrapper functions. sqlite3_close
-            # forwards through TWO hops before the real free (sqlite3_close ->
-            # sqlite3Close -> sqlite3LeaveMutexAndCloseZombie -> sqlite3_free(db)),
-            # and the middle hop passes `db` directly to SIX different helper
-            # calls, only one of which is the real closer -- see
-            # l2_handles.classify_records for the fixed-point resolution this
-            # feeds into.
             candidate_names = set(struct_params) - freed
             forwards = {n: [] for n in candidate_names}
             if candidate_names:
@@ -348,12 +328,9 @@ def _merge_multi(eng, method_name, paths, clang_args, extra_kwargs=None):
         except ParseTruncated as e:
             skipped.append(f"{os.path.basename(p)}: parse failed, skipped ({e})")
             continue
-        except Exception as e:                       # never let one file abort all
+        except Exception as e:
             skipped.append(f"{os.path.basename(p)}: {type(e).__name__}, skipped")
             continue
-        # union; a function defined in multiple files (rare: weak symbols,
-        # platform variants) keeps the first file's verdict, which is stable
-        # across runs because `paths` is caller-ordered.
         for k, v in part.items():
             merged.setdefault(k, v)
     return merged, skipped
@@ -424,7 +401,7 @@ def _unwrap(n):
         _TRANSPARENT = {ck.UNEXPOSED_EXPR, ck.PAREN_EXPR, ck.CSTYLE_CAST_EXPR}
     while n is not None and n.kind in _TRANSPARENT:
         kids = [k for k in n.get_children()
-                if k.kind != cindex.CursorKind.TYPE_REF]     # drop the cast's type
+                if k.kind != cindex.CursorKind.TYPE_REF]
         if len(kids) != 1:
             return n
         n = kids[0]
@@ -448,7 +425,7 @@ def _direct_ref(node, names):
             kids = list(n.get_children())
             n = kids[0] if len(kids) == 1 else None
             continue
-        return None                       # member ref, call, binary op, ... -> not direct
+        return None
     return None
 
 
@@ -495,18 +472,18 @@ class _OwnershipMixin:
                     if _is_alloc_name(cn):
                         return "alloc"
                     return f"call:{cn}" if cn else "unknown"
-                if k == cindex.CursorKind.MEMBER_REF_EXPR:            # DERIVED (p->child)
+                if k == cindex.CursorKind.MEMBER_REF_EXPR:
                     if _root_param(n, params):
                         return "param_member"
                     base = next((x.spelling for x in n.walk_preorder()
                                  if x.kind == cindex.CursorKind.DECL_REF_EXPR), None)
                     bo = origin.get(base, "")
                     if bo == "param_member" or bo.startswith("param_direct"):
-                        return "param_member"       # cur = cur->next : stays in the borrow
+                        return "param_member"
                     return "unknown"
                 if k == cindex.CursorKind.DECL_REF_EXPR:
                     if n.spelling in params:
-                        return f"param_direct:{n.spelling}"   # the parameter ITSELF
+                        return f"param_direct:{n.spelling}"
                     return origin.get(n.spelling, "unknown")
                 return "unknown"
 
@@ -514,16 +491,15 @@ class _OwnershipMixin:
                 if n.kind == cindex.CursorKind.VAR_DECL:
                     kids = [k for k in n.get_children()
                             if k.kind != cindex.CursorKind.TYPE_REF]
-                    if kids:                       # last child is the initializer
+                    if kids:
                         origin[n.spelling] = origin_of(kids[-1])
                 elif n.kind == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(n):
                     kids = list(n.get_children())
                     if len(kids) == 2:
-                        lhs = _unwrap(kids[0])       # may be wrapped
+                        lhs = _unwrap(kids[0])
                         if lhs is not None and lhs.kind == cindex.CursorKind.DECL_REF_EXPR:
                             origin[lhs.spelling] = origin_of(kids[1])
                         elif lhs is not None and lhs.kind == cindex.CursorKind.MEMBER_REF_EXPR:
-                            # a WRITE through a member (p->field = ...) -- unlink evidence.
                             root = _root_param(lhs, params)
                             if root:
                                 mutated_param_roots.add(root)
@@ -540,15 +516,11 @@ class _OwnershipMixin:
                 elif n.kind == cindex.CursorKind.CALL_EXPR:
                     roots = []
                     for a in n.get_arguments():
-                        nm = _direct_ref(a, params | set(origin))   # direct args only
+                        nm = _direct_ref(a, params | set(origin))
                         if nm:
                             roots.append(nm)
                     calls.append((_callee_name_of(n), roots))
 
-            # Collect EVERY return's origin, then pick by priority. The old
-            # "first non-unknown wins, then break" was order-dependent: an early
-            # `return NULL;` (cJSON_ParseWithOpts) could leave the real
-            # `return cJSON_ParseWithLengthOpts(...)` unexamined.
             ret_ids, origins = [], []
             for expr in returns:
                 origins.append(origin_of(expr))
@@ -557,7 +529,7 @@ class _OwnershipMixin:
                         ret_ids.append(r.spelling)
 
             if "param_member" in origins:
-                rec.origin = "param_member"                # derived-from-param wins (fail-safe)
+                rec.origin = "param_member"
             elif "alloc" in origins:
                 rec.origin = "alloc"
             else:
@@ -570,19 +542,6 @@ class _OwnershipMixin:
                     call_origins = [o for o in origins if o.startswith("call:")]
                     rec.origin = call_origins[0] if call_origins else "unknown"
 
-            # ESCAPE applies whenever the return is freshly PRODUCED here -- either
-            # a direct alloc, or a call to a wrapper that allocates (cJSON_AddNullToObject
-            # calls cJSON_CreateNull(), it does not malloc directly; gating this on
-            # origin=="alloc" literally missed every Add*ToObject function -- a REAL
-            # regression: silently reclassified caller-owned instead of BORROWED, a
-            # live double-free risk).
-            #
-            # The PRODUCER call itself is excluded from the scan, or its own
-            # arguments falsely look like an escape target -- this is what caused the
-            # ORIGINAL cJSON_Duplicate bug: `return dup_rec(item, hooks, recurse);`
-            # walks `item` into ret_ids (inside the return expression's subtree), and
-            # dup_rec's own args re-match against handle_params, making the producer
-            # look like a consumer of its own output.
             producer = rec.origin.split(":", 1)[1] if rec.origin.startswith("call:") else None
             if rec.origin == "alloc" or rec.origin.startswith("call:"):
                 for callee, roots in calls:
@@ -597,7 +556,6 @@ class _OwnershipMixin:
         return recs
 
 
-# mix ownership extraction into the engine
 LibclangEngine.ownership_records = _OwnershipMixin.ownership_records
 
 
@@ -638,7 +596,7 @@ class _StringOwnershipMixin:
                     return "param_member" if _root_param(n, params) else "unknown"
                 if k == cindex.CursorKind.DECL_REF_EXPR:
                     if n.spelling in params:
-                        return "param_member"     # any param-derived string: don't free
+                        return "param_member"
                     return origin.get(n.spelling, "unknown")
                 if k == cindex.CursorKind.STRING_LITERAL:
                     return "static"
@@ -702,8 +660,6 @@ class _OutHandleMixin:
         tu = self._parse(path, clang_args)
         funcs = list(self._defined_functions(tu, path))
 
-        # discover ALL functions' double-pointer-to-struct params (source-wide,
-        # not just header-declared ones) so internal helpers resolve too.
         all_candidates: dict = {}
         all_params: dict = {}
         for c in funcs:
@@ -725,7 +681,7 @@ class _OutHandleMixin:
                     if name:
                         found[a.spelling] = name
             merged = dict(found)
-            merged.update(candidates.get(c.spelling, {}))    # header hint wins
+            merged.update(candidates.get(c.spelling, {}))
             if merged:
                 all_candidates[c.spelling] = merged
 
@@ -736,23 +692,6 @@ class _OutHandleMixin:
             if not cands:
                 continue
 
-            # local-variable origin tracing -- ACCUMULATES a SET of every
-            # origin a variable is ever assigned, rather than overwriting.
-            # Real sqlite3 does this in openDatabase:
-            #     db = sqlite3MallocZero(...);   // success path
-            #     ...
-            #     if (rc != SQLITE_OK) { db = 0; }  // an error path
-            #     opendb_out: *ppDb = db;         // reached from EVERY path
-            # "last assignment wins" forgets the allocation once it sees
-            # the later reset. The real question -- does an execution path
-            # EXIST where this out-param receives a fresh allocation -- is
-            # answered by checking whether "alloc" is in the set at all.
-            #
-            # PERFORMANCE: walk the function body ONCE for ALL of its
-            # candidate params, not once per param -- a full walk_preorder()
-            # over a large function (sqlite3's VDBE/parser functions run to
-            # thousands of nodes) is the expensive part; re-walking it once
-            # per T** parameter when a function has several was pure waste.
             origin: dict = {}
             direct_rhs_by_param: dict = {}
             forward_target_by_param: dict = {}
@@ -784,21 +723,6 @@ class _OutHandleMixin:
                             origin.setdefault(lhs.spelling, set()).add(origin_of(kids[1]))
                         elif lhs is not None and lhs.kind == cindex.CursorKind.UNARY_OPERATOR \
                                 and _is_deref(lhs):
-                            # *pname = expr -- the dereference operand must be
-                            # unwrapped too (libclang wraps it in UNEXPOSED_EXPR);
-                            # _decl_ref_name already exists and handles it.
-                            #
-                            # LAST write wins, not first. openDatabase does
-                            # `*ppDb = 0;` as a defensive reset near the top,
-                            # THEN the real `*ppDb = db;` at a cleanup label
-                            # near the bottom. A first-wins guard here locks in
-                            # the defensive reset and the real write is never
-                            # recorded -- this was a real regression introduced
-                            # by the single-walk-per-function restructuring
-                            # (the original per-parameter walk overwrote
-                            # unconditionally on every match, which is correct;
-                            # this rewrite accidentally added a "only if not
-                            # already seen" guard while consolidating the walk).
                             sub = list(lhs.get_children())
                             if sub:
                                 nm = _decl_ref_name(sub[0], cand_names)
