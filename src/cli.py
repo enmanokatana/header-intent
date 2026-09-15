@@ -29,6 +29,9 @@ def cmd_infer(args):
     for inc in (args.include or []):
         clang_args += ["-I", inc]
 
+    # Resolve sources: explicit --source paths (repeatable) plus any *.c found
+    # under --source-dir. Preserve order and de-duplicate. A single source stays
+    # a plain string for back-compat; multiple become a list (multi-file).
     src_list = list(args.source or [])
     if args.source_dir:
         src_list += sorted(glob.glob(os.path.join(args.source_dir, "**", "*.c"),
@@ -72,6 +75,28 @@ def cmd_verify(args):
     print(f"verified and updated {args.spec}")
 
 
+def cmd_sweep(args):
+    """Confidence-threshold sensitivity analysis over an existing spec."""
+    from .core.policy import sweep_thresholds
+    spec = load_yaml(args.spec)
+    thresholds = [float(x) for x in args.thresholds.split(",")] if args.thresholds else None
+    rows = sweep_thresholds(spec, thresholds)
+    total = len(spec.functions)
+    print(f"threshold sweep for {args.spec} ({total} functions)")
+    print(f"{'thresh':>7} {'buildable':>10} {'refused':>8} {'refused(low-conf)':>18} {'bound %':>8}")
+    for t, b, r, rlc in rows:
+        pct = 100.0 * b / total if total else 0.0
+        print(f"{t:>7.2f} {b:>10} {r:>8} {rlc:>18} {pct:>7.1f}%")
+    if args.csv:
+        import csv
+        with open(args.csv, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["threshold", "buildable", "refused", "refused_low_confidence", "total"])
+            for t, b, r, rlc in rows:
+                w.writerow([t, b, r, rlc, total])
+        print(f"wrote {args.csv}")
+
+
 def cmd_emit(args):
     """spec -> a protocol target (proto | python | mcp-list)."""
     import ctypes
@@ -95,7 +120,7 @@ def cmd_emit(args):
     elif args.target == "python":
         from .emit.python import generate_source
         out = generate_source(spec, args.lib)
-    else:
+    else:                                   # list
         out = "\n".join(f"{c.name}({', '.join(f.name for f in c.inputs)})"
                          f" -> {', '.join(f.name for f in c.outputs) or 'void'}"
                          + (f"  [{c.lifecycle} owner={c.owner}]" if c.lifecycle else "")
@@ -144,6 +169,13 @@ def main(argv=None):
     pv.add_argument("lib")
     pv.add_argument("spec")
     pv.set_defaults(func=cmd_verify)
+
+    ps = sub.add_parser("sweep", help="confidence-threshold sensitivity analysis over a spec")
+    ps.add_argument("spec", help="capability spec (.yaml) to analyze")
+    ps.add_argument("--thresholds", default=None,
+                    help="comma-separated thresholds, e.g. 0.3,0.4,0.5,0.6,0.7 (default that set)")
+    ps.add_argument("--csv", default=None, help="also write the sweep table to this CSV path")
+    ps.set_defaults(func=cmd_sweep)
 
     args = ap.parse_args(argv)
     args.func(args)
