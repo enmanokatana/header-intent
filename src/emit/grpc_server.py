@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .proto import make_servicer, pascal
-from ..core.handles import OwnershipError
+from ..core.handles import OwnershipError, StaleHandleError
 
 
 def build_grpc_servicer(so_path: str, spec_path_or_spec, pb2, pb2_grpc, service: str):
@@ -19,15 +19,21 @@ def build_grpc_servicer(so_path: str, spec_path_or_spec, pb2, pb2_grpc, service:
             try:
                 result = py_method(request, context)
             except OwnershipError as e:
-                                                                             
                 context.abort(grpc.StatusCode.FAILED_PRECONDITION, str(e))
-            except PermissionError as e:                                        
+            except StaleHandleError as e:
+                # Must precede KeyError: StaleHandleError IS a KeyError, but a
+                # stale handle is a FAILED_PRECONDITION ("the handle existed but
+                # was invalidated"), not a NOT_FOUND ("the id was never issued").
+                # Getting this wrong makes the cross-protocol differential test
+                # (fix F20) fail for the wrong reason.
+                context.abort(grpc.StatusCode.FAILED_PRECONDITION, str(e))
+            except PermissionError as e:
                 context.abort(grpc.StatusCode.FAILED_PRECONDITION, str(e))
             except KeyError as e:
                 context.abort(grpc.StatusCode.NOT_FOUND, str(e))
-            except Exception as e:                                    
+            except Exception as e:
                 context.abort(grpc.StatusCode.INTERNAL, f"{type(e).__name__}: {e}")
-                                                                
+
             valid = set(response_cls.DESCRIPTOR.fields_by_name)
             return response_cls(**{k: v for k, v in result.items()
                                    if k in valid and v is not None})
@@ -43,8 +49,8 @@ def build_grpc_servicer(so_path: str, spec_path_or_spec, pb2, pb2_grpc, service:
 
     GrpcServicer = type(f"{service}GrpcServicer", (base_cls,), attrs)
     servicer = GrpcServicer()
-    servicer.refused_functions = ferrule_srv.refused_functions                
-    servicer.capability_names = ferrule_srv.capability_names                  
+    servicer.refused_functions = ferrule_srv.refused_functions
+    servicer.capability_names = ferrule_srv.capability_names
     return servicer
 
 

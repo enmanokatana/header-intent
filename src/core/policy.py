@@ -28,6 +28,25 @@ def check_exposable(fn: FunctionSpec, confidence_threshold: float = CONFIDENCE_T
     params) fire at every threshold. This lets a sensitivity sweep isolate the
     threshold's effect on the uncertain-inference band without ever relaxing the
     non-negotiable safety rules."""
+
+    # 0. an unproven destructor is worse than no destructor: binding it means the
+    #    handle table releases a handle the library may not have freed (a latent
+    #    use-after-free), which no runtime check can catch because the next use is
+    #    a READ. Lifecycle classification is the one inference with no "unknown"
+    #    verdict, so this is where it gets one.
+    #
+    #    This closes the structural gap described in §III-D (failsafe-scope):
+    #    ownership and exposability abstain; lifecycle classification previously
+    #    asserted. Both dangerous verdicts in the evaluation (sqlite3_exec,
+    #    PQexec) were of this kind. With this rule, the forwarding analysis's
+    #    uncertain path is now refused rather than asserted.
+    if fn.lifecycle == "uncertain_destroys":
+        raise SpecViolation(
+            f"{fn.name}: frees a handle of type {fn.handle_type} only on a "
+            f"conditional/forwarded path; cannot establish that it always destroys "
+            f"(would release a live handle). Refuse to auto-generate (fail-safe)."
+        )
+
     # 1. a raw void* RETURN that is not a managed handle would hand out a bare
     #    pointer address as an integer (cJSON_malloc).
     if fn.restype == "c_void_p" and fn.lifecycle not in ("creates", "borrows"):
@@ -37,7 +56,23 @@ def check_exposable(fn: FunctionSpec, confidence_threshold: float = CONFIDENCE_T
         )
 
     for p in fn.params:
-        if p.role in (Role.HANDLE, Role.OUT_HANDLE):   # lifecycle-managed, checked at runtime
+        # Lifecycle-managed roles are enforced at RUNTIME by the handle table
+        # (ownership checked before any free, stale handles rejected, fabricated
+        # ids rejected), not statically here -- which is why they were always
+        # exempt from the static checks below.
+        #
+        # CALLER_STATE joins them on the same footing, and is in one respect the
+        # safest of the three: the BINDING performs the allocation, so the
+        # memory's size, alignment, and lifetime are known exactly rather than
+        # inferred. Its one precondition is checked immediately below.
+        if p.role in (Role.HANDLE, Role.OUT_HANDLE, Role.CALLER_STATE):
+            if p.role is Role.CALLER_STATE and not (p.state_size and p.state_size > 0):
+                raise SpecViolation(
+                    f"{fn.name}: param {p.name!r} is caller-allocated state of type "
+                    f"{p.handle_type} but its size is unknown (incomplete or opaque "
+                    f"struct); we cannot allocate what we cannot size, and guessing "
+                    f"a size is memory corruption. Refuse to auto-generate (fail-safe)."
+                )
             continue
         # 1b. a SCALAR-role param whose underlying ctype is void* would expose a
         # raw pointer address as a bare integer -- the exact same hole as an

@@ -105,17 +105,35 @@ def _require():
 
 
 def _struct_pointee_name(t):
-    """If t is a pointer to a struct/typedef-to-struct, return the type name."""
-    if t.kind != cindex.TypeKind.POINTER:
+    """If t is a pointer to a struct/typedef-to-struct, return the type name.
+
+    CANONICALIZE BEFORE TESTING THE KIND. libpng declares
+    `typedef png_struct *png_structp` and every constructor returns png_structp,
+    whose TypeKind is TYPEDEF, not POINTER. Testing t.kind first returned None
+    for every handle the library hands out, so handle_types came back empty and
+    the entire lifecycle layer produced nothing for libpng -- silently, with no
+    diagnostic and no refusal, because "no handles found" is indistinguishable
+    from "this library has no handles".
+
+    cJSON writes `cJSON *` and SQLite writes `sqlite3 *`, both TypeKind.POINTER,
+    which is exactly why this stayed invisible on the calibration libraries.
+    Hiding a pointer behind a typedef is ordinary idiomatic C.
+    """
+    canon_t = t.get_canonical()
+    if canon_t.kind != cindex.TypeKind.POINTER:
         return None
-    pointee = t.get_pointee()
+    # Prefer the source-level pointee so the reported name is the typedef the
+    # library itself uses; fall back to the canonical pointee when t was a
+    # typedef-to-pointer and therefore has no source-level pointee of its own.
+    pointee = (t.get_pointee() if t.kind == cindex.TypeKind.POINTER
+               else canon_t.get_pointee())
     canon = pointee.get_canonical()
-    if canon.kind == cindex.TypeKind.RECORD:
-        decl = pointee.get_declaration()
-        name = (decl.spelling or canon.spelling or "")
-        name = name.replace("struct ", "").replace("const ", "").strip()
-        return name or None
-    return None
+    if canon.kind != cindex.TypeKind.RECORD:
+        return None
+    decl = pointee.get_declaration()
+    name = (decl.spelling or canon.spelling or "")
+    name = name.replace("struct ", "").replace("const ", "").strip()
+    return name or None
 
 
 _ARITH = None
@@ -127,9 +145,13 @@ def _is_scalar_pointer(t) -> bool:
                   cindex.TypeKind.ULONG, cindex.TypeKind.LONGLONG, cindex.TypeKind.ULONGLONG,
                   cindex.TypeKind.SHORT, cindex.TypeKind.USHORT,
                   cindex.TypeKind.FLOAT, cindex.TypeKind.DOUBLE, cindex.TypeKind.BOOL}
-    if t.kind != cindex.TypeKind.POINTER:
+    # Same typedef trap as _struct_pointee_name: png_uint_32p and friends are
+    # TypeKind.TYPEDEF, so an unresolved check misses every typedef'd scalar
+    # out-parameter and the behavioral probe never sees it.
+    canon_t = t.get_canonical()
+    if canon_t.kind != cindex.TypeKind.POINTER:
         return False
-    return t.get_pointee().get_canonical().kind in _ARITH
+    return canon_t.get_pointee().get_canonical().kind in _ARITH
 
 
 def _decl_ref_name(node, params):
@@ -560,9 +582,13 @@ LibclangEngine.ownership_records = _OwnershipMixin.ownership_records
 
 
 def _returns_char_ptr_clang(t) -> bool:
-    if t.kind != cindex.TypeKind.POINTER:
+    """Third instance of the typedef trap. png_charp / png_const_charp are
+    TypeKind.TYPEDEF, so string-ownership analysis silently skipped every
+    function returning one -- meaning an owned string return was never freed."""
+    canon_t = t.get_canonical()
+    if canon_t.kind != cindex.TypeKind.POINTER:
         return False
-    pointee = t.get_pointee().get_canonical()
+    pointee = canon_t.get_pointee().get_canonical()
     return pointee.kind in (cindex.TypeKind.CHAR_S, cindex.TypeKind.CHAR_U,
                             cindex.TypeKind.SCHAR, cindex.TypeKind.UCHAR)
 

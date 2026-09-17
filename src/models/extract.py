@@ -3,7 +3,11 @@ L0 -- Ferrule's own libclang signature extractor. Self-contained: no cToMcp.
 
 Turns a C header into the signatures dict the rest of Ferrule consumes:
     { fname: {"argnames": [...], "argtypes": [ctypes...],
-              "restype": ctype|None, "pointers": {argname: "out"}} }
+              "restype": ctype|None, "pointers": {argname: "out"},
+              "out_handle_candidates": {argname: struct},
+              "struct_ptr_params": {argname: struct}} }
+
+plus a library-wide `struct_sizes` map: {struct: {"size": n, "align": n}}.
 
 Design principles that fix the problems real libraries surface:
   * CANONICAL typedef resolution -- every type is resolved via get_canonical()
@@ -13,6 +17,13 @@ Design principles that fix the problems real libraries surface:
     note, never aborting the whole header.
   * const-based pointer pre-classification -- same signal L1 uses, produced here
     so L1's `pointers` dict is populated.
+  * RECORD THE POINTEE NAME. A `T*` parameter still binds as c_void_p, but the
+    struct name is now KEPT rather than discarded. Without it nothing downstream
+    can tell `PGconn*` (a handle the library manages) from an arbitrary pointer,
+    which is why 81 libpq functions were refused on a parameter named `conn`.
+    Recording the name decides nothing on its own -- l2_handle_propagation still
+    has to establish that the library hands the type out -- it just stops the
+    evidence from being thrown away before any layer can use it.
 
 Pointer intent beyond const-ness is NOT decided here (that's L1/L2); struct
 pointers degrade to c_void_p (opaque handles, resolved later by handle analysis).
@@ -94,13 +105,21 @@ def _map_type(t, is_param: bool = True):
     raise UnmappableType(f"{t.spelling} (canonical kind {kind})")
 
 
+def _record_name(struct_t) -> str | None:
+    """Best available name for a record type, preferring the typedef spelling."""
+    canon = struct_t.get_canonical()
+    decl = struct_t.get_declaration()
+    name = (decl.spelling or canon.spelling or "").replace("struct ", "").strip()
+    return name or None
+
+
 def _out_handle_candidate(arg_type) -> str | None:
     """T** where T is a struct/typedef-to-struct -- CANDIDATE for the
     sqlite3_open(path, &db) idiom (a NEW handle written through an out-param).
     This is a candidate only: L2 must confirm the function actually WRITES an
-    allocated value through it before we trust it (see layers/l2_out_handles.py).
-    Until confirmed it stays OPAQUE -> refused, the same fail-safe as any other
-    unresolved double pointer.
+    allocated value through it before we trust it (see layers/l2_out_handles.py),
+    or l2_handle_propagation must accept it structurally as a BORROWED handle.
+    Until one of those happens it stays OPAQUE -> refused.
     """
     canon = arg_type.get_canonical()
     if canon.kind != cindex.TypeKind.POINTER:
@@ -109,12 +128,67 @@ def _out_handle_candidate(arg_type) -> str | None:
     if inner.kind != cindex.TypeKind.POINTER:
         return None
     struct_t = inner.get_pointee()
-    struct_canon = struct_t.get_canonical()
-    if struct_canon.kind != cindex.TypeKind.RECORD:
+    if struct_t.get_canonical().kind != cindex.TypeKind.RECORD:
         return None
-    decl = struct_t.get_declaration()
-    name = (decl.spelling or struct_canon.spelling or "").replace("struct ", "").strip()
-    return name or None
+    return _record_name(struct_t)
+
+
+def _struct_ptr_param(arg_type) -> str | None:
+    """T* where T is a struct/typedef-to-struct -- the pointee NAME, kept so a
+    later layer can ask whether T is a type this library hands out.
+
+    This is the counterpart to _out_handle_candidate for SINGLE pointers, and
+    its absence is why `PGconn *conn`, `png_struct *png_ptr` and
+    `git_repository *repo` were indistinguishable from any other void* and
+    therefore refused. Returning a name here asserts nothing about the type; it
+    only preserves the evidence.
+    """
+    canon = arg_type.get_canonical()
+    if canon.kind != cindex.TypeKind.POINTER:
+        return None
+    pointee = canon.get_pointee()
+    if pointee.get_canonical().kind != cindex.TypeKind.RECORD:
+        return None
+    return _record_name(pointee)
+
+
+def _struct_dims(arg_type, in_library=None) -> tuple[str, int, int, bool] | None:
+    """(name, size, align, local) for a `T*` parameter's pointee, from clang's
+    own ABI computation. Used only by caller-allocated-state support, which
+    allocates a buffer of exactly this size and never interprets its contents. A
+    non-positive size means clang could not lay the type out (incomplete/opaque
+    struct); we report nothing and the type stays refused.
+
+    `local` records whether the struct is DECLARED BY THIS LIBRARY. It is not a
+    nicety: without it, `FILE` (via `_IO_FILE`) and `struct tm` are indis-
+    tinguishable from the library's own argument records, and a binding that
+    allocates 216 zeroed bytes and passes them to `png_init_io` as a `FILE*` has
+    corrupted memory before the first read. libc owns those types; nothing the
+    binding allocates can stand in for one.
+    """
+    canon = arg_type.get_canonical()
+    if canon.kind != cindex.TypeKind.POINTER:
+        return None
+    pointee = canon.get_pointee()
+    if pointee.get_canonical().kind != cindex.TypeKind.RECORD:
+        return None
+    name = _record_name(pointee)
+    if not name:
+        return None
+    try:
+        size = pointee.get_size()
+        align = pointee.get_align()
+    except Exception:
+        return None
+    if size is None or size <= 0 or align is None or align <= 0:
+        return None
+    local = False
+    if in_library is not None:
+        try:
+            local = bool(in_library(pointee.get_declaration()))
+        except Exception:
+            local = False
+    return name, size, align, local
 
 
 def _pointer_is_out(arg_type) -> bool:
@@ -132,7 +206,15 @@ def _pointer_is_out(arg_type) -> bool:
 
 
 def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
-    """Parse a header -> (signatures, skipped notes). Self-contained libclang."""
+    """Parse a header -> (signatures, skipped notes).
+
+    `signatures` gains two keys per function:
+        struct_ptr_params : {argname: struct_name}   for `T*`
+    and the returned tuple's signatures dict carries a library-wide
+        __struct_sizes__ : {struct_name: {"size": n, "align": n}}
+    entry (a reserved key, never a real function name) so the pipeline can pass
+    ABI dimensions to caller-allocated-state detection without a second parse.
+    """
     if not _HAVE:
         raise ImportError("libclang bindings not available; `pip install libclang`")
 
@@ -149,6 +231,7 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
 
     signatures: dict = {}
     skipped: list[str] = []
+    struct_sizes: dict = {}
 
     _SYS_ROOTS = ("/usr/include", "/usr/lib", "/usr/local/include",
                   "/usr/lib/llvm", "/usr/lib/gcc")
@@ -186,7 +269,18 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
         if name in signatures:
             continue
         try:
-            argnames, argtypes, pointers, out_handle_candidates = [], [], {}, {}
+            # A variadic function (printf, sqlite3_mprintf, gzprintf) has
+            # invisible parameters the type system does not represent. Binding
+            # it with only the visible ones produces a fixed-arity projection
+            # that is callable and undefined: the callee reads stack slots the
+            # caller never wrote. clang reports this directly; L0 must refuse
+            # rather than silently truncate the signature.
+            if c.type.is_function_variadic():
+                skipped.append(f"{name}: variadic (...) — binding the visible "
+                               f"parameters only would produce undefined behavior")
+                continue
+            argnames, argtypes, pointers = [], [], {}
+            out_handle_candidates, struct_ptr_params = {}, {}
             for i, a in enumerate(c.get_arguments()):
                 an = a.spelling or f"a{i}"
                 at = _map_type(a.type, is_param=True)
@@ -197,6 +291,13 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
                 oh = _out_handle_candidate(a.type)
                 if oh:
                     out_handle_candidates[an] = oh
+                sp = _struct_ptr_param(a.type)
+                if sp:
+                    struct_ptr_params[an] = sp
+                    dims = _struct_dims(a.type, _in_library)
+                    if dims and dims[0] not in struct_sizes:
+                        struct_sizes[dims[0]] = {"size": dims[1], "align": dims[2],
+                                                 "local": dims[3]}
             restype = _map_type(c.result_type, is_param=False)
             signatures[name] = {
                 "argnames": argnames,
@@ -204,10 +305,14 @@ def extract_signatures(header_path: str, clang_args=None, strict: bool = True):
                 "restype": restype,
                 "pointers": pointers,
                 "out_handle_candidates": out_handle_candidates,
+                "struct_ptr_params": struct_ptr_params,
             }
         except UnmappableType as e:
             skipped.append(f"{name}: unmappable type {e}")
         except Exception as e:
             skipped.append(f"{name}: {type(e).__name__}: {e}")
+
+    if struct_sizes:
+        signatures["__struct_sizes__"] = struct_sizes
 
     return signatures, skipped

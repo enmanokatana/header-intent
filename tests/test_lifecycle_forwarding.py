@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from ferrule.layers.l2_handles import analyze_handles
+from src.layers.l2_handles import analyze_handles
 
 # faithful reproduction of the real sqlite3_close chain, including the
 # "many callees receive db directly, only one actually frees it" complexity

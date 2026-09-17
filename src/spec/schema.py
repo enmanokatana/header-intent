@@ -68,6 +68,17 @@ class ParamSpec:
     dimension: Optional[str] = None
     owner: Optional[str] = None
     handle_type: Optional[str] = None
+    # The pointee struct name for a `T*` or `T**` parameter, recorded by L0 and
+    # previously discarded. It carries NO claim that T is a handle -- it is the
+    # evidence l2_handle_propagation needs in order to ASK that question. This
+    # must survive serialization or a spec reloaded from YAML analyzes as if L0
+    # had never seen a struct pointer at all.
+    pointee: Optional[str] = None
+    # ABI dimensions for a CALLER_STATE parameter, from clang's own layout
+    # computation. Present only when the binding must allocate the struct
+    # itself; absent means the size is unknown and the policy refuses it.
+    state_size: Optional[int] = None
+    state_align: Optional[int] = None
 
 
 @dataclass
@@ -86,6 +97,14 @@ class FunctionSpec:
 class LibrarySpec:
     library: str
     functions: dict[str, FunctionSpec] = field(default_factory=dict)
+
+
+# Optional ParamSpec fields that serialize only when set. Keeping this as ONE
+# list, consumed by both directions, is what stops a new field from being
+# written but never read (or vice versa) -- the failure mode where analysis
+# silently degrades on any spec that went through a YAML round-trip.
+_OPTIONAL_PARAM_FIELDS = ("dimension", "owner", "handle_type",
+                          "pointee", "state_size", "state_align")
 
 
 def to_dict(spec: LibrarySpec) -> dict:
@@ -121,8 +140,8 @@ def _param_to_dict(p: ParamSpec) -> dict:
             "verified": p.intent.verified,
         },
     }
-    for k in ("dimension", "owner", "handle_type"):
-        v = getattr(p, k)
+    for k in _OPTIONAL_PARAM_FIELDS:
+        v = getattr(p, k, None)
         if v is not None:
             d[k] = v
     return d
@@ -133,7 +152,7 @@ def from_dict(d: dict) -> LibrarySpec:
         params = []
         for pd in fd.get("params", []):
             iv = pd["intent"]
-            params.append(ParamSpec(
+            p = ParamSpec(
                 name=pd["name"],
                 role=Role(pd["role"]),
                 ctype=pd["ctype"],
@@ -144,10 +163,11 @@ def from_dict(d: dict) -> LibrarySpec:
                     confidence=float(iv.get("confidence", 0.0)),
                     verified=bool(iv.get("verified", False)),
                 ),
-                dimension=pd.get("dimension"),
-                owner=pd.get("owner"),
-                handle_type=pd.get("handle_type"),
-            ))
+            )
+            for k in _OPTIONAL_PARAM_FIELDS:
+                if pd.get(k) is not None:
+                    setattr(p, k, pd[k])
+            params.append(p)
         funcs[fname] = FunctionSpec(name=fname, params=params, restype=fd.get("restype"),
                                     lifecycle=fd.get("lifecycle"), handle_type=fd.get("handle_type"),
                                     owner=fd.get("owner"), string_owner=fd.get("string_owner"),

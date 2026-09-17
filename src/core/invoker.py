@@ -24,7 +24,7 @@ from ..spec.vocab import Role, Intent
 from ..spec.schema import FunctionSpec, LibrarySpec, ParamSpec, ctype_by_name
 from .policy import check_exposable, SpecViolation
 from .types import CTYPE_TO_PY, py_type_of, py_restype, arg_ctype, to_c, from_c
-from .handles import HandleTable, OwnershipError
+from .handles import HandleTable, OwnershipError, StaleHandleError
 from ..layers.l2_handles import _is_dealloc_name
 
 SCALAR, STRING, ARRAY, HANDLE = "scalar", "string", "array", "handle"
@@ -142,6 +142,9 @@ def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capab
 
     inputs = [_field_for(p) for p in in_params if p.intent.value is not Intent.OUT]
     outputs = [Field("handle", int, HANDLE, doc=f"handle to {fn.handle_type or 'object'}")]
+    if fn.owner != "caller":
+        outputs.append(Field("borrowed", bool, SCALAR,
+                             doc="ownership not established; this handle cannot be freed"))
     has_status = fn.restype is not None
     if has_status:
         outputs.append(Field("status", py_restype(fn), SCALAR))
@@ -157,7 +160,16 @@ def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capab
         ret = cfn(*args)
         result = {}
         if cell.value:
-            result["handle"] = handles.put(cell.value, owned=True)
+            # owner=caller ONLY when the allocation was actually traced
+            # (l2_out_handles confirmed it). A structurally-recognized
+            # out-handle carries owner=library, so the caller may USE the handle
+            # but the ownership check refuses to free it -- ownership rule 5
+            # applied to out-params: unresolved ownership leaks, never
+            # double-frees.
+            owned = (fn.owner == "caller")
+            result["handle"] = handles.put(cell.value, owned=owned)
+            if not owned:
+                result["borrowed"] = True
         else:
             result["handle"] = None
         if has_status:
@@ -200,7 +212,10 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
                                  doc="owned by the library; must not be freed"))
         returns_mapping = True
     elif fn.lifecycle == "destroys":
-        outputs = [Field("freed", int, SCALAR), Field("live_handles", int, SCALAR)]
+        outputs = [Field("freed", int, SCALAR),
+                   Field("invalidated", list, ARRAY, elem_type=int,
+                         doc="handles derived from this one, now invalid"),
+                   Field("live_handles", int, SCALAR)]
         returns_mapping = True
     else:
         rt = py_restype(fn)
@@ -231,17 +246,24 @@ def _lifecycle_capability(lib, fn: FunctionSpec, handles: HandleTable,
             if not ret:
                 return {"handle": None}
             owned = fn.lifecycle == "creates"
-            hid = handles.put(ret, owned=owned)
+            # A borrowed pointer points INTO an object we already hold. Record
+            # which one, so destroying that owner invalidates this handle instead
+            # of leaving it dangling (the inverse of the double-free check).
+            parent = None
+            if not owned and hparams:
+                parent = kwargs.get(hkey[hparams[0].name])
+            hid = handles.put(ret, owned=owned, parent=parent)
             if owned:
                 return {"handle": hid}
-            return {"handle": hid, "borrowed": True,
+            return {"handle": hid, "borrowed": True, "parent": parent,
                     "note": "owned by the library; do not free (delete its owner instead)"}
         if fn.lifecycle == "destroys":
             hid = kwargs[hkey[hparams[0].name]]
             if hid is None:
-                return {"freed": 0, "live_handles": len(handles)}
-            handles.pop(hid)
-            return {"freed": hid, "live_handles": len(handles)}
+                return {"freed": 0, "invalidated": [], "live_handles": len(handles)}
+            _, invalidated = handles.pop_cascade(hid)
+            return {"freed": hid, "invalidated": invalidated,
+                    "live_handles": len(handles)}
         if fn.restype == "c_char_p" and fn.string_owner == "caller":
             return _read_and_free_string(ret, string_dealloc)
         return from_c(ret, None if fn.restype is None else ctype_by_name(fn.restype))
@@ -340,6 +362,91 @@ def _plain_capability(lib, fn: FunctionSpec, string_dealloc=None) -> Capability:
     return Capability(fn.name, doc, inputs, outputs, returns_mapping, invoke)
 
 
+def _caller_state_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capability:
+    """A struct the CALLER allocates and the library only initializes (zlib's
+    z_stream). The binding allocates it, so the binding owns it.
+
+    NO STRUCT LAYOUT IS MODELLED. We allocate `state_size` zeroed bytes at
+    `state_align` alignment -- both computed by clang for this exact ABI -- hand
+    back a handle, and never read or write a field. Every field access is
+    performed by the library through its own compiled view of the type, so there
+    is no padding, bitfield or packing assumption that could be wrong, because
+    there is no assumption at all.
+
+    Ownership needs no inference either: we called the allocator, so we may free
+    it. That makes this the one handle kind whose owner is known rather than
+    estimated.
+    """
+    check_exposable(fn)
+    cfn = getattr(lib, fn.name)
+    cfn.argtypes = [ctypes.c_void_p if p.role is Role.CALLER_STATE else arg_ctype(p)
+                    for p in fn.params]
+    cfn.restype = None if fn.restype is None else ctype_by_name(fn.restype)
+
+    state_params = [p for p in fn.params if p.role is Role.CALLER_STATE]
+    single = len(state_params) == 1
+    skey = {p.name: ("state" if single else p.name) for p in state_params}
+
+    inputs = [Field(skey[p.name], int, HANDLE,
+                    doc=f"handle to caller-allocated {p.handle_type}")
+              for p in state_params]
+    inputs += [_field_for(p) for p in fn.params
+               if p.role is not Role.CALLER_STATE and p.intent.value is not Intent.OUT]
+
+    rt = py_restype(fn)
+    outputs = [] if rt is type(None) else [
+        Field("result", rt, STRING if rt is str else SCALAR)]
+
+    def invoke(**kwargs):
+        args = []
+        for p in fn.params:
+            if p.role is Role.CALLER_STATE:
+                stored = handles.get(kwargs[skey[p.name]])
+                # state handles store (aligned_pointer, backing_buffer) so the
+                # buffer stays alive for as long as the handle does
+                args.append(stored[0] if isinstance(stored, tuple) else stored)
+            else:
+                args.append(to_c(kwargs[p.name], ctype_by_name(p.ctype)))
+        ret = cfn(*args)
+        return from_c(ret, None if fn.restype is None else ctype_by_name(fn.restype))
+
+    doc = (f"{fn.name}({', '.join(f.name for f in inputs)}) "
+          f"[caller-allocated {state_params[0].handle_type}]")
+    return Capability(fn.name, doc, inputs, outputs, False, invoke,
+                      fn.lifecycle, "caller", fn.handle_type)
+
+
+def make_state_allocator(handles: HandleTable, struct: str, size: int,
+                         align: int) -> Capability:
+    """Synthetic `alloc_<struct>` capability for caller-allocated state.
+
+    The library has no constructor for this struct -- that is precisely what
+    makes it caller-allocated -- so the binding must provide one. Alignment is
+    honoured explicitly rather than assumed: a ctypes buffer is not guaranteed
+    to satisfy an over-aligned type, so we over-allocate, offset to the required
+    boundary, and verify the result.
+    """
+    def alloc(**_):
+        raw = (ctypes.c_char * (size + align))()
+        addr = ctypes.addressof(raw)
+        aligned = addr + ((-addr) % align)
+        if aligned % align:
+            raise MemoryError(f"cannot satisfy {align}-byte alignment for {struct}")
+        ctypes.memset(aligned, 0, size)
+        hid = handles.put((ctypes.c_void_p(aligned), raw), owned=True)
+        return {"state": hid, "struct": struct, "bytes": size}
+
+    return Capability(
+        f"alloc_{struct}",
+        f"Allocate a zeroed, {align}-byte-aligned {struct} ({size} bytes) for the "
+        f"library to initialize. The binding owns this memory and may free it.",
+        [],
+        [Field("state", int, HANDLE, doc=f"handle to a new {struct}"),
+         Field("struct", str, STRING),
+         Field("bytes", int, SCALAR)],
+        True, alloc, "creates", "caller", struct)
+
+
 def build_capability(lib, fn: FunctionSpec, handles: HandleTable | None = None,
                      string_dealloc=None) -> Capability:
     """One spec function -> one protocol-neutral Capability. Raises SpecViolation
@@ -358,6 +465,10 @@ def build_capability(lib, fn: FunctionSpec, handles: HandleTable | None = None,
     `build_capabilities` for the library-wide, disambiguated lookup.
     """
     check_exposable(fn)
+    if any(p.role is Role.CALLER_STATE for p in fn.params):
+        if handles is None:
+            raise SpecViolation(f"{fn.name}: caller-state capability needs a handle table")
+        return _caller_state_capability(lib, fn, handles)
     if fn.handle_out_param:
         if handles is None:
             raise SpecViolation(f"{fn.name}: out-handle capability needs a handle table")
@@ -382,6 +493,19 @@ def build_capabilities(lib, spec: LibrarySpec, handles: HandleTable | None = Non
         handles = HandleTable()
     string_dealloc = _find_string_deallocator(lib, spec)
     caps, refused = [], []
+
+    # One synthetic allocator per caller-allocated struct. Without it the
+    # library's init/use/end functions are bindable but uncallable, because
+    # nothing can produce the state handle they all take.
+    _state_structs: dict = {}
+    for _fn in spec.functions.values():
+        for _p in _fn.params:
+            if _p.role is Role.CALLER_STATE and _p.state_size:
+                _state_structs.setdefault(_p.handle_type,
+                                          (_p.state_size, _p.state_align or 8))
+    for _struct, (_size, _align) in _state_structs.items():
+        caps.append(make_state_allocator(handles, _struct, _size, _align))
+
     for fn in spec.functions.values():
         try:
             caps.append(build_capability(lib, fn, handles, string_dealloc))

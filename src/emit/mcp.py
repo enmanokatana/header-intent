@@ -7,7 +7,7 @@ import sys
 from ..spec.io import load_yaml
 from ..verify.probes import apply_verification
 from ..core.invoker import build_capabilities
-from ..core.handles import HandleTable
+from ..core.handles import HandleTable, OwnershipError, StaleHandleError
 
 
 def mcp_return_type(cap) -> type:
@@ -42,7 +42,7 @@ def register(mcp, cap) -> None:
 
 
 def make_server(so_path: str, spec_path: str, name: str = "ferrule", verify: bool = True):
-    from mcp.server.fastmcp import FastMCP                                        
+    from mcp.server.fastmcp import FastMCP
 
     spec = load_yaml(spec_path)
     lib = ctypes.CDLL(so_path)
@@ -52,8 +52,6 @@ def make_server(so_path: str, spec_path: str, name: str = "ferrule", verify: boo
     handles = HandleTable()
     caps, refused = build_capabilities(lib, spec, handles)
 
-                                                                                    
-                                                                
     if refused:
         print(f"[ferrule] serving {len(caps)} tools; skipped {len(refused)} refused:",
               file=sys.stderr)

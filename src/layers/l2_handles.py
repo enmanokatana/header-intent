@@ -42,6 +42,30 @@ def _is_dealloc_name(name: str) -> bool:
 _FREE_NAMES = {"free"}
 
 
+# ---------------------------------------------------------------------------
+# Fixed-point cap error
+# ---------------------------------------------------------------------------
+
+class FixedPointNotReached(RuntimeError):
+    """The lifecycle fixed point did not converge within the iteration cap.
+
+    Returning a partial result here would be the same failure mode as analyzing a
+    truncated parse: every layer above would compute a confident, internally
+    consistent, WRONG answer. Fail loudly instead.
+    """
+
+
+MAX_FIXPOINT_ITERS = 10
+
+# Observed iteration count from the last classify_records call, for the paper's
+# reporting (Table VIII / fix F23).
+LAST_FIXPOINT_ITERS = 0
+
+
+# ---------------------------------------------------------------------------
+# Data classes
+# ---------------------------------------------------------------------------
+
 @dataclass
 class HandleRecord:
     """Engine-neutral extraction for one function."""
@@ -51,6 +75,7 @@ class HandleRecord:
     freed: set = field(default_factory=set)
     param_order: list = field(default_factory=list)
     forwards: dict = field(default_factory=dict)
+    freed_conditional: set = field(default_factory=set)   # params freed only inside a branch
 
 
 @dataclass
@@ -61,7 +86,13 @@ class HandleFacts:
     handle_param: str | None = None
     handle_params: list = field(default_factory=list)
     param_order: list = field(default_factory=list)
+    evidence: str = "direct"        # direct | forwarded | conditional | forwarded+conditional
+    confidence: float = 1.0
 
+
+# ---------------------------------------------------------------------------
+# AST helpers
+# ---------------------------------------------------------------------------
 
 def _pointee_typename(node) -> str | None:
     if isinstance(node, c_ast.PtrDecl):
@@ -77,8 +108,20 @@ def _pointee_typename(node) -> str | None:
 
 
 class _FreeFinder(c_ast.NodeVisitor):
+    """Collect freed parameter names, and record whether each free was reached
+    unconditionally or only inside a branch.
+
+    WHY: a free on an error path (`if (!ok) { png_destroy(p); return; }`) has the
+    same AST shape as unconditional destruction, and classifying a repeatable
+    read function as `destroys` because of its cleanup path is a latent
+    use-after-free -- the handle table releases a handle the caller will use
+    again. Without path sensitivity the analysis cannot tell these apart, so it
+    must ABSTAIN rather than assert (see policy.check_exposable rule 0).
+    """
     def __init__(self):
         self.freed_ids: set[str] = set()
+        self.freed_conditional: set[str] = set()
+        self._depth = 0                      # nesting inside If/Switch/loops
 
     @staticmethod
     def _callee_name(nm) -> str:
@@ -88,12 +131,26 @@ class _FreeFinder(c_ast.NodeVisitor):
             return nm.field.name
         return ""
 
+    def _guarded(self, node):
+        self._depth += 1
+        self.generic_visit(node)
+        self._depth -= 1
+
+    visit_If = _guarded
+    visit_Switch = _guarded
+    visit_While = _guarded
+    visit_DoWhile = _guarded
+    visit_For = _guarded
+    visit_TernaryOp = _guarded
+
     def visit_FuncCall(self, node):
         if _is_dealloc_name(self._callee_name(node.name)):
             if node.args and node.args.exprs:
                 last = node.args.exprs[-1]
                 if isinstance(last, c_ast.ID):
                     self.freed_ids.add(last.name)
+                    if self._depth > 0:
+                        self.freed_conditional.add(last.name)
         self.generic_visit(node)
 
 
@@ -122,6 +179,10 @@ class _ForwardCollector(c_ast.NodeVisitor):
         self.generic_visit(node)
 
 
+# ---------------------------------------------------------------------------
+# Extraction (pycparser)
+# ---------------------------------------------------------------------------
+
 def _records_from_pycparser(source: str) -> dict[str, HandleRecord]:
     ast = c_parser.CParser().parse(source)
     recs: dict[str, HandleRecord] = {}
@@ -143,13 +204,23 @@ def _records_from_pycparser(source: str) -> dict[str, HandleRecord]:
         ff = _FreeFinder()
         ff.visit(fd.body)
         freed = {p for p in struct_params if p in ff.freed_ids}
+        freed_cond = {p for p in freed if p in ff.freed_conditional}
         fc = _ForwardCollector(set(struct_params) - freed)
         fc.visit(fd.body)
-        recs[name] = HandleRecord(name, ret, struct_params, freed, param_order, fc.forwards)
+        recs[name] = HandleRecord(name, ret, struct_params, freed, param_order,
+                                  fc.forwards, freed_cond)
     return recs
 
 
-def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, HandleFacts], set[str]]:
+# ---------------------------------------------------------------------------
+# Classification (engine-agnostic)
+# ---------------------------------------------------------------------------
+
+def classify_records(records: dict[str, HandleRecord],
+                     *, max_iters: int = MAX_FIXPOINT_ITERS
+                     ) -> tuple[dict[str, HandleFacts], set[str]]:
+    global LAST_FIXPOINT_ITERS
+
     returned = {r.return_pointee for r in records.values() if r.return_pointee}
     facts: dict[str, HandleFacts] = {}
     for name, r in records.items():
@@ -158,20 +229,41 @@ def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, Handle
         f.handle_params = [p for p, tn in r.struct_ptr_params.items() if tn in returned]
         if r.return_pointee:
             f.role, f.handle_type = "creates", r.return_pointee
+            f.confidence, f.evidence = 1.0, "direct"
         else:
             destroyed = next((p for p in r.struct_ptr_params if p in r.freed), None)
             if destroyed is not None:
-                f.role, f.handle_type, f.handle_param = "destroys", r.struct_ptr_params[destroyed], destroyed
+                conditional = destroyed in r.freed_conditional
+                # A conditional free in a function whose own name says "destroy"
+                # is still a destructor (png_destroy_read_struct guards on NULL);
+                # a conditional free in a function whose name says nothing is an
+                # error path until proven otherwise.
+                if conditional and not _is_dealloc_name(name):
+                    f.role = "uncertain_destroys"
+                    f.evidence, f.confidence = "conditional", 0.4
+                else:
+                    f.role = "destroys"
+                    f.confidence = 1.0 if not conditional else 0.8
+                    f.evidence = "direct" if not conditional else "conditional"
+                f.handle_type = r.struct_ptr_params[destroyed]
+                f.handle_param = destroyed
             elif r.struct_ptr_params:
                 p, tn = next(iter(r.struct_ptr_params.items()))
                 f.role, f.handle_type, f.handle_param = "uses", tn, p
+                f.confidence, f.evidence = 1.0, "direct"
         facts[name] = f
 
-    for _ in range(10):
+    # Fixed-point forwarding resolution.
+    iters = 0
+    for iters in range(1, max_iters + 1):
         changed = False
         for name, r in records.items():
             f = facts.get(name)
-            if f is None or f.role == "destroys":
+            # A function already classified as a direct destructor cannot be
+            # upgraded further. But an uncertain_destroys CAN be upgraded by a
+            # stronger forwarding path, and a `uses` can be promoted to
+            # destroys/uncertain_destroys.
+            if f is None or (f.role == "destroys" and f.evidence == "direct"):
                 continue
             for pname, targets in r.forwards.items():
                 if pname not in r.struct_ptr_params:
@@ -182,18 +274,53 @@ def classify_records(records: dict[str, HandleRecord]) -> tuple[dict[str, Handle
                         continue
                     callee_param = callee_rec.param_order[arg_idx]
                     callee_facts = facts.get(callee)
-                    if (callee_facts and callee_facts.role == "destroys"
+                    if (callee_facts
+                            and callee_facts.role in ("destroys", "uncertain_destroys")
                             and callee_facts.handle_param == callee_param
                             and callee_facts.handle_type == r.struct_ptr_params[pname]):
-                        f.role = "destroys"
-                        f.handle_type = r.struct_ptr_params[pname]
-                        f.handle_param = pname
-                        changed = True
-                        break
-                if f.role == "destroys":
+                        # Forwarding is evidence, not proof: we know the callee
+                        # frees this type, not that this caller always reaches
+                        # that call. The question is WHETHER THE FREE IS
+                        # CONDITIONAL, not how many hops away it is — a chain
+                        # of unconditional destructors is still unconditional
+                        # regardless of depth. Check `evidence` (was any link
+                        # in the chain conditional?) not `confidence` (how many
+                        # hops?), because confidence < 0.8 is true for every
+                        # forwarded fact, which would demote a two-hop
+                        # unconditional chain like sqlite3_close → sqlite3Close
+                        # → ...CloseZombie → free(db).
+                        if (callee_facts.role == "uncertain_destroys"
+                                or "conditional" in callee_facts.evidence):
+                            new_role = "uncertain_destroys"
+                            new_evidence = "forwarded+conditional"
+                            new_conf = 0.4
+                        else:
+                            new_role = "destroys"
+                            new_evidence = "forwarded"
+                            new_conf = 0.6
+                        # Only upgrade (uses -> destroys, uncertain -> certain),
+                        # never downgrade.
+                        if (f.role == "uses"
+                                or (f.role == "uncertain_destroys"
+                                    and new_role == "destroys")):
+                            f.role = new_role
+                            f.evidence = new_evidence
+                            f.confidence = new_conf
+                            f.handle_type = r.struct_ptr_params[pname]
+                            f.handle_param = pname
+                            changed = True
+                            break
+                if f.role in ("destroys", "uncertain_destroys") and f.evidence != "direct":
                     break
         if not changed:
             break
+    else:
+        # Loop was NOT broken -> fixed point did not converge.
+        raise FixedPointNotReached(
+            f"lifecycle forwarding did not converge in {max_iters} iterations "
+            f"({len(records)} functions); results would be partial."
+        )
+    LAST_FIXPOINT_ITERS = iters
 
     handle_types = returned
     kept = {fn: f for fn, f in facts.items() if f.role and f.handle_type in handle_types}

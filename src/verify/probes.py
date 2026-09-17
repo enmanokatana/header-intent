@@ -32,8 +32,16 @@ def _benign_input(base):
 def verify_out_params(lib, fn: FunctionSpec) -> dict[str, bool]:
     """For each param inferred out/inout, probe whether it's actually written.
     Returns {param_name: written?}. Skips functions with strings/opaque args
-    (phase-1 probe only handles scalar signatures safely)."""
-    if any(p.role in (Role.STRING, Role.OPAQUE, Role.HANDLE, Role.ARRAY) for p in fn.params):
+    (phase-1 probe only handles scalar signatures safely).
+
+    CALLER_STATE and OUT_HANDLE are skipped for the same reason HANDLE is: the
+    probe constructs zeroed scalar arguments, and calling a function like
+    deflate() with a zeroed z_stream dereferences internal pointers the library
+    wrote during init -- an instant segfault. Observed on zlib: the probe called
+    deflate with a zeroed z_stream* and crashed the process.
+    """
+    if any(p.role in (Role.STRING, Role.OPAQUE, Role.HANDLE, Role.ARRAY,
+                      Role.OUT_HANDLE, Role.CALLER_STATE) for p in fn.params):
         return {}
 
     argtypes = []
