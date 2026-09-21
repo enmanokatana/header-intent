@@ -81,6 +81,13 @@ class OwnRecord:
     escaped: bool = False
     handle_params: list = field(default_factory=list)
     mutates_other_param: bool = False
+    # Every callee that satisfied the escape test (diagnostic). Empty when
+    # escape did not fire. Populated by the libclang engine only.
+    escape_triggers: list = field(default_factory=list)
+    # Detach (libclang engine only): the returned value was read from a
+    # parameter's member that the container owned and then released.
+    detaches: bool = False
+    detach_evidence: str = ""
 
 
 @dataclass
@@ -278,7 +285,31 @@ def _records_from_pycparser(source: str) -> dict[str, OwnRecord]:
     return recs
 
 
+def _maybe_dump_records(records):
+    """Diagnostic. With FERRULE_DUMP_ESCAPE=path.json set, write every record
+    the classifier sees. Merges into an existing file because the pipeline may
+    classify more than once per run -- delete the file before each run."""
+    import dataclasses
+    import json
+    import os
+    path = os.environ.get("FERRULE_DUMP_ESCAPE")
+    if not path:
+        return
+    try:
+        existing = json.load(open(path)) if os.path.exists(path) else {}
+    except Exception:
+        existing = {}
+    for n, r in records.items():
+        try:
+            existing[n] = dataclasses.asdict(r)
+        except TypeError:
+            existing[n] = dict(vars(r))
+    with open(path, "w") as fh:
+        json.dump(existing, fh, indent=1, default=list)
+
+
 def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
+    _maybe_dump_records(records)
     verdict: dict[str, str] = {}
 
     def base(rec: OwnRecord) -> str | None:
@@ -287,6 +318,9 @@ def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
         if rec.escaped:
             return BORROWED
         if rec.origin == "param_member":
+            # Read from the container, which then let go of it.
+            if getattr(rec, "detaches", False):
+                return OWNED
             return BORROWED
         if rec.origin.startswith("param_direct:"):
             fname = rec.name
@@ -323,6 +357,9 @@ def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
             own = verdict[n]
             if r.escaped:
                 reason, conf = "allocated then stored into a parameter (parent owns it)", 0.85
+            elif r.origin == "param_member" and own == OWNED and getattr(r, "detaches", False):
+                reason, conf = (f"detached from {r.detach_evidence}: the container "
+                                "frees through it and releases it (ownership transfer)"), 0.8
             elif r.origin == "param_member":
                 reason, conf = "returns a pointer derived from an input parameter", 0.9
             elif r.origin.startswith("param_direct:") and own == OWNED:

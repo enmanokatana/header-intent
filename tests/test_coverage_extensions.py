@@ -185,73 +185,6 @@ def test_borrowed_out_handle_cannot_be_freed_at_runtime():
 # Pass 3: caller-allocated state
 # ===========================================================================
 
-def test_caller_state_detected_for_zlib_shape():
-    """z_stream: taken by many functions, returned by none, freed by none."""
-    spec = LibrarySpec("zlib", {
-        "deflateInit2_": FunctionSpec("deflateInit2_", [_opaque("strm", "z_stream")], "c_int"),
-        "deflate": FunctionSpec("deflate", [_opaque("strm", "z_stream")], "c_int"),
-        "deflateEnd": FunctionSpec("deflateEnd", [_opaque("strm", "z_stream")], "c_int"),
-    })
-    pointees = {f: {"strm": "z_stream"} for f in spec.functions}
-    sizes = {"z_stream": {"size": 112, "align": 8}}
-
-    facts, notes = detect_caller_allocated_state(spec, pointees, sizes, handle_types=set())
-
-    assert "z_stream" in facts
-    assert facts["z_stream"].size == 112
-    assert facts["z_stream"].init_fn == "deflateInit2_"
-    assert facts["z_stream"].end_fn == "deflateEnd"
-
-    apply_caller_state_facts(spec, facts, pointees)
-    for fn in spec.functions.values():
-        assert fn.params[0].role is Role.CALLER_STATE
-        check_exposable(fn)
-
-
-def test_library_managed_handle_is_not_caller_state():
-    """If the library RETURNS the type, it owns it -- allocating our own would
-    be a category error. The two mechanisms must never both claim a type."""
-    spec = LibrarySpec("libpq", {
-        "PQexec": FunctionSpec("PQexec", [_opaque("conn", "PGconn")], "c_void_p"),
-    })
-    facts, _ = detect_caller_allocated_state(
-        spec, {"PQexec": {"conn": "PGconn"}},
-        {"PGconn": {"size": 200, "align": 8}},
-        handle_types={"PGconn"})          # <-- library hands it out
-
-    assert "PGconn" not in facts
-
-
-def test_library_freed_type_is_not_caller_state():
-    """If any function destroys the type, the library owns its lifetime."""
-    destroyer = FunctionSpec("thing_free", [_opaque("t", "Thing")], None)
-    destroyer.lifecycle = "destroys"
-    destroyer.handle_type = "Thing"
-    spec = LibrarySpec("x", {"thing_free": destroyer})
-
-    facts, _ = detect_caller_allocated_state(
-        spec, {"thing_free": {"t": "Thing"}},
-        {"Thing": {"size": 64, "align": 8}}, handle_types=set())
-
-    assert "Thing" not in facts
-
-
-def test_incomplete_struct_is_refused_not_guessed():
-    """No size from clang means an opaque/incomplete struct. We cannot allocate
-    what we cannot size, and guessing a size is memory corruption."""
-    spec = LibrarySpec("x", {
-        "f": FunctionSpec("f", [_opaque("s", "OpaqueThing")], "c_int"),
-    })
-    facts, notes = detect_caller_allocated_state(
-        spec, {"f": {"s": "OpaqueThing"}}, {}, handle_types=set())
-
-    assert facts == {}
-    assert any("no size from clang" in n for n in notes)
-    assert spec.functions["f"].params[0].role is Role.OPAQUE
-    with pytest.raises(SpecViolation):
-        check_exposable(spec.functions["f"])
-
-
 def test_caller_state_without_size_is_refused_by_policy():
     """Belt and braces: even if a CALLER_STATE role reached the policy without
     dimensions, the gate refuses rather than allocating zero bytes."""
@@ -374,3 +307,177 @@ def test_caller_allocated_state_roundtrip(counter_so):
     # The binding owns this memory, so releasing it is legitimate and safe.
     t.pop(hid)
     assert len(t) == 0
+
+
+# ===========================================================================
+# Pass 3 guards -- one test per guard.
+#
+# Every fixture starts from a struct that DOES become caller state (the
+# z_stream shape) and perturbs exactly one property. Each test asserts the
+# note its own guard emits, so it can only pass if THAT guard refused the
+# type -- not because an earlier guard happened to catch it first.
+#
+# Replaces four tests that had drifted: they called the detector without
+# out_handle_candidates (TypeError before any assertion ran), three passed an
+# empty handle set so guard 0 short-circuited them, and the zlib fixture had
+# no `local` flag so guard 3 would have refused it as a system type.
+# ===========================================================================
+
+_ZFNS = ("deflateInit2_", "deflate", "deflateEnd")
+_ZSIZE = {"z_stream": {"size": 112, "align": 8, "local": True}}
+_OTHER = {"gzFile_s"}   # zlib's real library-managed handle; not z_stream
+
+
+def _zlib(fns=_ZFNS, extra=None):
+    """z_stream-shaped spec. `extra` maps a function name to its params."""
+    funcs = {f: FunctionSpec(f, [_opaque("strm", "z_stream")], "c_int")
+             for f in fns}
+    pointees = {f: {"strm": "z_stream"} for f in fns}
+    for fname, params in (extra or {}).items():
+        funcs[fname] = FunctionSpec(fname, params, "c_int")
+        pointees[fname] = {p.name: "z_stream" for p in params
+                           if p.role is Role.OPAQUE}
+    return LibrarySpec("zlib", funcs), pointees
+
+
+def _detect(spec, pointees, sizes=None, handle_types=None, out=None):
+    return detect_caller_allocated_state(
+        spec, pointees,
+        _ZSIZE if sizes is None else sizes,
+        _OTHER if handle_types is None else handle_types,
+        {} if out is None else out)
+
+
+def _notes_about(notes, struct):
+    return [n for n in notes if n.startswith(f"{struct}:")]
+
+
+def test_baseline_zlib_shape_is_caller_state():
+    spec, pointees = _zlib()
+    facts, notes = _detect(spec, pointees)
+    assert "z_stream" in facts, notes
+    f = facts["z_stream"]
+    assert (f.size, f.init_fn, f.end_fn) == (112, "deflateInit2_", "deflateEnd")
+    apply_caller_state_facts(spec, facts, pointees)
+    for fn in spec.functions.values():
+        assert fn.params[0].role is Role.CALLER_STATE
+        check_exposable(fn)
+
+
+def test_guard0_empty_handle_types_disables_the_pass():
+    spec, pointees = _zlib()
+    facts, notes = _detect(spec, pointees, handle_types=set())
+    assert facts == {}
+    assert any("caller-state detection skipped" in n for n in notes)
+
+
+def test_library_returned_type_is_skipped_silently():
+    """The handle-type check is the only guard that emits no note, so silence
+    about z_stream proves it -- and not a later guard -- refused the type."""
+    spec, pointees = _zlib()
+    facts, notes = _detect(spec, pointees, handle_types={"z_stream", "gzFile_s"})
+    assert "z_stream" not in facts
+    assert _notes_about(notes, "z_stream") == []
+
+
+def test_guard1_out_parameter_type_is_library_allocated():
+    spec, pointees = _zlib()
+    facts, notes = _detect(spec, pointees, out={"zopen": {"out": "z_stream"}})
+    assert "z_stream" not in facts
+    assert any("T** out-parameter" in n for n in _notes_about(notes, "z_stream"))
+
+
+def test_guard2_destructor_by_lifecycle():
+    spec, pointees = _zlib()
+    d = FunctionSpec("zfinish", [_opaque("s", "z_stream")], None)
+    d.lifecycle, d.handle_type = "destroys", "z_stream"
+    spec.functions["zfinish"] = d          # in the spec, NOT in pointees
+    facts, notes = _detect(spec, pointees)
+    assert "z_stream" not in facts
+    assert any("exposes a destructor" in n for n in _notes_about(notes, "z_stream"))
+
+
+def test_guard2_destructor_by_name_survives_failed_lifecycle():
+    """The lexical half: git_signature_free taking git_signature* is enough
+    evidence even when lifecycle analysis produced nothing."""
+    spec, pointees = _zlib()
+    pointees["z_stream_free"] = {"s": "z_stream"}   # name only, no lifecycle
+    facts, notes = _detect(spec, pointees)
+    assert "z_stream" not in facts
+    assert any("exposes a destructor" in n for n in _notes_about(notes, "z_stream"))
+
+
+def test_no_size_is_refused_not_guessed():
+    spec, pointees = _zlib()
+    facts, notes = _detect(spec, pointees, sizes={})
+    assert facts == {}
+    assert any("no size from clang" in n for n in _notes_about(notes, "z_stream"))
+    apply_caller_state_facts(spec, facts, pointees)
+    assert spec.functions["deflate"].params[0].role is Role.OPAQUE
+    with pytest.raises(SpecViolation):
+        check_exposable(spec.functions["deflate"])
+
+
+def test_guard3_missing_locality_flag_is_treated_as_foreign():
+    """FILE, struct tm, sockaddr are allocated by libc. A MISSING flag must
+    count as foreign: that is what stops the binding forging a FILE."""
+    spec, pointees = _zlib()
+    facts, notes = _detect(spec, pointees,
+                           sizes={"z_stream": {"size": 112, "align": 8}})
+    assert "z_stream" not in facts
+    assert any("not declared by this library" in n
+               for n in _notes_about(notes, "z_stream"))
+
+
+def test_guard4_no_initializer_is_refused():
+    spec, pointees = _zlib(fns=("deflate", "deflateBound"))
+    facts, notes = _detect(spec, pointees)
+    assert "z_stream" not in facts
+    assert any("no initializing function" in n
+               for n in _notes_about(notes, "z_stream"))
+
+
+# ---------------------------------------------------------------------------
+# Array guard, as used by apply_caller_state_facts. Here it is a SAFETY guard:
+# allocating one 112-byte z_stream where the library indexes an array is a
+# buffer overflow, not a coverage gap.
+# ---------------------------------------------------------------------------
+
+def _array_case(params):
+    spec, pointees = _zlib(extra={"zbatch": params})
+    facts, _ = _detect(spec, pointees)
+    assert "z_stream" in facts
+    notes = apply_caller_state_facts(spec, facts, pointees)
+    arr = next(p for p in spec.functions["zbatch"].params if p.name == "arr")
+    return arr.role, notes
+
+
+def test_array_guard_count_after_pointer():
+    role, notes = _array_case([_opaque("arr", "z_stream"), _scalar("count")])
+    assert role is Role.OPAQUE
+    assert any("count parameter" in n for n in notes)
+
+
+def test_array_guard_count_before_pointer():
+    """PQsetResultAttrs(res, numAttributes, attDescs): the count comes first.
+    A forward-only guard binds one struct where an array is indexed."""
+    role, _ = _array_case([_scalar("count"), _opaque("arr", "z_stream")])
+    assert role is Role.OPAQUE
+
+
+def test_array_guard_camelcase_count():
+    """numAttributes: a snake_case regex never sees the word `num`."""
+    role, _ = _array_case([_opaque("arr", "z_stream"), _scalar("numItems")])
+    assert role is Role.OPAQUE
+
+
+@pytest.mark.parametrize("names", [
+    ("bit_depth", "before"),   # bits per sample, not an element count
+    ("flush", "after"),        # deflate's own flush flag
+])
+def test_array_guard_does_not_over_fire(names):
+    name, side = names
+    params = ([_scalar(name), _opaque("arr", "z_stream")] if side == "before"
+              else [_opaque("arr", "z_stream"), _scalar(name)])
+    role, _ = _array_case(params)
+    assert role is Role.CALLER_STATE

@@ -66,28 +66,54 @@ from ..spec.schema import Evidenced
 # Shared helpers
 # ---------------------------------------------------------------------------
 
-_COUNT_HINT = re.compile(
-    r"^(n|num|count|len|length|size|cnt)$|^(n|num|count|len|length|size)_|"
-    r"_(n|num|count|len|length|size|cnt)$", re.I)
+_COUNT_WORDS = {"n", "num", "count", "cnt", "len", "length", "size",
+                "nmemb", "nitems", "total"}
+_COUNT_PREFIX = re.compile(r"^(num|cnt|len)", re.I)
 
 
-def _adjacent_count_param(fn, idx: int) -> bool:
-    """True if the parameter right after index `idx` looks like an element count.
+def _looks_like_count(name: str) -> bool:
+    """True if this identifier plausibly names an element count.
 
-    Guards pass 1 against array parameters: `png_set_PLTE(png, info,
-    png_color *palette, int num_palette)` passes an ARRAY of png_color, not a
-    handle to one. If png_color happens to be a type the library also returns,
-    propagation would otherwise mis-shape the parameter as a handle id. This is
-    a coverage guard, not a safety guard -- being wrong here produces an
-    unusable signature, not an unsafe one -- but an unusable binding is still a
-    defect, so we abstain.
+    Word-level, so `bit_depth` (bits per sample) does not fire while
+    `num_palette`, `numAttributes` and `nmemb` do. Uses the ownership layer's
+    tokenizer instead of a local copy: a boundary regex tuned on snake_case
+    missed camelCase here exactly as it once hid sqlite3MallocZero from the
+    allocator matcher, and one shared tokenizer is what stops that recurring.
+
+    Known conservative false positive: `good_length` in deflateTune fires on
+    `length`, so deflateTune is refused as taking an array. Known gap: a bare
+    `nentries` tokenizes to one word and is not recognised.
     """
-    if idx + 1 >= len(fn.params):
-        return False
-    nxt = fn.params[idx + 1]
-    if nxt.role not in (Role.SCALAR, Role.LENGTH_OF):
-        return False
-    return bool(_COUNT_HINT.search(nxt.name or ""))
+    from .l2_ownership import _tokenize_ident
+    toks = _tokenize_ident(name or "")
+    return (any(t in _COUNT_WORDS for t in toks)
+            or any(_COUNT_PREFIX.match(t) for t in toks))
+
+
+def _adjacent_count_param(fn, idx: int):
+    """Name of an element-count parameter immediately BEFORE or AFTER index
+    `idx`, or None. Truthy either way; returns the name so the refusal note
+    can say which parameter is the evidence.
+
+    Both call sites are memory-safety guards. In pass 1 a missed array lets
+    the caller pass one object's address as a handle while the library reads
+    n of them -- an out-of-bounds read. In pass 3 the binding allocates one
+    struct where the library indexes an array --
+        png_set_PLTE(png, info, png_color *palette, int num_palette)
+    would overflow a single 3-byte allocation.
+
+    Both sides, because counts come first about as often as last:
+        PQsetResultAttrs(PGresult *res, int numAttributes, PGresAttDesc *attDescs)
+    """
+    for j in (idx + 1, idx - 1):
+        if j < 0 or j >= len(fn.params):
+            continue
+        nb = fn.params[j]
+        if nb.role not in (Role.SCALAR, Role.LENGTH_OF):
+            continue
+        if _looks_like_count(nb.name):
+            return nb.name
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -128,9 +154,10 @@ def propagate_handle_types(spec, handle_types: set, pointees: dict) -> list[str]
             struct = fn_pointees.get(p.name)
             if struct is None or struct not in handle_types:
                 continue
-            if _adjacent_count_param(fn, idx):
+            count_param = _adjacent_count_param(fn, idx)
+            if count_param:
                 notes.append(f"{fname}: {p.name!r} is {struct}* but is followed by a "
-                             f"count parameter ({fn.params[idx+1].name!r}); treated as a "
+                             f"count parameter ({count_param!r}); treated as a "
                              f"potential array, left refused")
                 continue
             p.role = Role.HANDLE
@@ -355,9 +382,10 @@ def apply_caller_state_facts(spec, facts: dict, pointees: dict) -> list[str]:
             struct = fn_pointees.get(p.name)
             if struct is None or struct not in facts:
                 continue
-            if _adjacent_count_param(fn, idx):
-                notes.append(f"{fname}: {p.name!r} is {struct}* followed by a count "
-                             f"parameter ({fn.params[idx+1].name!r}); this is an "
+            count_param = _adjacent_count_param(fn, idx)
+            if count_param:
+                notes.append(f"{fname}: {p.name!r} is {struct}* next to a count "
+                             f"parameter ({count_param!r}); this is an "
                              f"array, not a single struct -- left refused")
                 continue
             f = facts[struct]

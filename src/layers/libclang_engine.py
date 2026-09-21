@@ -490,6 +490,128 @@ def _root_param(node, params):
     return None
 
 
+_FREE_WORDS = {"free", "delete", "destroy", "dispose", "unref"}
+
+
+def _is_free_name(name):
+    """Deallocator by whole-word name, both naming conventions. Used ONLY as
+    evidence that a member holds an owning reference -- never as a verdict."""
+    if not name:
+        return False
+    from .l2_ownership import _tokenize_ident
+    return any(w in _FREE_WORDS for w in _tokenize_ident(name))
+
+
+def _rhs_tokens(node):
+    try:
+        return [t.spelling for t in node.get_tokens()]
+    except Exception:
+        return []
+
+
+def _is_null_rhs(node, parent=None):
+    """True for NULL, 0, (void*)0 and parenthesised forms.
+
+    NULL is a macro, and a macro-expanded node's extent points at the macro
+    DEFINITION, so reading tokens off `node` returns the #define line (or
+    nothing). Check the AST first -- the innermost literal's own extent is a
+    single token even inside a macro -- then fall back to the PARENT
+    statement's tokens, which sit at the use site (the same thing
+    _binop_is_assign relies on).
+    """
+    ck = cindex.CursorKind
+    n = node
+    while n is not None and n.kind in (ck.UNEXPOSED_EXPR, ck.PAREN_EXPR,
+                                        ck.CSTYLE_CAST_EXPR):
+        kids = [k for k in n.get_children() if k.kind != ck.TYPE_REF]
+        if len(kids) != 1:
+            break
+        n = kids[0]
+    if n is not None:
+        if n.kind == ck.INTEGER_LITERAL:
+            t = _rhs_tokens(n)
+            if t and t[0].rstrip("uUlL") in ("0", "00", "0x0", "0X0"):
+                return True
+        gnu = getattr(ck, "GNU_NULL_EXPR", None)
+        if gnu is not None and n.kind == gnu:
+            return True
+
+    toks = _rhs_tokens(parent) if parent is not None else _rhs_tokens(node)
+    if parent is not None:
+        if "=" in toks:
+            toks = toks[toks.index("=") + 1:]
+        elif toks[:1] == ["return"]:
+            toks = toks[1:]
+    toks = [t for t in toks if t not in ("(", ")", "void", "*", ";", ",")]
+    return toks in (["NULL"], ["0"])
+
+
+def _ref_names(node):
+    """Every identifier referenced anywhere inside an expression."""
+    ck = cindex.CursorKind
+    return {x.spelling for x in node.walk_preorder()
+            if x.kind == ck.DECL_REF_EXPR}
+
+
+def _member_path(node):
+    """(root, 'f1.f2') for p->f1->f2 or p.f1, else None. Gives up on
+    subscripts and calls: detach needs an exact path, not an approximation."""
+    ck = cindex.CursorKind
+    fields = []
+    n = _unwrap(node)
+    while n is not None:
+        if n.kind == ck.MEMBER_REF_EXPR:
+            fields.append(n.spelling)
+            kids = [k for k in n.get_children() if k.kind != ck.TYPE_REF]
+            if not kids:
+                return None
+            n = _unwrap(kids[0])
+            continue
+        if n.kind == ck.DECL_REF_EXPR and fields:
+            return n.spelling, ".".join(reversed(fields))
+        return None
+    return None
+
+
+def _note_member_read(member_reads, local, rhs, params, pos):
+    """Remember that `local` was last (non-NULL) assigned from a parameter's
+    member. Any other assignment forgets it, mirroring how origin works."""
+    mp = _member_path(rhs)
+    if mp and mp[0] in params:
+        member_reads[local] = (mp[0], mp[1], pos)
+    else:
+        member_reads.pop(local, None)
+
+
+def _detach_evidence(returns, member_reads, member_writes, value_uses,
+                     freed_members):
+    """'p->f' if the function hands back a value it detached from p->f, else
+    None. Requires all four pieces of evidence (see fix_detach.py)."""
+    returned = set()
+    for e in returns:
+        if _is_null_rhs(e):
+            continue
+        nm = _direct_ref(e, set(member_reads))
+        if nm is None:
+            return None
+        returned.add(nm)
+    if len(returned) != 1:
+        return None
+    x = next(iter(returned))
+    root, path, rpos = member_reads[x]
+    # owning: something in this body frees through the member
+    if (root, path) not in freed_members:
+        return None
+    # released: the member is set to NULL after the read
+    if not any(r == root and p == path and wpos > rpos and is_null
+               for r, p, wpos, _names, is_null in member_writes):
+        return None
+    # not reused: the value is not stored anywhere or passed on afterwards
+    if any(upos > rpos and x in names for upos, names in value_uses):
+        return None
+    return f"{root}->{path.replace('.', '->')}"
+
+
 class _OwnershipMixin:
     def ownership_records(self, path, clang_args=None) -> dict:
         """Extract ownership evidence per function: where the returned pointer came
@@ -511,6 +633,12 @@ class _OwnershipMixin:
             origin: dict[str, str] = {}
             mutated_param_roots: set = set()
             returns, calls = [], []
+            # --- detach evidence (see _detach_evidence) ---
+            member_reads: dict = {}
+            member_writes: list = []
+            value_uses: list = []
+            freed_members: set = set()
+            pos = 0
 
             def origin_of(expr):
                 """Classify the TOP-LEVEL expression. Scanning the whole subtree let a
@@ -541,18 +669,36 @@ class _OwnershipMixin:
                 return "unknown"
 
             for n in c.walk_preorder():
+                pos += 1
                 if n.kind == cindex.CursorKind.VAR_DECL:
                     kids = [k for k in n.get_children()
                             if k.kind != cindex.CursorKind.TYPE_REF]
-                    if kids:
+                    if kids and not _is_null_rhs(kids[-1], n):
                         origin[n.spelling] = origin_of(kids[-1])
+                        _note_member_read(member_reads, n.spelling, kids[-1],
+                                          params, pos)
                 elif n.kind == cindex.CursorKind.BINARY_OPERATOR and _binop_is_assign(n):
                     kids = list(n.get_children())
                     if len(kids) == 2:
                         lhs = _unwrap(kids[0])
+                        value_uses.append((pos, _ref_names(kids[1])))
                         if lhs is not None and lhs.kind == cindex.CursorKind.DECL_REF_EXPR:
-                            origin[lhs.spelling] = origin_of(kids[1])
+                            # A NULL assignment on an error path must not
+                            # overwrite the real origin. xmlDoRead does
+                            #   if (ok) ret = ctxt->myDoc; else ret = NULL;
+                            # and last-assignment-wins left it `unknown`,
+                            # stranding every xmlRead*/xmlCtxtRead* entry
+                            # point. Returns already had this guard.
+                            if not _is_null_rhs(kids[1], n):
+                                origin[lhs.spelling] = origin_of(kids[1])
+                                _note_member_read(member_reads, lhs.spelling,
+                                                  kids[1], params, pos)
                         elif lhs is not None and lhs.kind == cindex.CursorKind.MEMBER_REF_EXPR:
+                            mp = _member_path(lhs)
+                            if mp and mp[0] in params:
+                                member_writes.append((mp[0], mp[1], pos,
+                                                      _ref_names(kids[1]),
+                                                      _is_null_rhs(kids[1], n)))
                             root = _root_param(lhs, params)
                             if root:
                                 mutated_param_roots.add(root)
@@ -573,6 +719,15 @@ class _OwnershipMixin:
                         if nm:
                             roots.append(nm)
                     calls.append((_callee_name_of(n), roots))
+                    used = set()
+                    for a in n.get_arguments():
+                        used |= _ref_names(a)
+                    value_uses.append((pos, used))
+                    if _is_free_name(_callee_name_of(n)):
+                        for a in n.get_arguments():
+                            mp = _member_path(a)
+                            if mp and mp[0] in params:
+                                freed_members.add(mp)
 
             ret_ids, origins = [], []
             for expr in returns:
@@ -609,15 +764,30 @@ class _OwnershipMixin:
                     call_origins = [o for o in origins if o.startswith("call:")]
                     rec.origin = call_origins[0] if call_origins else "unknown"
 
+            # Detach: the value handed back was read out of a parameter's
+            # member which the container owned and then released.
+            #   xmlDoRead:  ret = ctxt->myDoc;  ... xmlFreeDoc(ctxt->myDoc)
+            #               on failure ...  ctxt->myDoc = NULL;  return ret;
+            if rec.origin == "param_member":
+                ev = _detach_evidence(returns, member_reads, member_writes,
+                                      value_uses, freed_members)
+                if ev:
+                    rec.detaches = True
+                    rec.detach_evidence = ev
             producer = rec.origin.split(":", 1)[1] if rec.origin.startswith("call:") else None
             if rec.origin == "alloc" or rec.origin.startswith("call:"):
+                # Collect EVERY callee that satisfies the escape test rather
+                # than stopping at the first: a retention analysis can lift an
+                # escape only if all of them can be ruled out. Verdict is
+                # unchanged -- escaped iff at least one trigger exists.
                 for callee, roots in calls:
                     if _is_alloc_name(callee) or callee == producer:
                         continue
                     if any(r in ret_ids for r in roots) and \
                        any(r in rec.handle_params for r in roots):
-                        rec.escaped = True
-                        break
+                        rec.escape_triggers.append(callee)
+                if rec.escape_triggers:
+                    rec.escaped = True
 
             recs[c.spelling] = rec
         return recs

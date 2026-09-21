@@ -36,6 +36,8 @@ dist/
 .eggs/
 pip-wheel-metadata/
 *.db
+*.json
+*.py.*
 # Logs and runtime files
 *.log
 *.pid
