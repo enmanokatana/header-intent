@@ -39,6 +39,9 @@ pip-wheel-metadata/
 # Logs and runtime files
 *.log
 *.pid
+*.bak
+*.bak2
+./docs/*
 eval/
 eval_results/
 eval_specs/
@@ -62,3 +65,4 @@ docs/*
 
 
 
+docs/base.md

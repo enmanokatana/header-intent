@@ -451,6 +451,37 @@ def _direct_ref(node, names):
     return None
 
 
+def _returned_root(node):
+    """Root identifier of the value a `return` hands back, or None.
+
+    Mirrors _root_id in the pycparser path. Unwraps casts, parens, member
+    access and array subscripts to reach the base identifier, because
+    `return p->child` and `return arr[i]` are both rooted at a name. Returns
+    None for a returned call: its value has no local identity, so it cannot
+    have escaped into anything.
+    """
+    global _TRANSPARENT
+    if _TRANSPARENT is None:
+        ck = cindex.CursorKind
+        _TRANSPARENT = {ck.UNEXPOSED_EXPR, ck.PAREN_EXPR, ck.CSTYLE_CAST_EXPR}
+    ck = cindex.CursorKind
+    n = node
+    while n is not None:
+        if n.kind == ck.DECL_REF_EXPR:
+            return n.spelling
+        if n.kind == ck.CALL_EXPR:
+            return None
+        if n.kind in (ck.MEMBER_REF_EXPR, ck.ARRAY_SUBSCRIPT_EXPR,
+                      ck.UNARY_OPERATOR) or n.kind in _TRANSPARENT:
+            kids = [k for k in n.get_children() if k.kind != ck.TYPE_REF]
+            if not kids:
+                return None
+            n = kids[0]
+            continue
+        return None
+    return None
+
+
 def _root_param(node, params):
     """Root identifier of an expr (unwrapping member/cast/paren), if it's a param."""
     for n in node.walk_preorder():
@@ -546,9 +577,23 @@ class _OwnershipMixin:
             ret_ids, origins = [], []
             for expr in returns:
                 origins.append(origin_of(expr))
-                for r in expr.walk_preorder():
-                    if r.kind == cindex.CursorKind.DECL_REF_EXPR:
-                        ret_ids.append(r.spelling)
+                # The identity of the value BEING RETURNED, not every name in
+                # the return expression. walk_preorder() collected argument
+                # names too, so
+                #     return f(array, g(array, which));
+                # put `array` in ret_ids and the escape loop below matched the
+                # inner g() -- root in ret_ids, root a handle param -- marking
+                # the function BORROWED for passing a parameter to a helper.
+                # All three cJSON detach wrappers were misclassified this way,
+                # and since escape is decided before the call-propagation fixed
+                # point, the correct owner=caller verdict already resolved for
+                # cJSON_DetachItemViaPointer could never reach them.
+                #
+                # Same defect origin_of() was narrowed to avoid (see its
+                # docstring); ret_ids was left scanning the subtree.
+                rid = _returned_root(expr)
+                if rid:
+                    ret_ids.append(rid)
 
             if "param_member" in origins:
                 rec.origin = "param_member"
