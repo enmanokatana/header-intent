@@ -1,0 +1,11 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+gztell,refused,,,y,
+gzprintf,refused,,,n,"This function takes a variadic parameter list ('...'), which is not safe for automatic binding exposure."
+adler32_combine,other,,,y,
+gzeof,refused,library,uses,y,
+inflateInit_,refused,,,y,
+crc32_combine_gen,other,,,y,
+adler32_z,other,,,y,
+get_crc_table,other,library,uses,y,
+adler32,other,,,y,
+deflate,refused,,uses,n,"The function operates on user-supplied z_stream pointers and writable buffers whose size must be managed by the caller, "

@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+PQdsplen,other,library,uses,y,
+PQparamtype,lifecycle,library,uses,y,
+PQconnectStart,refused,caller,creates,y,
+PQfmod,lifecycle,library,uses,y,
+pg_valid_server_encoding_id,other,library,uses,y,
+PQfformat,lifecycle,library,uses,y,
+PQescapeStringConn,refused,caller,uses,n,The function writes into a caller-supplied output buffer `to` whose required size the caller must determine and allocate
+PQgetisnull,lifecycle,library,uses,y,
+PQputCopyEnd,refused,library,uses,y,
+PQgetvalue,lifecycle,library,uses,y,
+PQescapeLiteral,refused,caller,creates,y,
+PQresStatus,other,library,uses,y,
+lo_lseek,refused,library,uses,y,
+PQcopyResult,handle_return,caller,creates,y,
+pg_encoding_to_char,other,library,uses,y,
+PQenv2encoding,other,library,uses,y,

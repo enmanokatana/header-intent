@@ -1,0 +1,7995 @@
+library: lib
+functions:
+  sqlite3_libversion:
+    restype: c_char_p
+    params: []
+    string_owner: library
+  sqlite3_sourceid:
+    restype: c_char_p
+    params: []
+    string_owner: library
+  sqlite3_libversion_number:
+    restype: c_int
+    params: []
+  sqlite3_compileoption_used:
+    restype: c_int
+    params:
+    - name: zOptName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_compileoption_get:
+    restype: c_char_p
+    params:
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_threadsafe:
+    restype: c_int
+    params: []
+  sqlite3_close:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: destroys
+    handle_type: sqlite3
+  sqlite3_close_v2:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: destroys
+    handle_type: sqlite3
+  sqlite3_exec:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: sql
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: callback
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: errmsg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_initialize:
+    restype: c_int
+    params: []
+  sqlite3_shutdown:
+    restype: c_int
+    params: []
+  sqlite3_os_init:
+    restype: c_int
+    params: []
+  sqlite3_os_end:
+    restype: c_int
+    params: []
+  sqlite3_extended_result_codes:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: onoff
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_last_insert_rowid:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_set_last_insert_rowid:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_changes:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_changes64:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_total_changes:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_total_changes64:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_interrupt:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_is_interrupted:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_complete:
+    restype: c_int
+    params:
+    - name: sql
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_complete16:
+    restype: c_int
+    params:
+    - name: sql
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_busy_handler:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_busy_timeout:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: ms
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_get_table:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pazResult
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pnRow
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: pnColumn
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: pzErrmsg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_free_table:
+    restype: null
+    params:
+    - name: result
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_vmprintf:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    string_owner: library
+  sqlite3_vsnprintf:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    string_owner: library
+  sqlite3_malloc:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_malloc64:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_realloc:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_realloc64:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a1
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_free:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_msize:
+    restype: c_ulong
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_memory_used:
+    restype: c_long
+    params: []
+  sqlite3_memory_highwater:
+    restype: c_long
+    params:
+    - name: resetFlag
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_randomness:
+    restype: null
+    params:
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: P
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_set_authorizer:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: xAuth
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pUserData
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_trace:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: xTrace
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_profile:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: xProfile
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_trace_v2:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: uMask
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: xCallback
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pCtx
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_progress_handler:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_open:
+    restype: c_int
+    params:
+    - name: filename
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppDb
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - out_handle_analysis
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3
+    lifecycle: creates
+    handle_type: sqlite3
+    owner: caller
+    handle_out_param: ppDb
+  sqlite3_open16:
+    restype: c_int
+    params:
+    - name: filename
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: ppDb
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3
+    lifecycle: creates
+    handle_type: sqlite3
+    owner: library
+    handle_out_param: ppDb
+  sqlite3_open_v2:
+    restype: c_int
+    params:
+    - name: filename
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppDb
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - out_handle_analysis
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3
+    - name: flags
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zVfs
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: sqlite3
+    owner: caller
+    handle_out_param: ppDb
+  sqlite3_uri_parameter:
+    restype: c_char_p
+    params:
+    - name: z
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zParam
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_uri_boolean:
+    restype: c_int
+    params:
+    - name: z
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zParam
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: bDefault
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_uri_int64:
+    restype: c_long
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_uri_key:
+    restype: c_char_p
+    params:
+    - name: z
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_filename_database:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_filename_journal:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_filename_wal:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_database_file_object:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: sqlite3_file
+    owner: library
+  sqlite3_create_filename:
+    restype: c_char_p
+    params:
+    - name: zDatabase
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zJournal
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zWal
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParam
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: azParam
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    string_owner: library
+  sqlite3_free_filename:
+    restype: null
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_errcode:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_extended_errcode:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_errmsg:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+    string_owner: library
+  sqlite3_errmsg16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_errstr:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  sqlite3_error_offset:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_limit:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: id
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: newVal
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_prepare:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nByte
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppStmt
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_stmt
+    - name: pzTail
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: sqlite3_stmt
+    owner: library
+    handle_out_param: ppStmt
+  sqlite3_prepare_v2:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nByte
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppStmt
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_stmt
+    - name: pzTail
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: sqlite3_stmt
+    owner: library
+    handle_out_param: ppStmt
+  sqlite3_prepare_v3:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nByte
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: prepFlags
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppStmt
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_stmt
+    - name: pzTail
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: sqlite3_stmt
+    owner: library
+    handle_out_param: ppStmt
+  sqlite3_prepare16:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: nByte
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppStmt
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_stmt
+    - name: pzTail
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: sqlite3_stmt
+    owner: library
+    handle_out_param: ppStmt
+  sqlite3_prepare16_v2:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: nByte
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppStmt
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_stmt
+    - name: pzTail
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: sqlite3_stmt
+    owner: library
+    handle_out_param: ppStmt
+  sqlite3_prepare16_v3:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSql
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: nByte
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: prepFlags
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppStmt
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_stmt
+    - name: pzTail
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: sqlite3_stmt
+    owner: library
+    handle_out_param: ppStmt
+  sqlite3_sql:
+    restype: c_char_p
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+    string_owner: library
+  sqlite3_expanded_sql:
+    restype: c_char_p
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+    string_owner: library
+  sqlite3_stmt_readonly:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_stmt_isexplain:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_stmt_explain:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: eMode
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_stmt_busy:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_blob:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: n
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a4
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_blob64:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a4
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_double:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_int:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_int64:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_null:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_text:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a4
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_text16:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a4
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_text64:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a4
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: encoding
+      role: scalar
+      ctype: c_ubyte
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_value:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_pointer:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a4
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_zeroblob:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: n
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_zeroblob64:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_parameter_count:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_bind_parameter_name:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+    string_owner: library
+  sqlite3_bind_parameter_index:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: zName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_clear_bindings:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_count:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_name:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+    string_owner: library
+  sqlite3_column_name16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_database_name:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_database_name16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_table_name:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_table_name16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_origin_name:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_origin_name16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_decltype:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+    string_owner: library
+  sqlite3_column_decltype16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_step:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_data_count:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_blob:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_double:
+    restype: c_double
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_int:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_int64:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_text:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+    string_owner: library
+  sqlite3_column_text16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_value:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: sqlite3_value
+    owner: library
+  sqlite3_column_bytes:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_bytes16:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_column_type:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: iCol
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_finalize:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_reset:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_create_function:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zFunctionName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nArg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pApp
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFunc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xStep
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFinal
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_create_function16:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zFunctionName
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: nArg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pApp
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFunc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xStep
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFinal
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_create_function_v2:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zFunctionName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nArg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pApp
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFunc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xStep
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFinal
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xDestroy
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_create_window_function:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zFunctionName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nArg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pApp
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xStep
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xFinal
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xValue
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xInverse
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xDestroy
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_aggregate_count:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+  sqlite3_expired:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_transfer_bindings:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: a1
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_global_recover:
+    restype: c_int
+    params: []
+  sqlite3_thread_cleanup:
+    restype: null
+    params: []
+  sqlite3_memory_alarm:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_value_blob:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_double:
+    restype: c_double
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_int:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_int64:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_pointer:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_text:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+    string_owner: library
+  sqlite3_value_text16:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_text16le:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_text16be:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_bytes:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_bytes16:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_type:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_numeric_type:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_nochange:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_frombind:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_encoding:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_subtype:
+    restype: c_uint
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_value_dup:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: borrows
+    handle_type: sqlite3_value
+    owner: library
+  sqlite3_value_free:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: destroys
+    handle_type: sqlite3_value
+  sqlite3_aggregate_context:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: nBytes
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_user_data:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+  sqlite3_context_db_handle:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    lifecycle: borrows
+    handle_type: sqlite3
+    owner: library
+  sqlite3_get_auxdata:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_set_auxdata:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_get_clientdata:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_set_clientdata:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_result_blob:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_blob64:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_double:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_error:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_error16:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_error_toobig:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+  sqlite3_result_error_nomem:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+  sqlite3_result_error_code:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_int:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_int64:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_null:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+  sqlite3_result_text:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_text64:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: encoding
+      role: scalar
+      ctype: c_ubyte
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_text16:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_text16le:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_text16be:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_value:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    lifecycle: uses
+    handle_type: sqlite3_value
+  sqlite3_result_pointer:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_result_zeroblob:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: n
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_zeroblob64:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: n
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_result_subtype:
+    restype: null
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+    - name: a1
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_create_collation:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pArg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xCompare
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_create_collation_v2:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pArg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xCompare
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xDestroy
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_create_collation16:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zName
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: eTextRep
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pArg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xCompare
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_collation_needed:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_collation_needed16:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_sleep:
+    restype: c_int
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_win32_set_directory:
+    restype: c_int
+    params:
+    - name: type
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zValue
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_win32_set_directory8:
+    restype: c_int
+    params:
+    - name: type
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zValue
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_win32_set_directory16:
+    restype: c_int
+    params:
+    - name: type
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zValue
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_get_autocommit:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_db_handle:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3_stmt
+    lifecycle: borrows
+    handle_type: sqlite3
+    owner: library
+  sqlite3_db_name:
+    restype: c_char_p
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+    string_owner: library
+  sqlite3_db_filename:
+    restype: c_char_p
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDbName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+    string_owner: library
+  sqlite3_db_readonly:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDbName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_txn_state:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSchema
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_next_stmt:
+    restype: c_void_p
+    params:
+    - name: pDb
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: borrows
+    handle_type: sqlite3_stmt
+    owner: library
+  sqlite3_commit_hook:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_rollback_hook:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_autovacuum_pages:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_update_hook:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_enable_shared_cache:
+    restype: c_int
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_release_memory:
+    restype: c_int
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_db_release_memory:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_soft_heap_limit64:
+    restype: c_long
+    params:
+    - name: N
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_hard_heap_limit64:
+    restype: c_long
+    params:
+    - name: N
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_soft_heap_limit:
+    restype: null
+    params:
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_table_column_metadata:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDbName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zTableName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zColumnName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pzDataType
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pzCollSeq
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pNotNull
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: pPrimaryKey
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: pAutoinc
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_load_extension:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zFile
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zProc
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pzErrMsg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_enable_load_extension:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: onoff
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_auto_extension:
+    restype: c_int
+    params:
+    - name: xEntryPoint
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_cancel_auto_extension:
+    restype: c_int
+    params:
+    - name: xEntryPoint
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  sqlite3_reset_auto_extension:
+    restype: null
+    params: []
+  sqlite3_create_module:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: p
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_module
+    - name: pClientData
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_create_module_v2:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: p
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_module
+    - name: pClientData
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xDestroy
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_drop_modules:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: azKeep
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_declare_vtab:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSQL
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_overload_function:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zFuncName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nArg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_blob_open:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDb
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zTable
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zColumn
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: iRow
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: flags
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppBlob
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - out_handle_analysis
+        confidence: 0.85
+        verified: false
+      handle_type: sqlite3_blob
+    lifecycle: creates
+    handle_type: sqlite3_blob
+    owner: caller
+    handle_out_param: ppBlob
+  sqlite3_blob_reopen:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_blob
+      pointee: sqlite3_blob
+    - name: a1
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_blob
+  sqlite3_blob_close:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_blob
+      pointee: sqlite3_blob
+    lifecycle: uses
+    handle_type: sqlite3_blob
+  sqlite3_blob_bytes:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_blob
+      pointee: sqlite3_blob
+    lifecycle: uses
+    handle_type: sqlite3_blob
+  sqlite3_blob_read:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_blob
+      pointee: sqlite3_blob
+    - name: Z
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: iOffset
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_blob
+  sqlite3_blob_write:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_blob
+      pointee: sqlite3_blob
+    - name: z
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: n
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: iOffset
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_blob
+  sqlite3_vfs_find:
+    restype: c_void_p
+    params:
+    - name: zVfsName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: sqlite3_vfs
+    owner: library
+  sqlite3_vfs_register:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_vfs
+      pointee: sqlite3_vfs
+    - name: makeDflt
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_vfs
+  sqlite3_vfs_unregister:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_vfs
+      pointee: sqlite3_vfs
+    lifecycle: uses
+    handle_type: sqlite3_vfs
+  sqlite3_mutex_alloc:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: sqlite3_mutex
+    owner: caller
+  sqlite3_mutex_free:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3_mutex
+    lifecycle: destroys
+    handle_type: sqlite3_mutex
+  sqlite3_mutex_enter:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3_mutex
+    lifecycle: uses
+    handle_type: sqlite3_mutex
+  sqlite3_mutex_try:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3_mutex
+    lifecycle: uses
+    handle_type: sqlite3_mutex
+  sqlite3_mutex_leave:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3_mutex
+    lifecycle: uses
+    handle_type: sqlite3_mutex
+  sqlite3_mutex_held:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3_mutex
+    lifecycle: uses
+    handle_type: sqlite3_mutex
+  sqlite3_mutex_notheld:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3_mutex
+    lifecycle: uses
+    handle_type: sqlite3_mutex
+  sqlite3_db_mutex:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_mutex
+      pointee: sqlite3
+    lifecycle: borrows
+    handle_type: sqlite3_mutex
+    owner: library
+  sqlite3_file_control:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDbName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: op
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a3
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_keyword_count:
+    restype: c_int
+    params: []
+  sqlite3_keyword_name:
+    restype: c_int
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+  sqlite3_keyword_check:
+    restype: c_int
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_str_new:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3
+    lifecycle: borrows
+    handle_type: sqlite3_str
+    owner: library
+  sqlite3_str_finish:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    lifecycle: destroys
+    handle_type: sqlite3_str
+    string_owner: library
+  sqlite3_str_vappendf:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    - name: zFormat
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_append:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    - name: zIn
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_appendall:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    - name: zIn
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_appendchar:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: C
+      role: scalar
+      ctype: c_char
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_reset:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_errcode:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_length:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    lifecycle: uses
+    handle_type: sqlite3_str
+  sqlite3_str_value:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_str
+      pointee: sqlite3_str
+    lifecycle: uses
+    handle_type: sqlite3_str
+    string_owner: library
+  sqlite3_status:
+    restype: c_int
+    params:
+    - name: op
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pCurrent
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        - behavioral_probe
+        confidence: 0.99
+        verified: true
+    - name: pHighwater
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        - behavioral_probe
+        confidence: 0.99
+        verified: true
+    - name: resetFlag
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_status64:
+    restype: c_int
+    params:
+    - name: op
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pCurrent
+      role: scalar
+      ctype: c_long
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        - behavioral_probe
+        confidence: 0.99
+        verified: true
+    - name: pHighwater
+      role: scalar
+      ctype: c_long
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        - behavioral_probe
+        confidence: 0.99
+        verified: true
+    - name: resetFlag
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_db_status:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: op
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pCur
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: pHiwtr
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: resetFlg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_stmt_status:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: op
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: resetFlg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_backup_init:
+    restype: c_void_p
+    params:
+    - name: pDest
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_backup
+      pointee: sqlite3
+    - name: zDestName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pSource
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_backup
+      pointee: sqlite3
+    - name: zSourceName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: sqlite3_backup
+    owner: caller
+  sqlite3_backup_step:
+    restype: c_int
+    params:
+    - name: p
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_backup
+      pointee: sqlite3_backup
+    - name: nPage
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_backup
+  sqlite3_backup_finish:
+    restype: c_int
+    params:
+    - name: p
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_backup
+      pointee: sqlite3_backup
+    lifecycle: destroys
+    handle_type: sqlite3_backup
+  sqlite3_backup_remaining:
+    restype: c_int
+    params:
+    - name: p
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_backup
+      pointee: sqlite3_backup
+    lifecycle: uses
+    handle_type: sqlite3_backup
+  sqlite3_backup_pagecount:
+    restype: c_int
+    params:
+    - name: p
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_backup
+      pointee: sqlite3_backup
+    lifecycle: uses
+    handle_type: sqlite3_backup
+  sqlite3_unlock_notify:
+    restype: c_int
+    params:
+    - name: pBlocked
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: xNotify
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pNotifyArg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_stricmp:
+    restype: c_int
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_strnicmp:
+    restype: c_int
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_strglob:
+    restype: c_int
+    params:
+    - name: zGlob
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zStr
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_strlike:
+    restype: c_int
+    params:
+    - name: zGlob
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: zStr
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: cEsc
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  sqlite3_wal_hook:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: a1
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: a2
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_wal_autocheckpoint:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: N
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_wal_checkpoint:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDb
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_wal_checkpoint_v2:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDb
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: eMode
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pnLog
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: pnCkpt
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_vtab_on_conflict:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_vtab_nochange:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: sqlite3_context
+  sqlite3_vtab_collation:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_index_info
+      pointee: sqlite3_index_info
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_index_info
+    string_owner: library
+  sqlite3_vtab_distinct:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_index_info
+      pointee: sqlite3_index_info
+    lifecycle: uses
+    handle_type: sqlite3_index_info
+  sqlite3_vtab_in:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_index_info
+      pointee: sqlite3_index_info
+    - name: iCons
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: bHandle
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3_index_info
+  sqlite3_vtab_in_first:
+    restype: c_int
+    params:
+    - name: pVal
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    - name: ppOut
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_value
+    lifecycle: creates
+    handle_type: sqlite3_value
+    owner: library
+    handle_out_param: ppOut
+  sqlite3_vtab_in_next:
+    restype: c_int
+    params:
+    - name: pVal
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_value
+      pointee: sqlite3_value
+    - name: ppOut
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_value
+    lifecycle: creates
+    handle_type: sqlite3_value
+    owner: library
+    handle_out_param: ppOut
+  sqlite3_vtab_rhs_value:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3_index_info
+      pointee: sqlite3_index_info
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppVal
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_value
+    lifecycle: creates
+    handle_type: sqlite3_value
+    owner: library
+    handle_out_param: ppVal
+  sqlite3_stmt_scanstatus:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: idx
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: iScanStatusOp
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pOut
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_stmt_scanstatus_v2:
+    restype: c_int
+    params:
+    - name: pStmt
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    - name: idx
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: iScanStatusOp
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: flags
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pOut
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_stmt_scanstatus_reset:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_stmt
+      pointee: sqlite3_stmt
+    lifecycle: uses
+    handle_type: sqlite3_stmt
+  sqlite3_db_cacheflush:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_system_errno:
+    restype: c_int
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_snapshot_get:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSchema
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: ppSnapshot
+      role: out_handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: out
+        sources:
+        - structural_out_handle
+        confidence: 0.7
+        verified: false
+      handle_type: sqlite3_snapshot
+    lifecycle: creates
+    handle_type: sqlite3_snapshot
+    owner: library
+    handle_out_param: ppSnapshot
+  sqlite3_snapshot_open:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSchema
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pSnapshot
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_snapshot
+      pointee: sqlite3_snapshot
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_snapshot_free:
+    restype: null
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_snapshot
+      pointee: sqlite3_snapshot
+    lifecycle: uses
+    handle_type: sqlite3_snapshot
+  sqlite3_snapshot_cmp:
+    restype: c_int
+    params:
+    - name: p1
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_snapshot
+      pointee: sqlite3_snapshot
+    - name: p2
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3_snapshot
+      pointee: sqlite3_snapshot
+    lifecycle: uses
+    handle_type: sqlite3_snapshot
+  sqlite3_snapshot_recover:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zDb
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_serialize:
+    restype: c_char_p
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSchema
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: piSize
+      role: scalar
+      ctype: c_long
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: mFlags
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+    string_owner: library
+  sqlite3_deserialize:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zSchema
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pData
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: szDb
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: szBuf
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: mFlags
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_rtree_geometry_callback:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zGeom
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: xGeom
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pContext
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3
+  sqlite3_rtree_query_callback:
+    restype: c_int
+    params:
+    - name: db
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_propagation
+        confidence: 0.8
+        verified: false
+      handle_type: sqlite3
+      pointee: sqlite3
+    - name: zQueryFunc
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: xQueryFunc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: pContext
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: xDestructor
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: sqlite3

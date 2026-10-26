@@ -1,0 +1,68 @@
+[multi-file] 15 source files for L2 analysis
+buildable tools : 63  ['adler32', 'adler32_combine', 'adler32_z', 'alloc_z_stream_s', 'compressBound', 'crc32', 'crc32_combine', 'crc32_combine_gen', 'crc32_combine_op', 'crc32_z', 'deflate', 'deflateCopy', 'deflateEnd', 'deflateInit2_', 'deflateInit_', 'deflateParams', 'deflatePending', 'deflatePrime', 'deflateReset', 'deflateResetKeep', 'deflateSetDictionary', 'get_crc_table', 'gzbuffer', 'gzclearerr', 'gzclose', 'gzclose_r', 'gzclose_w', 'gzdirect', 'gzdopen', 'gzeof', 'gzerror', 'gzflush', 'gzgetc', 'gzgetc_', 'gzoffset', 'gzopen', 'gzputc', 'gzputs', 'gzrewind', 'gzseek', 'gzsetparams', 'gztell', 'gzungetc', 'inflate', 'inflateBackEnd', 'inflateCodesUsed', 'inflateCopy', 'inflateEnd', 'inflateInit2_', 'inflateInit_', 'inflateMark', 'inflatePrime', 'inflateReset', 'inflateReset2', 'inflateResetKeep', 'inflateSetDictionary', 'inflateSync', 'inflateSyncPoint', 'inflateUndermine', 'inflateValidate', 'zError', 'zlibCompileFlags', 'zlibVersion']
+refused         : 18
+    - deflateGetDictionary: deflateGetDictionary: param 'dictionary' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateTune: deflateTune: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateBound: deflateBound: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateSetHeader: deflateSetHeader: param 'head' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateGetDictionary: inflateGetDictionary: param 'dictionary' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateGetHeader: inflateGetHeader: param 'head' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateBack: inflateBack: param 'in' is opaque (unresolved pointer, callback, or writable buffer)
+    - compress: compress: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - compress2: compress2: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - uncompress: uncompress: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - uncompress2: uncompress2: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzread: gzread: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzfread: gzfread: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzwrite: gzwrite: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzfwrite: gzfwrite: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzgets: gzgets: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateBackInit_: inflateBackInit_: param 'window' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzvprintf: gzvprintf: param 'va' is opaque (unresolved pointer, callback, or writable buffer)
+handle lifecycle: ['gzclose: uses gzFile_s', 'gzopen: creates gzFile_s', 'gzdopen: creates gzFile_s', 'gzbuffer: uses gzFile_s', 'gzrewind: uses gzFile_s', 'gzseek: uses gzFile_s', "  (matched gzseek's 'file' to header param 'a0' by position: names differ between declaration and definition)", 'gztell: uses gzFile_s', "  (matched gztell's 'file' to header param 'a0' by position: names differ between declaration and definition)", 'gzoffset: uses gzFile_s', "  (matched gzoffset's 'file' to header param 'a0' by position: names differ between declaration and definition)", 'gzeof: uses gzFile_s', 'gzerror: uses gzFile_s', 'gzclearerr: uses gzFile_s', 'gzread: uses gzFile_s', 'gzfread: uses gzFile_s', 'gzgetc: uses gzFile_s', 'gzgetc_: uses gzFile_s', 'gzungetc: uses gzFile_s', 'gzgets: uses gzFile_s', 'gzdirect: uses gzFile_s', 'gzclose_r: uses gzFile_s', 'gzwrite: uses gzFile_s', 'gzfwrite: uses gzFile_s', 'gzputc: uses gzFile_s', 'gzputs: uses gzFile_s', 'gzvprintf: uses gzFile_s', 'gzflush: uses gzFile_s', 'gzsetparams: uses gzFile_s', 'gzclose_w: uses gzFile_s']
+ownership       : ['gzopen: creates (owner=caller)', 'gzdopen: creates (owner=caller)']
+coverage exts   : 40 params reclassified
+    - z_stream_s: CALLER_STATE (size=112, align=8, init=deflateInit_, end=deflateEnd)
+    - gz_header_s: no initializing function found among its 2 users; refused rather than assumed
+    - deflate: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateEnd: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflate: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateEnd: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateSetDictionary: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateGetDictionary: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateCopy: 'dest' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateCopy: 'source' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateReset: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateParams: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateTune: 'strm' is z_stream_s* next to a count parameter ('good_length'); this is an array, not a single struct -- left refused
+    - deflateBound: 'strm' is z_stream_s* next to a count parameter ('sourceLen'); this is an array, not a single struct -- left refused
+    - deflatePending: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflatePrime: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateSetHeader: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateSetDictionary: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateGetDictionary: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateSync: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateCopy: 'dest' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateCopy: 'source' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateReset: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateReset2: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflatePrime: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateMark: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateGetHeader: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateBack: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateBackEnd: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateInit_: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateInit_: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateInit2_: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateInit2_: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateBackInit_: 'strm' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateSyncPoint: 'a0' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateUndermine: 'a0' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateValidate: 'a0' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateCodesUsed: 'a0' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - inflateResetKeep: 'a0' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+    - deflateResetKeep: 'a0' -> CALLER_STATE z_stream_s (112 bytes, binding-allocated)
+L1/L2 conflicts : [('compress2', 'destLen', 'out', '->', 'inout'), ('uncompress2', 'destLen', 'out', '->', 'inout'), ('uncompress2', 'sourceLen', 'out', '->', 'inout')]
+skipped analyses: ['L0 gzprintf: variadic (...) — binding the visible parameters only would produce undefined behavior', 'arrays: needs preprocessed source (libclang array analysis not built yet)']
+
+wrote snapshots/zlib_esc.yaml

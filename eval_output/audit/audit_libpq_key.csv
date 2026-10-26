@@ -1,0 +1,37 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+PQbinaryTuples,lifecycle,,uses,y,
+PQconndefaults,handle_return,caller,creates,y,
+PQconnectPoll,lifecycle,,destroys,y,
+PQconnectStart,refused,caller,creates,y,
+PQconnectionNeedsPassword,lifecycle,,uses,y,
+PQconninfo,handle_return,caller,creates,y,
+PQconninfoParse,refused,library,borrows,n,"PQconninfoParse: param 'errmsg' is opaque (unresolved pointer, callback, or writable buffer)"
+PQcopyResult,handle_return,caller,creates,y,
+PQdescribePortal,handle_return,library,borrows,y,
+PQdisplayTuples,refused,,uses,n,"PQdisplayTuples: param 'fp' is opaque (unresolved pointer, callback, or writable buffer)"
+PQdsplen,other,,,y,
+PQenv2encoding,other,,,y,
+PQescapeBytea,other,,,y,
+PQescapeLiteral,refused,,uses,y,
+PQescapeStringConn,refused,,uses,n,"PQescapeStringConn: param 'to' is opaque (unresolved pointer, callback, or writable buffer)"
+PQexecPrepared,refused,library,borrows,n,"PQexecPrepared: param 'paramValues' is opaque (unresolved pointer, callback, or writable buffer)"
+PQfformat,lifecycle,,uses,y,
+PQfmod,lifecycle,,uses,y,
+PQfn,refused,library,borrows,n,"PQfn: param 'args' is opaque (unresolved pointer, callback, or writable buffer)"
+PQgetResult,handle_return,library,borrows,y,
+PQgetisnull,lifecycle,,uses,y,
+PQgetvalue,lifecycle,,uses,y,
+PQinitSSL,other,,,y,
+PQisthreadsafe,other,,,y,
+PQlibVersion,other,,,y,
+PQparamtype,lifecycle,,uses,y,
+PQprotocolVersion,lifecycle,,uses,y,
+PQputCopyEnd,refused,,uses,y,
+PQresStatus,other,,,y,
+PQsetdbLogin,handle_return,caller,creates,y,
+PQsetvalue,refused,,uses,n,"PQsetvalue: param 'value' is opaque (unresolved pointer, callback, or writable buffer)"
+PQunescapeBytea,other,,,y,
+lo_lseek,refused,,uses,y,
+lo_tell,lifecycle,,uses,y,
+pg_encoding_to_char,other,,,y,
+pg_valid_server_encoding_id,other,,,y,

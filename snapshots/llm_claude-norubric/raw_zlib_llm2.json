@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gztell returns an integer offset value, not a pointer, so ownership does not apply; it simply queries the current position of an existing gzFile handle."
+ },
+ "gzprintf": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gzprintf returns an int (the number of bytes written or an error code), not a pointer, so ownership does not apply; it merely uses the existing gzFile handle."
+ },
+ "adler32_combine": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (uLong), not a pointer, so ownership and lifecycle questions do not apply."
+ },
+ "gzeof": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gzeof returns an int (not a pointer), merely querying the EOF state of an existing gzFile handle without allocating or freeing any memory."
+ },
+ "inflateInit_": {
+  "owner": "na",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "inflateInit_ initialises the z_stream state (allocating internal structures into strm->state) but returns an int status code, not a pointer, so ownership of a returned pointer does not apply; the caller owns the strm it passes in and must later call inflateEnd to free internal state."
+ },
+ "crc32_combine_gen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a uLong value (not a pointer), so ownership and lifecycle concepts do not apply."
+ },
+ "adler32_z": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer (uLong checksum), not a pointer, so ownership and lifecycle questions do not apply, and it is safe to expose directly."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to a static internal table (crc_table) owned by the library; the caller must not free it."
+ },
+ "adler32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "adler32 returns a plain integer checksum value, not a pointer, so ownership and lifecycle do not apply."
+ },
+ "deflate": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "deflate returns an int status code, not a pointer, so ownership does not apply; it operates on a caller-managed z_streamp without transferring ownership of any memory."
+ }
+}

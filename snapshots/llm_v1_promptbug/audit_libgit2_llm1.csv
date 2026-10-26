@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+git_config_parse_int64,other,library,uses,y,
+git_merge_base,lifecycle,library,uses,y,
+git_remote_create_detached,handle_return,caller,creates,y,
+git_index_set_version,refused,library,uses,y,
+git_oid_fromstr,lifecycle,library,uses,y,
+git_signature_default,handle_return,caller,creates,y,
+git_reference_name,lifecycle,library,uses,y,
+git_error_clear,lifecycle,library,destroys,y,
+git_packbuilder_insert_commit,refused,library,uses,y,
+git_merge_file_options_init,lifecycle,library,uses,y,
+git_config_backend_foreach_match,refused,library,uses,n,"The function accepts a callback parameter (git_config_foreach_cb), which makes it unsafe to expose directly in a binding"
+git_blob_data_is_binary,other,library,uses,y,
+git_reference_is_valid_name,other,library,uses,y,
+git_libgit2_opts,other,library,uses,n,"The function is variadic (va_list/...) which cannot be safely exposed in a binding, and it also accepts callbacks/writab"
+git_strarray_dispose,refused,library,destroys,y,
+git_libgit2_shutdown,other,library,destroys,y,
+git_cred_username_new,handle_return,caller,creates,y,
+git_rebase_operation_entrycount,refused,library,uses,y,
+git_reflog_entry_id_old,handle_return,library,uses,y,
+git_worktree_open_from_repository,handle_return,caller,creates,y,

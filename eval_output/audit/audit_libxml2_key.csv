@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+__xmlDoValidityCheckingDefaultValue,other,,,y,
+__xmlPedanticParserDefaultValue,other,,,y,
+xmlBufferFree,lifecycle,,destroys,y,
+xmlCheckHTTPInput,handle_return,library,borrows,y,
+xmlClearNodeInfoSeq,lifecycle,,uses,y,
+xmlCopyNode,handle_return,library,borrows,y,
+xmlDOMWrapCloneNode,refused,caller,creates,n,"xmlDOMWrapCloneNode: param 'clonedNode' is opaque (unresolved pointer, callback, or writable buffer)"
+xmlDOMWrapNewCtxt,handle_return,caller,creates,y,
+xmlFreeAttributeTable,lifecycle,,destroys,y,
+xmlHashLookup3,refused,,uses,n,xmlHashLookup3: returns a raw void* that is not a managed handle
+xmlInitParserCtxt,lifecycle,,uses,y,
+xmlNewChild,handle_return,library,borrows,y,
+xmlNewNs,handle_return,library,borrows,y,
+xmlParserPrintFileContext,lifecycle,,uses,y,
+xmlPedanticParserDefault,other,,,y,
+xmlRegisterDefaultInputCallbacks,other,,,y,
+xmlSAX2EndElementNs,refused,,,n,"xmlSAX2EndElementNs: param 'ctx' is opaque (unresolved pointer, callback, or writable buffer)"
+xmlSAX2UnparsedEntityDecl,refused,,,n,"xmlSAX2UnparsedEntityDecl: param 'ctx' is opaque (unresolved pointer, callback, or writable buffer)"
+xmlThrDefSetStructuredErrorFunc,refused,,,n,"xmlThrDefSetStructuredErrorFunc: param 'ctx' is opaque (unresolved pointer, callback, or writable buffer)"
+xmlValidateNamesValue,other,,,y,

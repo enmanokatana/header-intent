@@ -1,0 +1,11 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+adler32,other,,,y,
+adler32_combine,other,,,y,
+adler32_z,other,,,y,
+crc32_combine_gen,other,,,y,
+deflate,refused,library,,y,
+get_crc_table,other,,,y,
+gzeof,refused,library,uses,y,
+gzprintf,refused,,,n,not extracted
+gztell,refused,library,uses,y,
+inflateInit_,refused,library,,y,

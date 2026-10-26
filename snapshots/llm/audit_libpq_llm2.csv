@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+PQdsplen,other,,,y,
+PQparamtype,lifecycle,,uses,y,
+PQconnectStart,refused,caller,creates,y,
+PQfmod,lifecycle,,uses,y,
+pg_valid_server_encoding_id,other,,,y,
+PQfformat,lifecycle,,uses,y,
+PQescapeStringConn,refused,,,n,"The function returns a size_t (no pointer ownership question), but it requires a caller-supplied writable buffer (`to`) "
+PQgetisnull,lifecycle,,uses,y,
+PQputCopyEnd,refused,,uses,y,
+PQgetvalue,lifecycle,library,uses,y,
+PQescapeLiteral,refused,caller,creates,y,
+PQresStatus,other,library,uses,y,
+lo_lseek,refused,,uses,y,
+PQcopyResult,handle_return,caller,creates,y,
+pg_encoding_to_char,other,library,uses,y,
+PQenv2encoding,other,,,y,

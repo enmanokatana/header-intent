@@ -1,0 +1,18 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+cJSON_DetachItemFromObject,handle_return,caller,uses,y,
+cJSON_InitHooks,refused,,,n,"Returns void so ownership does not apply, but the parameter is a struct containing function pointers (malloc_fn, free_fn"
+cJSON_Duplicate,handle_return,caller,creates,y,
+cJSON_Print,lifecycle,caller,,y,
+cJSON_IsNull,lifecycle,,uses,y,
+cJSON_CreateStringArray,refused,caller,creates,y,
+cJSON_SetValuestring,lifecycle,library,uses,y,
+cJSON_CreateStringReference,handle_return,caller,creates,y,
+cJSON_AddItemToArray,lifecycle,library,uses,y,
+cJSON_CreateIntArray,refused,caller,creates,y,
+cJSON_CreateFloatArray,refused,caller,creates,y,
+cJSON_AddItemReferenceToObject,lifecycle,,uses,y,
+cJSON_Minify,refused,,,y,
+cJSON_CreateObject,handle_return,caller,creates,y,
+cJSON_Version,other,library,,y,
+cJSON_GetErrorPtr,other,library,uses,y,
+cJSON_AddTrueToObject,handle_return,library,creates,y,

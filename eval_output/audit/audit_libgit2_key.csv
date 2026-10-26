@@ -1,0 +1,41 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+git_apply_to_tree,handle_return,library,creates,y,
+git_attr_get_ext,refused,,uses,n,"git_attr_get_ext: param 'value_out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_blame_file,handle_return,caller,creates,y,
+git_blob_data_is_binary,other,,,y,
+git_branch_remote_name,refused,,uses,n,"git_branch_remote_name: param 'out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_commit_author_with_mailmap,handle_return,library,creates,y,
+git_config_backend_foreach_match,refused,,uses,n,"git_config_backend_foreach_match: param 'callback' is opaque (unresolved pointer, callback, or writable buffer)"
+git_config_entry_free,lifecycle,,uses,y,
+git_config_parse_int64,other,,,y,
+git_config_set_int32,lifecycle,,uses,y,
+git_cred_free,lifecycle,,uses,y,
+git_cred_username_new,handle_return,caller,creates,y,
+git_diff_patchid_options_init,lifecycle,,,y,
+git_error_clear,lifecycle,,,y,
+git_index_add_frombuffer,refused,,uses,n,"git_index_add_frombuffer: param 'buffer' is opaque (unresolved pointer, callback, or writable buffer)"
+git_index_set_version,refused,,uses,y,
+git_libgit2_opts,other,,,,not in spec
+git_libgit2_shutdown,other,,,y,
+git_libgit2_version,other,,,y,
+git_merge_base,lifecycle,,uses,y,
+git_merge_file_options_init,lifecycle,,uses,y,
+git_odb_exists,lifecycle,,uses,y,
+git_oid_fromstr,lifecycle,,uses,y,
+git_packbuilder_insert_commit,refused,,uses,y,
+git_rebase_operation_entrycount,refused,,uses,y,
+git_reference_is_valid_name,other,,,y,
+git_reference_name,lifecycle,,uses,y,
+git_reflog_entry_id_old,handle_return,library,borrows,y,
+git_remote_create_detached,handle_return,caller,creates,y,
+git_remote_create_init_options,other,,,y,
+git_remote_init_callbacks,other,,,y,
+git_remote_ls,refused,,,n,"git_remote_ls: param 'out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_repository_message,refused,,uses,n,"git_repository_message: param 'out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_signature_default,handle_return,library,creates,y,
+git_strarray_dispose,refused,,,n,"git_strarray_dispose: param 'array' is opaque (unresolved pointer, callback, or writable buffer)"
+git_submodule_update_init_options,other,,,y,
+git_transaction_new,handle_return,library,creates,y,
+git_worktree_add_init_options,other,,,y,
+git_worktree_lookup,handle_return,library,creates,y,
+git_worktree_open_from_repository,handle_return,caller,creates,y,

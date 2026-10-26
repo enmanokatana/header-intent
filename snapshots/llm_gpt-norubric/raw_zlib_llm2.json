@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "gztell returns a numeric offset value, not a pointer, so memory ownership does not apply and exposing it is safe."
+ },
+ "gzprintf": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gzprintf operates on an existing gzFile and returns an int, with no ownership or lifetime transfer involved."
+ },
+ "adler32_combine": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value type (uLong), not a pointer, so ownership and lifecycle do not apply."
+ },
+ "gzeof": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer, merely uses the provided file handle, and does not alter ownership or memory management responsibilities."
+ },
+ "inflateInit_": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer nor transfer ownership; it merely initializes a structure provided by the caller."
+ },
+ "crc32_combine_gen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer value and not a pointer, so ownership and handle lifecycle do not apply."
+ },
+ "adler32_z": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer and does not manipulate any ownership or lifecycle concerns."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to an internal static table owned by the library that must not be freed or modified by the caller."
+ },
+ "adler32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer type (uLong), not a pointer, so ownership and lifecycle do not arise and exposing it is safe."
+ },
+ "deflate": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "deflate takes a pointer to a structure it does not allocate or free, operating only on the state it is given, and does not create or destroy any heap allocations itself."
+ }
+}

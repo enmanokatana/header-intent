@@ -1,0 +1,21 @@
+function,signature,stratum,label_owner,label_lifecycle,label_should_bind,label_source,notes
+PQbinaryTuples,c_int PQbinaryTuples(c_void_p res),lifecycle,na,uses,y,doc,
+PQconndefaults,c_void_p PQconndefaults(),handle_return,caller,na,y,doc,"Caller must release with PQconninfoFree, not free. lifecycle=na under the strict reading of 'handle': PQconninfoOption is a public struct array, not an opaque object passed back into the API. Array is NULL-terminated, so the length is discoverable but not stated."
+PQconnectPoll,c_int PQconnectPoll(c_void_p conn),lifecycle,na,uses,y,doc,
+PQconnectionNeedsPassword,c_int PQconnectionNeedsPassword(c_void_p conn),lifecycle,na,uses,y,doc,
+PQconninfo,c_void_p PQconninfo(c_void_p conn),handle_return,caller,na,y,doc,PQconninfoFree. Same lifecycle reasoning as PQconndefaults.
+PQconninfoParse,"c_void_p PQconninfoParse(c_char_p conninfo, c_void_p errmsg)",refused,caller,na,y,doc,"Two different destructors in one call: the return goes to PQconninfoFree, the errmsg out-param to PQfreemem. A binding that uses one for both corrupts the heap. Good hazard row."
+PQdescribePortal,"c_void_p PQdescribePortal(c_void_p conn, c_char_p portal)",handle_return,caller,creates,y,doc,PGresult must be PQclear'd.
+PQdisplayTuples,"void PQdisplayTuples(c_void_p res, c_void_p fp, c_int fillAlign, c_char_p fieldSep, c_int printHeader, c_int quiet)",refused,na,uses,y,doc,"Obsolete and dropped from modern libpq headers. FILE* has the same marshalling caveat as png_init_io, which I did not treat as a safety disqualifier."
+PQescapeBytea,"c_char_p PQescapeBytea(c_char_p from, c_ulong from_length, c_ulong* to_length)",other,caller,na,y,doc,"Caller must PQfreemem the return, not free. Deprecated in favour of PQescapeByteaConn. Returns a plain string, not a handle."
+PQexecPrepared,"c_void_p PQexecPrepared(c_void_p conn, c_char_p stmtName, c_int nParams, c_void_p paramValues, c_void_p* paramLengths, c_void_p* paramFormats, c_int resultFormat)",refused,caller,creates,y,doc,"All three parallel arrays are sized by nParams, so a binding can marshal them. The PGresult must be PQclear'd."
+PQfn,"c_void_p PQfn(c_void_p conn, c_int fnid, c_int* result_buf, c_int* result_len, c_int result_is_int, c_void_p args, c_int nargs)",refused,caller,creates,n,doc,"n: result_buf is a writable buffer with no size parameter - the caller must know the result fits, and result_len is out-only. The PQArgBlock array is at least sized by nargs. Return is a PGresult needing PQclear."
+PQgetResult,c_void_p PQgetResult(c_void_p conn),handle_return,caller,creates,y,doc,Every non-NULL PGresult must be PQclear'd; NULL signals end of results and must not be treated as an error by the binding.
+PQinitSSL,void PQinitSSL(c_int do_init),other,na,na,y,doc,Deprecated.
+PQisthreadsafe,c_int PQisthreadsafe(),other,na,na,y,doc,
+PQlibVersion,c_int PQlibVersion(),other,na,na,y,doc,
+PQprotocolVersion,c_int PQprotocolVersion(c_void_p conn),lifecycle,na,uses,y,doc,
+PQsetdbLogin,"c_void_p PQsetdbLogin(c_char_p pghost, c_char_p pgport, c_char_p pgoptions, c_char_p pgtty, c_char_p dbName, c_char_p login, c_char_p pwd)",handle_return,caller,creates,y,doc,"Caller must PQfinish even when the connection failed - the handle still needs releasing, which is a common binding leak."
+PQsetvalue,"c_int PQsetvalue(c_void_p res, c_int tup_num, c_int field_num, c_void_p value, c_int len)",refused,na,uses,y,doc,"`len` states the size and libpq copies into the result. Only legal on a PGresult built by PQmakeEmptyPGresult; calling it on a server-returned result is documented misuse but not a signature-level problem, so y."
+PQunescapeBytea,"c_char_p PQunescapeBytea(c_char_p strtext, c_ulong* retbuflen)",other,caller,na,y,doc,"PQfreemem, not free."
+lo_tell,"c_int lo_tell(c_void_p conn, c_int fd)",lifecycle,na,uses,y,doc,

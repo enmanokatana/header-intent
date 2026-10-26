@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "gztell returns an integer offset (z_off_t), not a pointer or handle, so ownership and lifecycle do not apply and there are no unsafe usage concerns."
+ },
+ "gzprintf": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "no",
+  "reason": "The function uses a variadic parameter list, which most automatic binding generators cannot safely expose."
+ },
+ "adler32_combine": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value type (uLong), not a pointer, and takes only value parameters, so ownership and lifecycle do not apply and it can be safely exposed."
+ },
+ "gzeof": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function inspects but does not allocate, free, or require caller-managed memory or function pointers."
+ },
+ "inflateInit_": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "inflateInit_ initializes a stream structure in-place and does not return or transfer pointer ownership."
+ },
+ "crc32_combine_gen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function takes an integer, returns an integer type, and does not return a pointer or interact with handles."
+ },
+ "adler32_z": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value, not a pointer or handle, does not require a caller-supplied writable buffer, and does not involve callbacks or function pointers."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointer refers to static library data not to be freed or modified by the caller."
+ },
+ "adler32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a simple integer (uLong) and does not involve any ownership or handle lifecycle issues."
+ },
+ "deflate": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "deflate takes a stream pointer and writes to user-supplied buffers, requiring the caller to manage buffer sizes and lifetimes safely."
+ }
+}

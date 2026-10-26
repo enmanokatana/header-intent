@@ -1,0 +1,1887 @@
+library: lib
+functions:
+  cJSON_Version:
+    restype: c_char_p
+    params: []
+    string_owner: library
+  cJSON_InitHooks:
+    restype: null
+    params:
+    - name: hooks
+      role: caller_state
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: inout
+        sources:
+        - caller_state
+        confidence: 0.8
+        verified: false
+      handle_type: cJSON_Hooks
+      pointee: cJSON_Hooks
+      state_size: 16
+      state_align: 8
+    handle_type: cJSON_Hooks
+  cJSON_Parse:
+    restype: c_void_p
+    params:
+    - name: value
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_ParseWithLength:
+    restype: c_void_p
+    params:
+    - name: value
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buffer_length
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_ParseWithOpts:
+    restype: c_void_p
+    params:
+    - name: value
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: return_parse_end
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: require_null_terminated
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_ParseWithLengthOpts:
+    restype: c_void_p
+    params:
+    - name: value
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buffer_length
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: return_parse_end
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: require_null_terminated
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_Print:
+    restype: c_char_p
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+    string_owner: library
+  cJSON_PrintUnformatted:
+    restype: c_char_p
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+    string_owner: library
+  cJSON_PrintBuffered:
+    restype: c_char_p
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: prebuffer
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: fmt
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+    string_owner: library
+  cJSON_PrintPreallocated:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: buffer
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: length
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: format
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_Delete:
+    restype: null
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: destroys
+    handle_type: cJSON
+  cJSON_GetArraySize:
+    restype: c_int
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_GetArrayItem:
+    restype: c_void_p
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: index
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_GetObjectItem:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_GetObjectItemCaseSensitive:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_HasObjectItem:
+    restype: c_int
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_GetErrorPtr:
+    restype: c_char_p
+    params: []
+    string_owner: library
+  cJSON_GetStringValue:
+    restype: c_char_p
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+    string_owner: library
+  cJSON_GetNumberValue:
+    restype: c_double
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsInvalid:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsFalse:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsTrue:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsBool:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsNull:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsNumber:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsString:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsArray:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsObject:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_IsRaw:
+    restype: c_int
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_CreateNull:
+    restype: c_void_p
+    params: []
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateTrue:
+    restype: c_void_p
+    params: []
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateFalse:
+    restype: c_void_p
+    params: []
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateBool:
+    restype: c_void_p
+    params:
+    - name: boolean
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateNumber:
+    restype: c_void_p
+    params:
+    - name: num
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateString:
+    restype: c_void_p
+    params:
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateRaw:
+    restype: c_void_p
+    params:
+    - name: raw
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateArray:
+    restype: c_void_p
+    params: []
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateObject:
+    restype: c_void_p
+    params: []
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateStringReference:
+    restype: c_void_p
+    params:
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateObjectReference:
+    restype: c_void_p
+    params:
+    - name: child
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateArrayReference:
+    restype: c_void_p
+    params:
+    - name: child
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateIntArray:
+    restype: c_void_p
+    params:
+    - name: numbers
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources:
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: count
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateFloatArray:
+    restype: c_void_p
+    params:
+    - name: numbers
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources:
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: count
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateDoubleArray:
+    restype: c_void_p
+    params:
+    - name: numbers
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources:
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: count
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_CreateStringArray:
+    restype: c_void_p
+    params:
+    - name: strings
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: count
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_AddItemToArray:
+    restype: c_int
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_AddItemToObject:
+    restype: c_int
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_AddItemToObjectCS:
+    restype: c_int
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_AddItemReferenceToArray:
+    restype: c_int
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_AddItemReferenceToObject:
+    restype: c_int
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_DetachItemViaPointer:
+    restype: c_void_p
+    params:
+    - name: parent
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_DetachItemFromArray:
+    restype: c_void_p
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: which
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_DeleteItemFromArray:
+    restype: null
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: which
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_DetachItemFromObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_DetachItemFromObjectCaseSensitive:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_DeleteItemFromObject:
+    restype: null
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_DeleteItemFromObjectCaseSensitive:
+    restype: null
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_InsertItemInArray:
+    restype: c_int
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: which
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: newitem
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_ReplaceItemViaPointer:
+    restype: c_int
+    params:
+    - name: parent
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: replacement
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: destroys
+    handle_type: cJSON
+  cJSON_ReplaceItemInArray:
+    restype: c_int
+    params:
+    - name: array
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: which
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: newitem
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_ReplaceItemInObject:
+    restype: c_int
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: newitem
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_ReplaceItemInObjectCaseSensitive:
+    restype: c_int
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: newitem
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_Duplicate:
+    restype: c_void_p
+    params:
+    - name: item
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: recurse
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: cJSON
+    owner: caller
+  cJSON_Compare:
+    restype: c_int
+    params:
+    - name: a
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: b
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: case_sensitive
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_Minify:
+    restype: null
+    params:
+    - name: json
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  cJSON_AddNullToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddTrueToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddFalseToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddBoolToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: boolean
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddNumberToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: number
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddStringToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddRawToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: raw
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddObjectToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_AddArrayToObject:
+    restype: c_void_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: cJSON
+    owner: library
+  cJSON_SetNumberHelper:
+    restype: c_double
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: number
+      role: scalar
+      ctype: c_double
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+  cJSON_SetValuestring:
+    restype: c_char_p
+    params:
+    - name: object
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: cJSON
+      pointee: cJSON
+    - name: valuestring
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: cJSON
+    string_owner: library
+  cJSON_malloc:
+    restype: c_void_p
+    params:
+    - name: size
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  cJSON_free:
+    restype: null
+    params:
+    - name: object
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false

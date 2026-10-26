@@ -1,0 +1,98 @@
+{
+ "PQdsplen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function takes and returns primitive types and does not handle or return pointers requiring ownership or lifecycle considerations."
+ },
+ "PQparamtype": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value type (Oid) not a pointer, so ownership, lifecycle, and safety to expose do not raise binding concerns."
+ },
+ "PQconnectStart": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "PQconnectStart allocates and returns a new PGconn object, which the caller must eventually free, and its parameters are safe to expose."
+ },
+ "PQfmod": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int, does not interact with pointers or ownership, and is not a callback or variadic."
+ },
+ "pg_valid_server_encoding_id": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function takes and returns an int, so ownership and handle lifecycle do not apply, and exposing an int->int function is safe."
+ },
+ "PQfformat": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int and does not involve pointer ownership or buffer manipulation."
+ },
+ "PQescapeStringConn": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "The function writes to a caller-supplied writable buffer whose size must be managed by the caller and not specified in the API."
+ },
+ "PQgetisnull": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int, does not accept or return pointers that require ownership management, and does not involve callbacks or user-supplied buffers."
+ },
+ "PQputCopyEnd": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer, deals only with provided arguments, and does not require a writable buffer or expose any callback."
+ },
+ "PQgetvalue": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointer is into memory owned by the PGresult, and must not be freed or altered by the caller."
+ },
+ "PQescapeLiteral": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a char* that the caller must free, as documented for PQescapeInternal's return value."
+ },
+ "PQresStatus": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointer is either to a static string or a static translation, which should not be freed by the caller."
+ },
+ "lo_lseek": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int and takes only primitive types and PGconn*, with no ownership implications or pointers returned."
+ },
+ "PQcopyResult": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "PQcopyResult allocates and returns a new PGresult object which the caller must ultimately free with PQclear; its arguments and return value are safe simple pointers."
+ },
+ "pg_encoding_to_char": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a const char* likely pointing to static or internal data owned by the library, and does not accept caller-owned writable buffers or callbacks."
+ },
+ "PQenv2encoding": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int, not a pointer, so ownership and lifecycle do not apply, and it is safe to expose."
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "PQdsplen": {
+  "decl": "extern int PQdsplen(const char *s, int encoding)",
+  "body": "int\nPQdsplen(const char *s, int encoding)\n{\n\treturn pg_encoding_dsplen(encoding, s);\n}",
+  "file": "fe-misc.c"
+ },
+ "PQparamtype": {
+  "decl": "extern Oid PQparamtype(const PGresult *res, int param_num)",
+  "body": "Oid\nPQparamtype(const PGresult *res, int param_num)\n{\n\tif (!check_param_number(res, param_num))\n\t\treturn InvalidOid;\n\tif (res->paramDescs)\n\t\treturn res->paramDescs[param_num].typid;\n\telse\n\t\treturn InvalidOid;\n}",
+  "file": "fe-exec.c"
+ },
+ "PQconnectStart": {
+  "decl": "extern PGconn *PQconnectStart(const char *conninfo)",
+  "body": "PGconn *\nPQconnectStart(const char *conninfo)\n{\n\tPGconn\t   *conn;\n\n\t/*\n\t * Allocate memory for the conn structure.  Note that we also expect this\n\t * to initialize conn->errorMessage to empty.  All subsequent steps during\n\t * connection initialization will only append to that buffer.\n\t */\n\tconn = makeEmptyPGconn();\n\tif (conn == NULL)\n\t\treturn NULL;\n\n\t/*\n\t * Parse the conninfo string\n\t */\n\tif (!connectOptions1(conn, conninfo))\n\t\treturn conn;\n\n\t/*\n\t * Compute derived options\n\t */\n\tif (!connectOptions2(conn))\n\t\treturn conn;\n\n\t/*\n\t * Connect to the database\n\t */\n\tif (!connectDBStart(conn))\n\t{\n\t\t/* Just in case we failed to set it in connectDBStart */\n\t\tconn->status = CONNECTION_BAD;\n\t}\n\n\treturn conn;\n}",
+  "file": "fe-connect.c"
+ },
+ "PQfmod": {
+  "decl": "extern int PQfmod(const PGresult *res, int field_num)",
+  "body": "int\nPQfmod(const PGresult *res, int field_num)\n{\n\tif (!check_field_number(res, field_num))\n\t\treturn 0;\n\tif (res->attDescs)\n\t\treturn res->attDescs[field_num].atttypmod;\n\telse\n\t\treturn 0;\n}",
+  "file": "fe-exec.c"
+ },
+ "pg_valid_server_encoding_id": {
+  "decl": "extern int pg_valid_server_encoding_id(int encoding)",
+  "body": null,
+  "file": null
+ },
+ "PQfformat": {
+  "decl": "extern int PQfformat(const PGresult *res, int field_num)",
+  "body": "int\nPQfformat(const PGresult *res, int field_num)\n{\n\tif (!check_field_number(res, field_num))\n\t\treturn 0;\n\tif (res->attDescs)\n\t\treturn res->attDescs[field_num].format;\n\telse\n\t\treturn 0;\n}",
+  "file": "fe-exec.c"
+ },
+ "PQescapeStringConn": {
+  "decl": "extern size_t PQescapeStringConn(PGconn *conn, char *to, const char *from, size_t length, int *error)",
+  "body": "size_t\nPQescapeStringConn(PGconn *conn,\n\t\t\t\t   char *to, const char *from, size_t length,\n\t\t\t\t   int *error)\n{\n\tif (!conn)\n\t{\n\t\t/* force empty-string result */\n\t\t*to = '\\0';\n\t\tif (error)\n\t\t\t*error = 1;\n\t\treturn 0;\n\t}\n\n\tif (conn->cmd_queue_head == NULL)\n\t\tpqClearConnErrorState(conn);\n\n\treturn PQescapeStringInternal(conn, to, from, length, error,\n\t\t\t\t\t\t\t\t  conn->client_encoding,\n\t\t\t\t\t\t\t\t  conn->std_strings);\n}",
+  "file": "fe-exec.c"
+ },
+ "PQgetisnull": {
+  "decl": "extern int PQgetisnull(const PGresult *res, int tup_num, int field_num)",
+  "body": "int\nPQgetisnull(const PGresult *res, int tup_num, int field_num)\n{\n\tif (!check_tuple_field_number(res, tup_num, field_num))\n\t\treturn 1;\t\t\t\t/* pretend it is null */\n\tif (res->tuples[tup_num][field_num].len == NULL_LEN)\n\t\treturn 1;\n\telse\n\t\treturn 0;\n}",
+  "file": "fe-exec.c"
+ },
+ "PQputCopyEnd": {
+  "decl": "extern int PQputCopyEnd(PGconn *conn, const char *errormsg)",
+  "body": "int\nPQputCopyEnd(PGconn *conn, const char *errormsg)\n{\n\tif (!conn)\n\t\treturn -1;\n\tif (conn->asyncStatus != PGASYNC_COPY_IN &&\n\t\tconn->asyncStatus != PGASYNC_COPY_BOTH)\n\t{\n\t\tlibpq_append_conn_error(conn, \"no COPY in progress\");\n\t\treturn -1;\n\t}\n\n\t/*\n\t * Send the COPY END indicator.  This is simple enough that we don't\n\t * bother delegating it to the fe-protocol files.\n\t */\n\tif (errormsg)\n\t{\n\t\t/* Send COPY FAIL */\n\t\tif (pqPutMsgStart('f', conn) < 0 ||\n\t\t\tpqPuts(errormsg, conn) < 0 ||\n\t\t\tpqPutMsgEnd(conn) < 0)\n\t\t\treturn -1;\n\t}\n\telse\n\t{\n\t\t/* Send COPY DONE */\n\t\tif (pqPutMsgStart('c', conn) < 0 ||\n\t\t\tpqPutMsgEnd(conn) < 0)\n\t\t\treturn -1;\n\t}\n\n\t/*\n\t * If we sent the COPY command in extended-query mode, we must issue a\n\t * Sync as well.\n\t */\n\tif (conn->cmd_queue_head &&\n\t\tconn->cmd_queue_head->queryclass != PGQUERY_SIMPLE)\n\t{\n\t\tif (pqPutMsgStart('S', conn) < 0 ||\n\t\t\tpqPutMsgEnd(conn) < 0)\n\t\t\treturn -1;\n\t}\n\n\t/* Return to active duty */\n\tif (conn->asyncStatus == PGASYNC_COPY_BOTH)\n\t\tconn->asyncStatus = PGASYNC_COPY_OUT;\n\telse\n\t\tconn->asyncStatus = PGASYNC_BUSY;\n\n\t/* Try to flush data */\n\tif (pqFlush(conn) < 0)\n\t\treturn -1;\n\n\treturn 1;\n}",
+  "file": "fe-exec.c"
+ },
+ "PQgetvalue": {
+  "decl": "extern char *PQgetvalue(const PGresult *res, int tup_num, int field_num)",
+  "body": "char *\nPQgetvalue(const PGresult *res, int tup_num, int field_num)\n{\n\tif (!check_tuple_field_number(res, tup_num, field_num))\n\t\treturn NULL;\n\treturn res->tuples[tup_num][field_num].value;\n}",
+  "file": "fe-exec.c"
+ },
+ "PQescapeLiteral": {
+  "decl": "extern char *PQescapeLiteral(PGconn *conn, const char *str, size_t len)",
+  "body": "char *\nPQescapeLiteral(PGconn *conn, const char *str, size_t len)\n{\n\treturn PQescapeInternal(conn, str, len, false);\n}",
+  "file": "fe-exec.c"
+ },
+ "PQresStatus": {
+  "decl": "extern char *PQresStatus(ExecStatusType status)",
+  "body": "char *\nPQresStatus(ExecStatusType status)\n{\n\tif ((unsigned int) status >= lengthof(pgresStatus))\n\t\treturn libpq_gettext(\"invalid ExecStatusType code\");\n\treturn pgresStatus[status];\n}",
+  "file": "fe-exec.c"
+ },
+ "lo_lseek": {
+  "decl": "extern int lo_lseek(PGconn *conn, int fd, int offset, int whence)",
+  "body": "int\nlo_lseek(PGconn *conn, int fd, int offset, int whence)\n{\n\tPQArgBlock\targv[3];\n\tPGresult   *res;\n\tint\t\t\tretval;\n\tint\t\t\tresult_len;\n\n\tif (lo_initialize(conn) < 0)\n\t\treturn -1;\n\n\targv[0].isint = 1;\n\targv[0].len = 4;\n\targv[0].u.integer = fd;\n\n\targv[1].isint = 1;\n\targv[1].len = 4;\n\targv[1].u.integer = offset;\n\n\targv[2].isint = 1;\n\targv[2].len = 4;\n\targv[2].u.integer = whence;\n\n\tres = PQfn(conn, conn->lobjfuncs->fn_lo_lseek,\n\t\t\t   &retval, &result_len, 1, argv, 3);\n\tif (PQresultStatus(res) == PGRES_COMMAND_OK)\n\t{\n\t\tPQclear(res);\n\t\treturn retval;\n\t}\n\telse\n\t{\n\t\tPQclear(res);\n\t\treturn -1;\n\t}\n}",
+  "file": "fe-lobj.c"
+ },
+ "PQcopyResult": {
+  "decl": "extern PGresult *PQcopyResult(const PGresult *src, int flags)",
+  "body": "PGresult *\nPQcopyResult(const PGresult *src, int flags)\n{\n\tPGresult   *dest;\n\tint\t\t\ti;\n\n\tif (!src)\n\t\treturn NULL;\n\n\tdest = PQmakeEmptyPGresult(NULL, PGRES_TUPLES_OK);\n\tif (!dest)\n\t\treturn NULL;\n\n\t/* Always copy these over.  Is cmdStatus really useful here? */\n\tdest->client_encoding = src->client_encoding;\n\tstrcpy(dest->cmdStatus, src->cmdStatus);\n\n\t/* Wants attrs? */\n\tif (flags & (PG_COPYRES_ATTRS | PG_COPYRES_TUPLES))\n\t{\n\t\tif (!PQsetResultAttrs(dest, src->numAttributes, src->attDescs))\n\t\t{\n\t\t\tPQclear(dest);\n\t\t\treturn NULL;\n\t\t}\n\t}\n\n\t/* Wants to copy tuples? */\n\tif (flags & PG_COPYRES_TUPLES)\n\t{\n\t\tint\t\t\ttup,\n\t\t\t\t\tfield;\n\n\t\tfor (tup = 0; tup < src->ntups; tup++)\n\t\t{\n\t\t\tfor (field = 0; field < src->numAttributes; field++)\n\t\t\t{\n\t\t\t\tif (!PQsetvalue(dest, tup, field,\n\t\t\t\t\t\t\t\tsrc->tuples[tup][field].value,\n\t\t\t\t\t\t\t\tsrc->tuples[tup][field].len))\n\t\t\t\t{\n\t\t\t\t\tPQclear(dest);\n\t\t\t\t\treturn NULL;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n\t/* Wants to copy notice hooks? */\n\tif (flags & PG_COPYRES_NOTICEHOOKS)\n\t\tdest->noticeHooks = src->noticeHooks;\n\n\t/* Wants to copy PGEvents? */\n\tif ((flags & PG_COPYRES_EVENTS) && src->nEvents > 0)\n\t{\n\t\tdest->events = dupEvents(src->events, src->nEvents,\n\t\t\t\t\t\t\t\t &dest->memorySize);\n\t\tif (!dest->events)\n\t\t{\n\t\t\tPQclear(dest);\n\t\t\treturn NULL;\n\t\t}\n\t\tdest->nEvents = src->nEvents;\n\t}\n\n\t/* Okay, trigger PGEVT_RESULTCOPY event */\n\tfor (i = 0; i < dest->nEvents; i++)\n\t{\n\t\t/* We don't fire events that had some previous failure */\n\t\tif (src->events[i].resultInitialized)\n\t\t{\n\t\t\tPGEventResultCopy evt;\n\n\t\t\tevt.src = src;\n\t\t\tevt.dest = dest;\n\t\t\tif (dest->events[i].proc(PGEVT_RESULTCOPY, &evt,\n\t\t\t\t\t\t\t\t\t dest->events[i].passThrough))\n\t\t\t\tdest->events[i].resultInitialized = true;\n\t\t}\n\t}\n\n\treturn dest;\n}",
+  "file": "fe-exec.c"
+ },
+ "pg_encoding_to_char": {
+  "decl": "extern const char *pg_encoding_to_char(int encoding)",
+  "body": null,
+  "file": null
+ },
+ "PQenv2encoding": {
+  "decl": "extern int PQenv2encoding(void)",
+  "body": "int\nPQenv2encoding(void)\n{\n\tchar\t   *str;\n\tint\t\t\tencoding = PG_SQL_ASCII;\n\n\tstr = getenv(\"PGCLIENTENCODING\");\n\tif (str && *str != '\\0')\n\t{\n\t\tencoding = pg_char_to_encoding(str);\n\t\tif (encoding < 0)\n\t\t\tencoding = PG_SQL_ASCII;\n\t}\n\treturn encoding;\n}",
+  "file": "fe-misc.c"
+ }
+}

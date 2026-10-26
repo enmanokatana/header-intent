@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+git_config_parse_int64,other,,,y,
+git_merge_base,lifecycle,,,y,
+git_remote_create_detached,handle_return,caller,creates,y,
+git_index_set_version,refused,,uses,y,
+git_oid_fromstr,lifecycle,,,y,
+git_signature_default,handle_return,caller,creates,y,
+git_reference_name,lifecycle,library,uses,y,
+git_error_clear,lifecycle,,,y,
+git_packbuilder_insert_commit,refused,,uses,y,
+git_merge_file_options_init,lifecycle,,uses,y,
+git_config_backend_foreach_match,refused,,uses,n,"The function takes a callback (git_config_foreach_cb), making it unsafe to expose directly in most language bindings."
+git_blob_data_is_binary,other,,,y,
+git_reference_is_valid_name,other,,,y,
+git_libgit2_opts,other,,,n,"The function takes a variadic argument list and requires the caller to supply writable buffer pointers in some modes, ma"
+git_strarray_dispose,refused,,destroys,y,
+git_libgit2_shutdown,other,,,y,
+git_cred_username_new,handle_return,caller,creates,y,
+git_rebase_operation_entrycount,refused,,,y,
+git_reflog_entry_id_old,handle_return,library,uses,y,
+git_worktree_open_from_repository,handle_return,caller,creates,y,

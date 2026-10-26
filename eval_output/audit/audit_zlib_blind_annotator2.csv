@@ -1,0 +1,11 @@
+function,signature,stratum,label_owner,label_lifecycle,label_should_bind,label_source,notes
+adler32,"c_ulong adler32(c_ulong adler, c_char_p buf, c_uint len)",other,,,,,
+adler32_combine,"c_ulong adler32_combine(c_ulong a0, c_ulong a1, c_long a2)",other,,,,,
+adler32_z,"c_ulong adler32_z(c_ulong adler, c_char_p buf, c_ulong len)",other,,,,,
+crc32_combine_gen,c_ulong crc32_combine_gen(c_long a0),other,,,,,
+deflate,"c_int deflate(c_void_p strm, c_int flush)",refused,,,,,
+get_crc_table,POINTER(c_uint) get_crc_table(),other,,,,,
+gzeof,c_int gzeof(c_void_p file),refused,,,,,
+gzprintf,"c_int gzprintf(c_void_p file, c_char_p format)",refused,,,,,
+gztell,c_long gztell(c_void_p a0),refused,,,,,
+inflateInit_,"c_int inflateInit_(c_void_p strm, c_char_p version, c_int stream_size)",refused,,,,,

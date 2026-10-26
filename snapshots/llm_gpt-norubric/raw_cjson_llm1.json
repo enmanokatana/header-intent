@@ -1,0 +1,104 @@
+{
+ "cJSON_DetachItemFromObject": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to a detached item, transferring ownership (and thus the responsibility to free) to the caller."
+ },
+ "cJSON_InitHooks": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not create, use, or destroy memory handles and only sets global allocator hooks, making it safe to expose."
+ },
+ "cJSON_Duplicate": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function creates and returns a new cJSON object, and the caller must manage its memory (typically with cJSON_Delete)."
+ },
+ "cJSON_Print": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer allocated by print() and documented as requiring the caller to free it."
+ },
+ "cJSON_IsNull": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return or take ownership of any pointer; it simply queries a property of the input."
+ },
+ "cJSON_CreateStringArray": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a new cJSON array object, documented and implemented such that the caller is responsible for eventually deleting it."
+ },
+ "cJSON_SetValuestring": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointer is always object->valuestring, whose allocation and lifetime are managed by the library; the caller must not free it."
+ },
+ "cJSON_CreateStringReference": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "unknown",
+  "reason": "The returned pointer is newly allocated but refers internally to external memory; safe exposure and correct freeing require knowledge of the cJSON contract for references."
+ },
+ "cJSON_AddItemToArray": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer or own any pointer-related resource; it only adds an item to an existing array, so ownership does not apply."
+ },
+ "cJSON_CreateIntArray": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a new cJSON array which the caller is responsible for deleting (usually via cJSON_Delete), and it is robust against common errors (NULL input, allocation failures)."
+ },
+ "cJSON_CreateFloatArray": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates a cJSON array object and returns it, with the expectation that the caller will eventually free it (with cJSON_Delete), and the signature/body are safe to expose automatically."
+ },
+ "cJSON_AddItemReferenceToObject": {
+  "owner": "unknown",
+  "lifecycle": "creates",
+  "safe_to_expose": "unknown",
+  "reason": "The function creates a reference to an existing item and adds it to an object, but from the signature and shown code, it\u2019s unknown who owns the new reference and who is responsible for freeing it."
+ },
+ "cJSON_Minify": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function operates in-place on a user-supplied buffer without transferring ownership or creating/destroying handles."
+ },
+ "cJSON_CreateObject": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a new cJSON object, with no evidence it retains ownership or will free it later."
+ },
+ "cJSON_Version": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to a static buffer owned by the library and requires no freeing by the caller."
+ },
+ "cJSON_GetErrorPtr": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to an internal string owned by the library; freeing it would be a bug, and exposing this function is safe as it is read-only."
+ },
+ "cJSON_AddTrueToObject": {
+  "owner": "library",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointer is inserted into the passed object, so the library assumes ownership and the caller should not free it."
+ }
+}

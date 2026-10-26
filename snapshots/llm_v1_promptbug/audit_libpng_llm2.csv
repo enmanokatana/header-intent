@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+png_get_uint_32,other,library,uses,y,
+png_get_palette_max,lifecycle,library,uses,y,
+png_get_iCCP,refused,library,uses,y,
+png_set_sig_bytes,lifecycle,library,uses,y,
+png_write_png,refused,library,uses,y,
+png_get_uint_16,other,library,uses,y,
+png_get_x_offset_microns,lifecycle,library,uses,y,
+png_sig_cmp,other,library,uses,y,
+png_image_finish_read,refused,library,destroys,n,"This function returns an int (not a pointer, so ownership is not applicable), but it is unsafe to expose directly becaus"
+png_set_filter_heuristics_fixed,refused,library,uses,y,
+png_set_write_user_transform_fn,refused,library,uses,n,"This function registers a callback (function pointer) into the library-owned png_struct, which makes it unsafe to expose"
+png_access_version_number,other,library,uses,y,
+png_get_y_offset_microns,lifecycle,library,uses,y,
+png_handle_as_unknown,lifecycle,library,uses,y,
+png_create_info_struct,handle_return,caller,creates,y,
+png_get_int_32,other,library,uses,y,

@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+git_apply_to_tree,handle_return,library,creates,y,
+git_attr_get_ext,refused,,uses,n,"git_attr_get_ext: param 'value_out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_blame_file,handle_return,caller,creates,y,
+git_branch_remote_name,refused,,uses,n,"git_branch_remote_name: param 'out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_commit_author_with_mailmap,handle_return,library,creates,y,
+git_config_entry_free,lifecycle,,uses,y,
+git_config_set_int32,lifecycle,,uses,y,
+git_cred_free,lifecycle,,uses,y,
+git_diff_patchid_options_init,lifecycle,,,y,
+git_index_add_frombuffer,refused,,uses,n,"git_index_add_frombuffer: param 'buffer' is opaque (unresolved pointer, callback, or writable buffer)"
+git_libgit2_version,other,,,y,
+git_odb_exists,lifecycle,,uses,y,
+git_remote_create_init_options,other,,,y,
+git_remote_init_callbacks,other,,,y,
+git_remote_ls,refused,,,n,"git_remote_ls: param 'out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_repository_message,refused,,uses,n,"git_repository_message: param 'out' is opaque (unresolved pointer, callback, or writable buffer)"
+git_submodule_update_init_options,other,,,y,
+git_transaction_new,handle_return,library,creates,y,
+git_worktree_add_init_options,other,,,y,
+git_worktree_lookup,handle_return,library,creates,y,

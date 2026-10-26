@@ -23,8 +23,11 @@ def cmd_infer(args):
     import os, glob
 
     overrides = {}
+    ownership_overrides = {}
     if args.overrides:
         overrides = yaml.safe_load(open(args.overrides)) or {}
+        # `ownership:` is a top-level section, not a function name
+        ownership_overrides = overrides.pop("ownership", {}) or {}
     clang_args = []
     for inc in (args.include or []):
         clang_args += ["-I", inc]
@@ -58,6 +61,7 @@ def cmd_infer(args):
         engine=args.engine,
         clang_args=clang_args,
         overrides=overrides,
+        ownership_overrides=ownership_overrides,
     )
     print(report.summary())
     if args.out:
@@ -149,7 +153,7 @@ def main(argv=None):
     pi.add_argument("--engine", default="libclang", choices=["libclang", "pycparser"],
                     help="L2 analysis engine (libclang reads .c directly; pycparser needs preprocessed)")
     pi.add_argument("--include", "-I", action="append", help="include dir for libclang (repeatable)")
-    pi.add_argument("--overrides", help="YAML {func: {param: intent}} for exceptions")
+    pi.add_argument("--overrides", help="YAML {func: {param: intent}} for exceptions, plus an optional top-level `ownership: {func: {owner: caller|library, note: ...}}`")
     pi.add_argument("--library-name")
     pi.add_argument("-o", "--out", help="write spec YAML here")
     pi.add_argument("--print-spec", action="store_true", help="also print the spec YAML")

@@ -1,0 +1,104 @@
+{
+ "cJSON_DetachItemFromObject": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a cJSON pointer that is removed from the object and must be freed by the caller using cJSON_Delete()."
+ },
+ "cJSON_InitHooks": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function takes a pointer to a struct but does not allocate, free, or return ownership of any memory; it merely configures internal library hooks."
+ },
+ "cJSON_Duplicate": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a newly allocated cJSON object which the caller is responsible for freeing."
+ },
+ "cJSON_Print": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "cJSON_Print returns a new char* allocation that the caller must eventually free."
+ },
+ "cJSON_IsNull": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This function checks a property of an existing cJSON object without taking or returning ownership."
+ },
+ "cJSON_CreateStringArray": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a newly created cJSON array object that the caller is responsible for deleting with cJSON_Delete."
+ },
+ "cJSON_SetValuestring": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function manages the memory for the returned pointer itself and the caller should not free it; the signature and logic do not require risky parameters or callbacks."
+ },
+ "cJSON_CreateStringReference": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates a new cJSON object that the caller is responsible for deleting, and the interface does not require unsafe patterns."
+ },
+ "cJSON_AddItemToArray": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function takes pointers as input but returns no pointer, and just adds an item to an array object."
+ },
+ "cJSON_CreateIntArray": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a new cJSON array object, which the caller is responsible for deleting with cJSON_Delete."
+ },
+ "cJSON_CreateFloatArray": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a newly allocated cJSON array which the caller must eventually free by calling cJSON_Delete."
+ },
+ "cJSON_AddItemReferenceToObject": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This function adds a reference (not a copy or a new allocation requiring the caller to free it) to a cJSON object, so the library manages the resulting reference's memory."
+ },
+ "cJSON_Minify": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "no",
+  "reason": "This function requires a writable buffer (the char* is both input and output), so exposing it is not safe in language bindings without additional buffer safety guarantees."
+ },
+ "cJSON_CreateObject": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a new cJSON object, so the caller becomes responsible for freeing it."
+ },
+ "cJSON_Version": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to a static buffer owned by the library, which the caller must not free."
+ },
+ "cJSON_GetErrorPtr": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The pointer returned is to internal library state, not to be freed or modified by the caller."
+ },
+ "cJSON_AddTrueToObject": {
+  "owner": "library",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function creates a cJSON true item and adds it to an object, transferring ownership to the object and the library manages its lifetime."
+ }
+}

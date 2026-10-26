@@ -1,0 +1,21 @@
+function,signature,stratum,label_owner,label_lifecycle,label_should_bind,label_source,notes
+sqlite3_backup_finish,c_int sqlite3_backup_finish(c_void_p p),lifecycle,na,destroys,y,doc,Destroys the sqlite3_backup handle and returns the overall status of the backup.
+sqlite3_backup_init,"c_void_p sqlite3_backup_init(c_void_p pDest, c_char_p zDestName, c_void_p pSource, c_char_p zSourceName)",handle_return,caller,creates,y,doc,"Caller must call sqlite3_backup_finish, not sqlite3_free. Returns NULL on error with the error left on pDest, so a binding must read it from there."
+sqlite3_backup_remaining,c_int sqlite3_backup_remaining(c_void_p p),lifecycle,na,uses,y,doc,
+sqlite3_bind_parameter_index,"c_int sqlite3_bind_parameter_index(c_void_p a0, c_char_p zName)",lifecycle,na,uses,y,doc,
+sqlite3_blob_read,"c_int sqlite3_blob_read(c_void_p a0, c_void_p Z, c_int N, c_int iOffset)",refused,na,uses,y,doc,"`N` states the byte count for Z, so bindable."
+sqlite3_column_table_name,"c_char_p sqlite3_column_table_name(c_void_p a0, c_int a1)",refused,library,uses,y,doc,String owned by sqlite3 and invalidated by the next step/reset/finalize on the statement. Only present when built with SQLITE_ENABLE_COLUMN_METADATA - the symbol is absent from many distro builds.
+sqlite3_column_value,"c_void_p sqlite3_column_value(c_void_p a0, c_int iCol)",handle_return,library,uses,y,doc,"Library-owned. Returns an UNPROTECTED sqlite3_value: the docs allow it only to be passed to sqlite3_bind_value / sqlite3_result_value, and it is invalidated by the next step/reset/finalize. A misuse hazard, but returning an opaque pointer is not itself unsafe, so y."
+sqlite3_db_mutex,c_void_p sqlite3_db_mutex(c_void_p a0),handle_return,library,uses,y,doc,The mutex belongs to the connection; freeing it would be a bug. Returns NULL in SQLITE_THREADSAFE=0 builds.
+sqlite3_errmsg16,c_void_p sqlite3_errmsg16(c_void_p a0),refused,library,uses,y,doc,"UTF-16 string owned by sqlite3, invalidated by the next API call on the same connection - a binding must copy it before returning."
+sqlite3_exec,"c_int sqlite3_exec(c_void_p a0, c_char_p sql, c_void_p callback, c_void_p a3, c_void_p errmsg)",refused,caller,uses,n,doc,"n for the `callback` function pointer: invocation lifetime and reentrancy on the connection are not expressible in the signature. label_owner refers to the errmsg out-param, which is caller-owned and must be released with sqlite3_free, not free."
+sqlite3_hard_heap_limit64,c_long sqlite3_hard_heap_limit64(c_long N),other,na,na,y,doc,
+sqlite3_libversion,c_char_p sqlite3_libversion(),other,library,na,y,doc,Static string constant; must not be freed.
+sqlite3_soft_heap_limit64,c_long sqlite3_soft_heap_limit64(c_long N),other,na,na,y,doc,
+sqlite3_str_append,"void sqlite3_str_append(c_void_p a0, c_char_p zIn, c_int N)",lifecycle,na,uses,y,doc,Operates on the sqlite3_str accumulator handle; zIn is copied.
+sqlite3_str_appendall,"void sqlite3_str_appendall(c_void_p a0, c_char_p zIn)",lifecycle,na,uses,y,doc,
+sqlite3_thread_cleanup,void sqlite3_thread_cleanup(),other,na,na,y,doc,Deprecated no-op retained for ABI compatibility.
+sqlite3_threadsafe,c_int sqlite3_threadsafe(),other,na,na,y,doc,
+sqlite3_update_hook,"c_void_p sqlite3_update_hook(c_void_p a0, c_void_p a1, c_void_p a2)",refused,library,uses,n,doc,"n for the callback. The return is the PREVIOUS pArg, i.e. opaque data some earlier caller supplied - the same enum problem as png_get_mem_ptr. `library` chosen to mean 'do not free on the strength of this call'."
+sqlite3_value_dup,c_void_p sqlite3_value_dup(c_void_p a0),handle_return,caller,creates,y,doc,"Caller must sqlite3_value_free. Returns a protected copy, unlike sqlite3_column_value's unprotected borrow - a good adjacent pair for the hazard catalogue, since the two have the same return type and opposite ownership."
+sqlite3_vfs_find,c_void_p sqlite3_vfs_find(c_char_p zVfsName),handle_return,library,uses,y,doc,"Returns a pointer into the global VFS registry: not a new handle and never freed by the caller. The struct is full of function pointers, but it is returned opaquely rather than passed in, so the struct-of-callbacks rule does not apply."

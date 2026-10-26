@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+png_get_uint_32,other,,,n,"Without the implementation, it is unclear whether the function deals with pointers or handles, so ownership and lifecycl"
+png_get_palette_max,lifecycle,,,y,
+png_get_iCCP,refused,library,uses,n,"The returned pointers reference internal library data, and freeing or modifying them would be unsafe, but this is not ob"
+png_set_sig_bytes,lifecycle,,uses,y,
+png_write_png,refused,,uses,y,
+png_get_uint_16,other,,,n,"Without the implementation or documentation, it is not possible to determine the function's memory contract or whether i"
+png_get_x_offset_microns,lifecycle,,,y,
+png_sig_cmp,other,,,y,
+png_image_finish_read,refused,,uses,y,
+png_set_filter_heuristics_fixed,refused,,,y,
+png_set_write_user_transform_fn,refused,,uses,y,
+png_access_version_number,other,,,y,
+png_get_y_offset_microns,lifecycle,,,y,
+png_handle_as_unknown,lifecycle,,,y,
+png_create_info_struct,handle_return,caller,creates,y,
+png_get_int_32,other,,,n,"Without the implementation or a detailed signature, nothing is known about pointer usage or safety."

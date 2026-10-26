@@ -1,0 +1,16 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+cJSON_AddArrayToObject,handle_return,library,borrows,y,
+cJSON_AddItemToObject,lifecycle,,uses,y,
+cJSON_AddNumberToObject,handle_return,library,borrows,y,
+cJSON_AddObjectToObject,handle_return,library,borrows,y,
+cJSON_CreateDoubleArray,refused,caller,creates,n,"cJSON_CreateDoubleArray: param 'numbers' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_CreateNumber,handle_return,caller,creates,y,
+cJSON_IsArray,lifecycle,,uses,y,
+cJSON_IsFalse,lifecycle,,uses,y,
+cJSON_IsObject,lifecycle,,uses,y,
+cJSON_Parse,handle_return,caller,creates,y,
+cJSON_ParseWithLengthOpts,refused,caller,creates,n,"cJSON_ParseWithLengthOpts: param 'return_parse_end' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_ParseWithOpts,refused,caller,creates,n,"cJSON_ParseWithOpts: param 'return_parse_end' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_PrintPreallocated,refused,,uses,n,"cJSON_PrintPreallocated: param 'buffer' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_ReplaceItemInObject,lifecycle,,uses,y,
+cJSON_malloc,refused,,,n,cJSON_malloc: returns a raw void* that is not a managed handle

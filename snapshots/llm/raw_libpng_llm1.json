@@ -1,0 +1,98 @@
+{
+ "png_get_uint_32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "png_get_uint_32 reads a 4-byte big-endian integer from a buffer and returns it as a value type (uint32), so no pointer ownership is involved."
+ },
+ "png_get_palette_max": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer (the maximum palette index), not a pointer, so ownership and lifecycle do not apply."
+ },
+ "png_get_iCCP": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns pointers to internally-owned buffers stored in the info_ptr struct; the caller must not free them."
+ },
+ "png_set_sig_bytes": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This function sets a field on an existing png_struct and returns void, so no pointer ownership is involved."
+ },
+ "png_write_png": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "png_write_png returns void, so no ownership question arises; it uses existing png_ptr and info_ptr handles to write a PNG file without creating or destroying them."
+ },
+ "png_get_uint_16": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "png_get_uint_16 reads two bytes and returns a uint16 value by value, so no pointer ownership is involved."
+ },
+ "png_get_x_offset_microns": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (png_int_32), not a pointer, so ownership does not apply."
+ },
+ "png_sig_cmp": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (comparison result) and does not allocate or return any pointer, so ownership and lifecycle do not apply."
+ },
+ "png_image_finish_read": {
+  "owner": "na",
+  "lifecycle": "destroys",
+  "safe_to_expose": "no",
+  "reason": "The function returns an int (no pointer ownership question), but it takes a caller-supplied writable buffer whose size must be provided by the caller, making it unsafe to expose directly in a binding without careful buffer-size handling."
+ },
+ "png_set_filter_heuristics_fixed": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns void and is a no-op stub, so ownership and lifecycle do not apply, and it is safe to expose."
+ },
+ "png_set_write_user_transform_fn": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "The function accepts a callback (function pointer) parameter, which cannot be safely exposed in an automatic binding without special callback handling."
+ },
+ "png_access_version_number": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "Returns a plain integer constant with no pointer or handle involved."
+ },
+ "png_get_y_offset_microns": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (png_int_32), not a pointer, so ownership does not apply."
+ },
+ "png_handle_as_unknown": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (not a pointer), querying an existing handle without allocating or freeing anything."
+ },
+ "png_create_info_struct": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "png_create_info_struct allocates a new png_info structure via png_malloc_base and returns it; the caller is responsible for freeing it with png_destroy_info_struct."
+ },
+ "png_get_int_32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "png_get_int_32 reads a 32-bit signed integer from a byte buffer and returns it by value, so no pointer ownership is involved."
+ }
+}

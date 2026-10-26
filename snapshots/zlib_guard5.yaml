@@ -1,0 +1,2173 @@
+library: lib
+functions:
+  zlibVersion:
+    restype: c_char_p
+    params: []
+    string_owner: library
+  deflate:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: flush
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateEnd:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  inflate:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: flush
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateEnd:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  deflateSetDictionary:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: dictionary
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: dictLength
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateGetDictionary:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: dictionary
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: dictLength
+      role: scalar
+      ctype: c_uint
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+  deflateCopy:
+    restype: c_int
+    params:
+    - name: dest
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: source
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  deflateReset:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  deflateParams:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: level
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: strategy
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateTune:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: good_length
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: max_lazy
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nice_length
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: max_chain
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateBound:
+    restype: c_ulong
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: sourceLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflatePending:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: pending
+      role: scalar
+      ctype: c_uint
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    - name: bits
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+  deflatePrime:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: bits
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: value
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateSetHeader:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: head
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: gz_header_s
+  inflateSetDictionary:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: dictionary
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: dictLength
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateGetDictionary:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: dictionary
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: dictLength
+      role: scalar
+      ctype: c_uint
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+  inflateSync:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  inflateCopy:
+    restype: c_int
+    params:
+    - name: dest
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: source
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  inflateReset:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  inflateReset2:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: windowBits
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflatePrime:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: bits
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: value
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateMark:
+    restype: c_long
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  inflateGetHeader:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: head
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: gz_header_s
+  inflateBack:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: in
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: in_desc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: out
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: out_desc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  inflateBackEnd:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  zlibCompileFlags:
+    restype: c_ulong
+    params: []
+  compress:
+    restype: c_int
+    params:
+    - name: dest
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: destLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    - name: source
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: sourceLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  compress2:
+    restype: c_int
+    params:
+    - name: dest
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: destLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: inout
+        sources:
+        - def_use
+        - l1_said_out
+        confidence: 0.95
+        verified: false
+    - name: source
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: sourceLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: level
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  compressBound:
+    restype: c_ulong
+    params:
+    - name: sourceLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  uncompress:
+    restype: c_int
+    params:
+    - name: dest
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: destLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    - name: source
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: sourceLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  uncompress2:
+    restype: c_int
+    params:
+    - name: dest
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: destLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: inout
+        sources:
+        - def_use
+        - l1_said_out
+        confidence: 0.95
+        verified: false
+    - name: source
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: sourceLen
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: inout
+        sources:
+        - def_use
+        - l1_said_out
+        confidence: 0.95
+        verified: false
+  gzdopen:
+    restype: c_void_p
+    params:
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: mode
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: gzFile_s
+    owner: caller
+  gzbuffer:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: size
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzsetparams:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: level
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: strategy
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzread:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: len
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzfread:
+    restype: c_ulong
+    params:
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: size
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nitems
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzwrite:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: len
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzfwrite:
+    restype: c_ulong
+    params:
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: size
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nitems
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzputs:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzgets:
+    restype: c_char_p
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: len
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+    string_owner: library
+  gzputc:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: c
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzgetc:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzungetc:
+    restype: c_int
+    params:
+    - name: c
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzflush:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: flush
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzrewind:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzeof:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzdirect:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzclose:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzclose_r:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzclose_w:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzerror:
+    restype: c_char_p
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: errnum
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    lifecycle: uses
+    handle_type: gzFile_s
+    string_owner: library
+  gzclearerr:
+    restype: null
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  adler32:
+    restype: c_ulong
+    params:
+    - name: adler
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buf
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  adler32_z:
+    restype: c_ulong
+    params:
+    - name: adler
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buf
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  crc32:
+    restype: c_ulong
+    params:
+    - name: crc
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buf
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  crc32_z:
+    restype: c_ulong
+    params:
+    - name: crc
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buf
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  crc32_combine_op:
+    restype: c_ulong
+    params:
+    - name: crc1
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: crc2
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: op
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateInit_:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: level
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: version
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: stream_size
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateInit_:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: version
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: stream_size
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  deflateInit2_:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: level
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: method
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: windowBits
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: memLevel
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: strategy
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: version
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: stream_size
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateInit2_:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: windowBits
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: version
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: stream_size
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateBackInit_:
+    restype: c_int
+    params:
+    - name: strm
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: windowBits
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: window
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: version
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: stream_size
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  gzgetc_:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzopen:
+    restype: c_void_p
+    params:
+    - name: a0
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: gzFile_s
+    owner: caller
+  gzseek:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: a1
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: gzFile_s
+  gztell:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  gzoffset:
+    restype: c_long
+    params:
+    - name: a0
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    lifecycle: uses
+    handle_type: gzFile_s
+  adler32_combine:
+    restype: c_ulong
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  crc32_combine:
+    restype: c_ulong
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a1
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: a2
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  crc32_combine_gen:
+    restype: c_ulong
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  zError:
+    restype: c_char_p
+    params:
+    - name: a0
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  inflateSyncPoint:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  get_crc_table:
+    restype: POINTER(c_uint)
+    params: []
+  inflateUndermine:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateValidate:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+    - name: a1
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  inflateCodesUsed:
+    restype: c_ulong
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  inflateResetKeep:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  deflateResetKeep:
+    restype: c_int
+    params:
+    - name: a0
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: z_stream_s
+  gzvprintf:
+    restype: c_int
+    params:
+    - name: file
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: gzFile_s
+      pointee: gzFile_s
+    - name: format
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: va
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: gzFile_s

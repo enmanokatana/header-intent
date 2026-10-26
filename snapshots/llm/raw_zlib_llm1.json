@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gztell returns a scalar offset value (z_off_t), not a pointer, so ownership does not apply; it simply queries the current position of an existing gzFile handle."
+ },
+ "gzprintf": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "gzprintf is variadic (accepts '...'), which cannot be safely exposed through an automatic binding generator."
+ },
+ "adler32_combine": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (uLong), not a pointer, so ownership and lifecycle do not apply."
+ },
+ "gzeof": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gzeof returns a plain int (EOF status) and does not allocate or transfer any memory ownership."
+ },
+ "inflateInit_": {
+  "owner": "na",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "inflateInit_ initialises a caller-supplied z_stream struct (no pointer is returned); the function creates the inflate state stored inside that struct, which must later be freed with inflateEnd."
+ },
+ "crc32_combine_gen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (uLong), not a pointer, so ownership and lifecycle do not apply."
+ },
+ "adler32_z": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer (uLong checksum) computed from its inputs and allocates no memory, so ownership and lifecycle concepts do not apply."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "Returns a pointer to a static internal table (crc_table) owned by the library; the caller must not free it."
+ },
+ "adler32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "adler32 returns a plain integer (uLong checksum), not a pointer, so ownership and lifecycle do not apply, and it is safe to expose directly."
+ },
+ "deflate": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "deflate returns an int status code, not a pointer, so ownership does not apply; it operates on a caller-managed z_streamp stream handle during the compression lifecycle."
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "png_get_uint_32": {
+  "decl": null,
+  "body": null,
+  "file": null
+ },
+ "png_get_palette_max": {
+  "decl": "",
+  "body": "int PNGAPI\npng_get_palette_max(png_const_structp png_ptr, png_const_infop info_ptr)\n{\n   if (png_ptr != NULL && info_ptr != NULL)\n      return png_ptr->num_palette_max;\n\n   return -1;\n}",
+  "file": "pngget.c"
+ },
+ "png_get_iCCP": {
+  "decl": null,
+  "body": "png_uint_32 PNGAPI\npng_get_iCCP(png_const_structrp png_ptr, png_inforp info_ptr,\n    png_charpp name, int *compression_type,\n    png_bytepp profile, png_uint_32 *proflen)\n{\n   png_debug1(1, \"in %s retrieval function\", \"iCCP\");\n\n   if (png_ptr != NULL && info_ptr != NULL &&\n       (info_ptr->valid & PNG_INFO_iCCP) != 0 &&\n       name != NULL && profile != NULL && proflen != NULL)\n   {\n      *name = info_ptr->iccp_name;\n      *profile = info_ptr->iccp_profile;\n      *proflen = png_get_uint_32(info_ptr->iccp_profile);\n      /* This is somewhat irrelevant since the profile data returned has\n       * actually been uncompressed.\n       */\n      if (compression_type != NULL)\n         *compression_type = PNG_COMPRESSION_TYPE_BASE;\n      return PNG_INFO_iCCP;\n   }\n\n   return 0;\n\n}",
+  "file": "pngget.c"
+ },
+ "png_set_sig_bytes": {
+  "decl": "",
+  "body": "void PNGAPI\npng_set_sig_bytes(png_structrp png_ptr, int num_bytes)\n{\n   unsigned int nb = (unsigned int)num_bytes;\n\n   png_debug(1, \"in png_set_sig_bytes\");\n\n   if (png_ptr == NULL)\n      return;\n\n   if (num_bytes < 0)\n      nb = 0;\n\n   if (nb > 8)\n      png_error(png_ptr, \"Too many bytes for PNG signature\");\n\n   png_ptr->sig_bytes = (png_byte)nb;\n}",
+  "file": "png.c"
+ },
+ "png_write_png": {
+  "decl": "",
+  "body": "void PNGAPI\npng_write_png(png_structrp png_ptr, png_inforp info_ptr,\n    int transforms, voidp params)\n{\n   png_debug(1, \"in png_write_png\");\n\n   if (png_ptr == NULL || info_ptr == NULL)\n      return;\n\n   if ((info_ptr->valid & PNG_INFO_IDAT) == 0)\n   {\n      png_app_error(png_ptr, \"no rows for png_write_image to write\");\n      return;\n   }\n\n   /* Write the file header information. */\n   png_write_info(png_ptr, info_ptr);\n\n   /* ------ these transformations don't touch the info structure ------- */\n\n   /* Invert monochrome pixels */\n   if ((transforms & PNG_TRANSFORM_INVERT_MONO) != 0)\n#ifdef PNG_WRITE_INVERT_SUPPORTED\n      png_set_invert_mono(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_INVERT_MONO not supported\");\n#endif\n\n   /* Shift the pixels up to a legal bit depth and fill in\n    * as appropriate to correctly scale the image.\n    */\n   if ((transforms & PNG_TRANSFORM_SHIFT) != 0)\n#ifdef PNG_WRITE_SHIFT_SUPPORTED\n      if ((info_ptr->valid & PNG_INFO_sBIT) != 0)\n         png_set_shift(png_ptr, &info_ptr->sig_bit);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_SHIFT not supported\");\n#endif\n\n   /* Pack pixels into bytes */\n   if ((transforms & PNG_TRANSFORM_PACKING) != 0)\n#ifdef PNG_WRITE_PACK_SUPPORTED\n      png_set_packing(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_PACKING not supported\");\n#endif\n\n   /* Swap location of alpha bytes from ARGB to RGBA */\n   if ((transforms & PNG_TRANSFORM_SWAP_ALPHA) != 0)\n#ifdef PNG_WRITE_SWAP_ALPHA_SUPPORTED\n      png_set_swap_alpha(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_SWAP_ALPHA not supported\");\n#endif\n\n   /* Remove a filler (X) from XRGB/RGBX/AG/GA into to convert it into\n    * RGB, note that the code expects the input color type to be G or RGB; no\n    * alpha channel.\n    */\n   if ((transforms & (PNG_TRANSFORM_STRIP_FILLER_AFTER|\n       PNG_TRANSFORM_STRIP_FILLER_BEFORE)) != 0)\n   {\n#ifdef PNG_WRITE_FILLER_SUPPORTED\n      if ((transforms & PNG_TRANSFORM_STRIP_FILLER_AFTER) != 0)\n      {\n         if ((transforms & PNG_TRANSFORM_STRIP_FILLER_BEFORE) != 0)\n            png_app_error(png_ptr,\n                \"PNG_TRANSFORM_STRIP_FILLER: BEFORE+AFTER not supported\");\n\n         /* Continue if ignored - this is the pre-1.6.10 behavior */\n         png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);\n      }\n\n      else if ((transforms & PNG_TRANSFORM_STRIP_FILLER_BEFORE) != 0)\n         png_set_filler(png_ptr, 0, PNG_FILLER_BEFORE);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_STRIP_FILLER not supported\");\n#endif\n   }\n\n   /* Flip BGR pixels to RGB */\n   if ((transforms & PNG_TRANSFORM_BGR) != 0)\n#ifdef PNG_WRITE_BGR_SUPPORTED\n      png_set_bgr(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_BGR not supported\");\n#endif\n\n   /* Swap bytes of 16-bit files to most significant byte first */\n   if ((transforms & PNG_TRANSFORM_SWAP_ENDIAN) != 0)\n#ifdef PNG_WRITE_SWAP_SUPPORTED\n      png_set_swap(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_SWAP_ENDIAN not supported\");\n#endif\n\n   /* Swap bits of 1-bit, 2-bit, 4-bit packed pixel formats */\n   if ((transforms & PNG_TRANSFORM_PACKSWAP) != 0)\n#ifdef PNG_WRITE_PACKSWAP_SUPPORTED\n      png_set_packswap(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_PACKSWAP not supported\");\n#endif\n\n   /* Invert the alpha channel from opacity to transparency */\n   if ((transforms & PNG_TRANSFORM_INVERT_ALPHA) != 0)\n#ifdef PNG_WRITE_INVERT_ALPHA_SUPPORTED\n      png_set_invert_alpha(png_ptr);\n#else\n      png_app_error(png_ptr, \"PNG_TRANSFORM_INVERT_ALPHA not supported\");\n#endif\n\n   /* ----------------------- end of transformations ------------------- */\n\n   /* Write the bits */\n   png_write_image(png_ptr, info_ptr->row_pointers);\n\n   /* It is REQUIRED to call this to finish writing the rest of the file */\n   png_write_end(png_ptr, info_ptr);\n\n   PNG_UNUSED(params)\n}",
+  "file": "pngwrite.c"
+ },
+ "png_get_uint_16": {
+  "decl": null,
+  "body": null,
+  "file": null
+ },
+ "png_get_x_offset_microns": {
+  "decl": null,
+  "body": "png_int_32 PNGAPI\npng_get_x_offset_microns(png_const_structrp png_ptr, png_const_inforp info_ptr)\n{\n#ifdef PNG_oFFs_SUPPORTED\n   png_debug(1, \"in png_get_x_offset_microns\");\n\n   if (png_ptr != NULL && info_ptr != NULL &&\n       (info_ptr->valid & PNG_INFO_oFFs) != 0)\n   {\n      if (info_ptr->offset_unit_type == PNG_OFFSET_MICROMETER)\n         return info_ptr->x_offset;\n   }\n#else\n   PNG_UNUSED(png_ptr)\n   PNG_UNUSED(info_ptr)\n#endif\n\n   return 0;\n}",
+  "file": "pngget.c"
+ },
+ "png_sig_cmp": {
+  "decl": "",
+  "body": "int PNGAPI\npng_sig_cmp(png_const_bytep sig, size_t start, size_t num_to_check)\n{\n   static const png_byte png_signature[8] = {137, 80, 78, 71, 13, 10, 26, 10};\n\n   if (num_to_check > 8)\n      num_to_check = 8;\n\n   else if (num_to_check < 1)\n      return -1;\n\n   if (start > 7)\n      return -1;\n\n   if (start + num_to_check > 8)\n      num_to_check = 8 - start;\n\n   return memcmp(&sig[start], &png_signature[start], num_to_check);\n}",
+  "file": "png.c"
+ },
+ "png_image_finish_read": {
+  "decl": "",
+  "body": "int PNGAPI\npng_image_finish_read(png_imagep image, png_const_colorp background,\n    void *buffer, png_int_32 row_stride, void *colormap)\n{\n   if (image != NULL && image->version == PNG_IMAGE_VERSION)\n   {\n      /* Check for row_stride overflow.  This check is not performed on the\n       * original PNG format because it may not occur in the output PNG format\n       * and libpng deals with the issues of reading the original.\n       */\n      unsigned int channels = PNG_IMAGE_PIXEL_CHANNELS(image->format);\n\n      /* The following checks just the 'row_stride' calculation to ensure it\n       * fits in a signed 32-bit value.  Because channels/components can be\n       * either 1 or 2 bytes in size the length of a row can still overflow 32\n       * bits; this is just to verify that the 'row_stride' argument can be\n       * represented.\n       */\n      if (image->width <= 0x7fffffffU/channels) /* no overflow */\n      {\n         png_uint_32 check;\n         png_uint_32 png_row_stride = image->width * channels;\n\n         if (row_stride == 0)\n            row_stride = (png_int_32)/*SAFE*/png_row_stride;\n\n         if (row_stride < 0)\n            check = (png_uint_32)(-row_stride);\n\n         else\n            check = (png_uint_32)row_stride;\n\n         /* This verifies 'check', the absolute value of the actual stride\n          * passed in and detects overflow in the application calculation (i.e.\n          * if the app did actually pass in a non-zero 'row_stride'.\n          */\n         if (image->opaque != NULL && buffer != NULL && check >= png_row_stride)\n         {\n            /* Now check for overflow of the image buffer calculation; this\n             * limits the whole image size to 32 bits for API compatibility with\n             * the current, 32-bit, PNG_IMAGE_BUFFER_SIZE macro.\n             *\n             * The PNG_IMAGE_BUFFER_SIZE macro is:\n             *\n             *    (PNG_IMAGE_PIXEL_COMPONENT_SIZE(fmt)*height*(row_stride))\n             *\n             * And the component size is always 1 or 2, so make sure that the\n             * number of *bytes* that the application is saying are available\n             * does actually fit into a 32-bit number.\n             *\n             * NOTE: this will be changed in 1.7 because PNG_IMAGE_BUFFER_SIZE\n             * will be changed to use png_alloc_size_t; bigger images can be\n             * accommodated on 64-bit systems.\n             */\n            if (image->height <=\n                0xffffffffU/PNG_IMAGE_PIXEL_COMPONENT_SIZE(image->format)/check)\n            {\n               if ((image->format & PNG_FORMAT_FLAG_COLORMAP) == 0 ||\n                  (image->colormap_entries > 0 && colormap != NULL))\n               {\n                  int result;\n                  png_image_read_control display;\n\n                  memset(&display, 0, (sizeof display));\n                  display.image = image;\n                  display.buffer = buffer;\n                  display.row_stride = row_stride;\n                  display.colormap = colormap;\n                  display.background = background;\n                  display.local_row = NULL;\n\n                  /* Choose the correct 'end' routine; for the color-map case\n                   * all the setup has already been done.\n                   */\n                  if ((image->format & PNG_FORMAT_FLAG_COLORMAP) != 0)\n                     result =\n                         png_safe_execute(image,\n                             png_image_read_colormap, &display) &&\n                             png_safe_execute(image,\n                             png_image_read_colormapped, &display);\n\n                  else\n                     result =\n                        png_safe_execute(image,\n                            png_image_read_direct, &display);\n\n                  png_image_free(image);\n                  return result;\n               }\n\n               else\n                  return png_image_error(image,\n                      \"png_image_finish_read[color-map]: no color-map\");\n            }\n\n            else\n               return png_image_error(image,\n                   \"png_image_finish_read: image too large\");\n         }\n\n         else\n            return png_image_error(image,\n                \"png_image_finish_read: invalid argument\");\n      }\n\n      else\n         return png_image_error(image,\n             \"png_image_finish_read: row_stride too large\");\n   }\n\n   else if (image != NULL)\n      return png_image_error(image,\n          \"png_image_finish_read: damaged PNG_IMAGE_VERSION\");\n\n   return 0;\n}",
+  "file": "pngread.c"
+ },
+ "png_set_filter_heuristics_fixed": {
+  "decl": "",
+  "body": "void PNGAPI\npng_set_filter_heuristics_fixed(png_structrp png_ptr, int heuristic_method,\n    int num_weights, png_const_fixed_point_p filter_weights,\n    png_const_fixed_point_p filter_costs)\n{\n   PNG_UNUSED(png_ptr)\n   PNG_UNUSED(heuristic_method)\n   PNG_UNUSED(num_weights)\n   PNG_UNUSED(filter_weights)\n   PNG_UNUSED(filter_costs)\n}",
+  "file": "pngwrite.c"
+ },
+ "png_set_write_user_transform_fn": {
+  "decl": "",
+  "body": "void PNGAPI\npng_set_write_user_transform_fn(png_structrp png_ptr, png_user_transform_ptr\n    write_user_transform_fn)\n{\n   png_debug(1, \"in png_set_write_user_transform_fn\");\n\n   if (png_ptr == NULL)\n      return;\n\n   png_ptr->transformations |= PNG_USER_TRANSFORM;\n   png_ptr->write_user_transform_fn = write_user_transform_fn;\n}",
+  "file": "pngwrite.c"
+ },
+ "png_access_version_number": {
+  "decl": null,
+  "body": "png_uint_32 PNGAPI\npng_access_version_number(void)\n{\n   /* Version of *.c files used when building libpng */\n   return (png_uint_32)PNG_LIBPNG_VER;\n}",
+  "file": "png.c"
+ },
+ "png_get_y_offset_microns": {
+  "decl": null,
+  "body": "png_int_32 PNGAPI\npng_get_y_offset_microns(png_const_structrp png_ptr, png_const_inforp info_ptr)\n{\n#ifdef PNG_oFFs_SUPPORTED\n   png_debug(1, \"in png_get_y_offset_microns\");\n\n   if (png_ptr != NULL && info_ptr != NULL &&\n       (info_ptr->valid & PNG_INFO_oFFs) != 0)\n   {\n      if (info_ptr->offset_unit_type == PNG_OFFSET_MICROMETER)\n         return info_ptr->y_offset;\n   }\n#else\n   PNG_UNUSED(png_ptr)\n   PNG_UNUSED(info_ptr)\n#endif\n\n   return 0;\n}",
+  "file": "pngget.c"
+ },
+ "png_handle_as_unknown": {
+  "decl": "",
+  "body": "int PNGAPI\npng_handle_as_unknown(png_const_structrp png_ptr, png_const_bytep chunk_name)\n{\n   /* Check chunk_name and return \"keep\" value if it's on the list, else 0 */\n   png_const_bytep p, p_end;\n\n   if (png_ptr == NULL || chunk_name == NULL || png_ptr->num_chunk_list == 0)\n      return PNG_HANDLE_CHUNK_AS_DEFAULT;\n\n   p_end = png_ptr->chunk_list;\n   p = p_end + png_ptr->num_chunk_list*5; /* beyond end */\n\n   /* The code is the fifth byte after each four byte string.  Historically this\n    * code was always searched from the end of the list, this is no longer\n    * necessary because the 'set' routine handles duplicate entries correctly.\n    */\n   do /* num_chunk_list > 0, so at least one */\n   {\n      p -= 5;\n\n      if (memcmp(chunk_name, p, 4) == 0)\n         return p[4];\n   }\n   while (p > p_end);\n\n   /* This means that known chunks should be processed and unknown chunks should\n    * be handled according to the value of png_ptr->unknown_default; this can be\n    * confusing because, as a result, there are two levels of defaulting for\n    * unknown chunks.\n    */\n   return PNG_HANDLE_CHUNK_AS_DEFAULT;\n}",
+  "file": "png.c"
+ },
+ "png_create_info_struct": {
+  "decl": "",
+  "body": "PNG_FUNCTION(png_infop,PNGAPI\npng_create_info_struct,(png_const_structrp png_ptr),PNG_ALLOCATED)\n{\n   png_inforp info_ptr;\n\n   png_debug(1, \"in png_create_info_struct\");\n\n   if (png_ptr == NULL)\n      return NULL;\n\n   /* Use the internal API that does not (or at least should not) error out, so\n    * that this call always returns ok.  The application typically sets up the\n    * error handling *after* creating the info_struct because this is the way it\n    * has always been done in 'example.c'.\n    */\n   info_ptr = png_voidcast(png_inforp, png_malloc_base(png_ptr,\n       (sizeof *info_ptr)));\n\n   if (info_ptr != NULL)\n      memset(info_ptr, 0, (sizeof *info_ptr));\n\n   return info_ptr;\n}",
+  "file": "png.c"
+ },
+ "png_get_int_32": {
+  "decl": null,
+  "body": null,
+  "file": null
+ }
+}

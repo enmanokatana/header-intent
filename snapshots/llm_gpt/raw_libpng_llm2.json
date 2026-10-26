@@ -1,0 +1,98 @@
+{
+ "png_get_uint_32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "unknown",
+  "reason": "Without implementation or documentation, it is unknown whether this function is safe to expose or if it involves pointer ownership or handle lifecycles."
+ },
+ "png_get_palette_max": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns an integer and does not involve any ownership or pointers that must be managed by the caller."
+ },
+ "png_get_iCCP": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointers reference library-managed memory; the caller must not free them, and the function is safe to expose as it simply provides access to existing internal data."
+ },
+ "png_set_sig_bytes": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This setter function does not return or destroy objects and simply assigns a struct field, with no ownership implications and no unsafe patterns."
+ },
+ "png_write_png": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "png_write_png does not return a pointer or transfer ownership, just operates on provided handles and constants."
+ },
+ "png_get_uint_16": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "unknown",
+  "reason": "No implementation is available so the function's contract and signature are unknown."
+ },
+ "png_get_x_offset_microns": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns a value, not a pointer or handle, so ownership and lifecycle do not apply and it is safe to expose."
+ },
+ "png_sig_cmp": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return or consume any pointer ownership and does not involve complex or callback types."
+ },
+ "png_image_finish_read": {
+  "owner": "unknown",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "The function requires the caller to provide writable buffers and a struct, and expects the caller to correctly allocate these with the proper size and lifetime."
+ },
+ "png_set_filter_heuristics_fixed": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer or take ownership of any resource; it is a parameter-setting function with primitive arguments."
+ },
+ "png_set_write_user_transform_fn": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "no",
+  "reason": "This function sets a callback function pointer, which is not safe for direct binding exposure."
+ },
+ "png_access_version_number": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns an integer version number and does not deal with resource ownership or handles."
+ },
+ "png_get_y_offset_microns": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer value and does not allocate, use, or free any pointers or handles."
+ },
+ "png_handle_as_unknown": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer or handle, only an int, and takes only pointers managed by the caller or library."
+ },
+ "png_create_info_struct": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a new struct pointer that the caller is responsible for freeing, and the signature is straightforward to expose safely."
+ },
+ "png_get_int_32": {
+  "owner": "unknown",
+  "lifecycle": "unknown",
+  "safe_to_expose": "unknown",
+  "reason": "No implementation or documentation is provided, so ownership, lifecycle, and exposure safety cannot be determined."
+ }
+}

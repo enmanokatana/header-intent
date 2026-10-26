@@ -1,0 +1,23 @@
+\begin{table}[!t]
+\caption{Functions both models judge safe to expose when the exposability
+criteria are withheld from the prompt, with the reason Ferrule's structural
+policy refuses each.}
+\label{tab:llm-overlap}
+\centering\footnotesize
+\begin{tabular}{llp{3.4cm}}
+\toprule
+\textbf{Function} & \textbf{Ferrule} & \textbf{Reason} \\
+\midrule
+\texttt{PQescapeStringConn} & refused & param 'to' is opaque (unresolved pointer, callback, or writa \\
+\texttt{cJSON\_InitHooks} & bound & --- \\
+\texttt{cJSON\_Minify} & refused & param 'json' is opaque (unresolved pointer, callback, or wri \\
+\texttt{git\_config\_backend\_foreach\_match} & refused & param 'callback' is opaque (unresolved pointer, callback, or \\
+\texttt{gzprintf} & refused & dropped at extraction (the ... marker is absent from the typ \\
+\texttt{png\_image\_finish\_read} & refused & param 'image' is opaque (unresolved pointer, callback, or wr \\
+\texttt{png\_set\_write\_user\_transform\_fn} & refused & param 'write\_user\_transform\_fn' is opaque (unresolved pointe \\
+\texttt{sqlite3\_create\_window\_function} & refused & param 'pApp' is opaque (unresolved pointer, callback, or wri \\
+\texttt{sqlite3\_mprintf} & refused & dropped at extraction (the ... marker is absent from the typ \\
+\texttt{sqlite3\_set\_authorizer} & refused & param 'xAuth' is opaque (unresolved pointer, callback, or wr \\
+\bottomrule
+\end{tabular}
+\end{table}

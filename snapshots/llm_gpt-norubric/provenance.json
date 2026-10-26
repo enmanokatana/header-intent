@@ -1,0 +1,7 @@
+{
+ "provider": "openai",
+ "model": "gpt-4.1",
+ "no_rubric": true,
+ "base_url": "",
+ "when": "2026-09-24 14:01:14"
+}

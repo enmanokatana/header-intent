@@ -1,0 +1,122 @@
+{
+ "sqlite3_errstr": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a const char pointer that the caller must not free, as per SQLite convention; it exposes a static string dependent on the integer error code."
+ },
+ "sqlite3_column_int64": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value type (sqlite3_int64), not a pointer, so ownership and lifecycle do not apply and exposing it is safe."
+ },
+ "sqlite3_db_handle": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The returned pointer belongs to the library, is not newly allocated, and must not be freed by the caller; the function is a safe accessor and does not manage lifetimes."
+ },
+ "sqlite3_wal_autocheckpoint": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not create, use, or destroy any pointers or handles directly, and it returns only an int status code."
+ },
+ "sqlite3_create_window_function": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer and does not transfer ownership; it registers a callback and is safe to expose given only its signature and body."
+ },
+ "sqlite3_set_authorizer": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function does not allocate or return any pointers; it simply sets a callback and a user data pointer, and its behavior is fully determined by its parameters without ownership transfer."
+ },
+ "sqlite3_uri_boolean": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int, not a pointer or handle, so ownership and lifecycle do not apply and it is safe to expose."
+ },
+ "sqlite3_mprintf": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates a new string with sqlite3_vmprintf and returns ownership to the caller, who must free it."
+ },
+ "sqlite3_initialize": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "sqlite3_initialize returns an int and does not return or require any pointer or resource handle, so ownership and memory lifecycle are not relevant and the function is safe to expose automatically."
+ },
+ "sqlite3_declare_vtab": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer, just an int result code; no ownership or lifecycle issues arise and exposing it is safe."
+ },
+ "sqlite3_next_stmt": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to an internal statement managed by the SQLite library, which should not be freed by the caller and exists purely for iteration/inspection."
+ },
+ "sqlite3_mutex_alloc": {
+  "owner": "unknown",
+  "lifecycle": "creates",
+  "safe_to_expose": "unknown",
+  "reason": "Ownership of the returned pointer depends on the implementation of xMutexAlloc, which is not provided, so we cannot determine who must free it or whether exposure is safe."
+ },
+ "sqlite3_wal_checkpoint": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return or take ownership of a pointer, and its side effects are safe to expose at the binding level."
+ },
+ "sqlite3_keyword_count": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer and no pointer or handle is involved."
+ },
+ "sqlite3_result_int64": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return or destroy any handle, only sets a value on an existing context, so ownership and lifecycle are not relevant and it is safe to expose."
+ },
+ "sqlite3_close": {
+  "owner": "caller",
+  "lifecycle": "destroys",
+  "safe_to_expose": "yes",
+  "reason": "The function takes a pointer to a database handle and closes it, thereby destroying the resource, which the caller must no longer use or free afterwards."
+ },
+ "sqlite3_rollback_hook": {
+  "owner": "unknown",
+  "lifecycle": "uses",
+  "safe_to_expose": "unknown",
+  "reason": "The function returns a saved callback argument pointer previously registered, but there is no evidence about its ownership or required freeing."
+ },
+ "sqlite3_blob_open": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates and returns a sqlite3_blob handle via ppBlob which must later be freed by the caller, and this ownership contract is clear from its implementation and API documentation."
+ },
+ "sqlite3_result_null": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer or handle, so ownership and lifecycle contracts do not apply."
+ },
+ "sqlite3_str_new": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates memory with sqlite3_malloc64 and returns the pointer to the caller, who is responsible for freeing it."
+ }
+}

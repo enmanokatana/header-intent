@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "Returns a numeric offset value (z_off_t), not a pointer, so ownership does not apply; the function merely queries the current position of an existing gzFile handle."
+ },
+ "gzprintf": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "Returns an int (no pointer ownership applies), but the variadic argument list makes this function unsafe to expose directly in a binding."
+ },
+ "adler32_combine": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (uLong), not a pointer, so ownership does not apply."
+ },
+ "gzeof": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gzeof returns a plain int status value and does not allocate or transfer ownership of any pointer; it merely queries internal state of the library-owned gzFile handle."
+ },
+ "inflateInit_": {
+  "owner": "library",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "inflateInit_ initialises a caller-supplied z_stream struct (no pointer is returned); the function returns an int status code, so ownership of a returned pointer does not apply."
+ },
+ "crc32_combine_gen": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a uLong value (not a pointer), so ownership does not apply; it simply computes and returns a scalar CRC combination operator."
+ },
+ "adler32_z": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a uLong checksum value, not a pointer, so ownership and lifecycle concepts do not apply; it is a pure computation safe to expose."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "Returns a pointer to a static internal table (crc_table) owned by the library; the caller must not free it."
+ },
+ "adler32": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "adler32 returns a uLong checksum value (not a pointer), so ownership does not apply; it is a pure computation function safe to expose."
+ },
+ "deflate": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "deflate returns an int status code, not a pointer, so ownership does not apply; it operates on a caller-supplied z_streamp handle managed by deflateInit/deflateEnd."
+ }
+}

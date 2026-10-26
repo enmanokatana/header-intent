@@ -1,0 +1,87 @@
+{
+ "cJSON_DetachItemFromObject": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *string)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *string)\n{\n    cJSON *to_detach = cJSON_GetObjectItem(object, string);\n\n    return cJSON_DetachItemViaPointer(object, to_detach);\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_InitHooks": {
+  "decl": "CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)",
+  "body": "CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)\n{\n    if (hooks == NULL)\n    {\n        /* Reset hooks */\n        global_hooks.allocate = malloc;\n        global_hooks.deallocate = free;\n        global_hooks.reallocate = realloc;\n        return;\n    }\n\n    global_hooks.allocate = malloc;\n    if (hooks->malloc_fn != NULL)\n    {\n        global_hooks.allocate = hooks->malloc_fn;\n    }\n\n    global_hooks.deallocate = free;\n    if (hooks->free_fn != NULL)\n    {\n        global_hooks.deallocate = hooks->free_fn;\n    }\n\n    /* use realloc only if both free and malloc are used */\n    global_hooks.reallocate = NULL;\n    if ((global_hooks.allocate == malloc) && (global_hooks.deallocate == free))\n    {\n        global_hooks.reallocate = realloc;\n    }\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_Duplicate": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)\n{\n    return cJSON_Duplicate_rec(item, 0, recurse );\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_Print": {
+  "decl": "CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)",
+  "body": "CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item)\n{\n    return (char*)print(item, true, &global_hooks);\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_IsNull": {
+  "decl": "CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item)",
+  "body": "CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item)\n{\n    if (item == NULL)\n    {\n        return false;\n    }\n\n    return (item->type & 0xFF) == cJSON_NULL;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_CreateStringArray": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int count)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int count)\n{\n    size_t i = 0;\n    cJSON *n = NULL;\n    cJSON *p = NULL;\n    cJSON *a = NULL;\n\n    if ((count < 0) || (strings == NULL))\n    {\n        return NULL;\n    }\n\n    a = cJSON_CreateArray();\n\n    for (i = 0; a && (i < (size_t)count); i++)\n    {\n        n = cJSON_CreateString(strings[i]);\n        if(!n)\n        {\n            cJSON_Delete(a);\n            return NULL;\n        }\n        if(!i)\n        {\n            a->child = n;\n        }\n        else\n        {\n            suffix_object(p,n);\n        }\n        p = n;\n    }\n\n    if (a && a->child) {\n        a->child->prev = n;\n    }\n\n    return a;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_SetValuestring": {
+  "decl": "CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)",
+  "body": "CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)\n{\n    char *copy = NULL;\n    size_t v1_len;\n    size_t v2_len;\n    /* if object's type is not cJSON_String or is cJSON_IsReference, it should not set valuestring */\n    if ((object == NULL) || !(object->type & cJSON_String) || (object->type & cJSON_IsReference))\n    {\n        return NULL;\n    }\n    /* return NULL if the object is corrupted or valuestring is NULL */\n    if (object->valuestring == NULL || valuestring == NULL)\n    {\n        return NULL;\n    }\n\n    v1_len = strlen(valuestring);\n    v2_len = strlen(object->valuestring);\n\n    if (v1_len <= v2_len)\n    {\n        /* strcpy does not handle overlapping string: [X1, X2] [Y1, Y2] => X2 < Y1 or Y2 < X1 */\n        if (!( valuestring + v1_len < object->valuestring || object->valuestring + v2_len < valuestring ))\n        {\n            return NULL;\n        }\n        strcpy(object->valuestring, valuestring);\n        return object->valuestring;\n    }\n    copy = (char*) cJSON_strdup((const unsigned char*)valuestring, &global_hooks);\n    if (copy == NULL)\n    {\n        return NULL;\n    }\n    if (object->valuestring != NULL)\n    {\n        cJSON_free(object->valuestring);\n    }\n    object->valuestring = copy;\n\n    return copy;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_CreateStringReference": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_CreateStringReference(const char *string)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_CreateStringReference(const char *string)\n{\n    cJSON *item = cJSON_New_Item(&global_hooks);\n    if (item != NULL)\n    {\n        item->type = cJSON_String | cJSON_IsReference;\n        item->valuestring = (char*)cast_away_const(string);\n    }\n\n    return item;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_AddItemToArray": {
+  "decl": "CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToArray(cJSON *array, cJSON *item)",
+  "body": "CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToArray(cJSON *array, cJSON *item)\n{\n    return add_item_to_array(array, item);\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_CreateIntArray": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)\n{\n    size_t i = 0;\n    cJSON *n = NULL;\n    cJSON *p = NULL;\n    cJSON *a = NULL;\n\n    if ((count < 0) || (numbers == NULL))\n    {\n        return NULL;\n    }\n\n    a = cJSON_CreateArray();\n\n    for(i = 0; a && (i < (size_t)count); i++)\n    {\n        n = cJSON_CreateNumber(numbers[i]);\n        if (!n)\n        {\n            cJSON_Delete(a);\n            return NULL;\n        }\n        if(!i)\n        {\n            a->child = n;\n        }\n        else\n        {\n            suffix_object(p, n);\n        }\n        p = n;\n    }\n\n    if (a && a->child) {\n        a->child->prev = n;\n    }\n\n    return a;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_CreateFloatArray": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)\n{\n    size_t i = 0;\n    cJSON *n = NULL;\n    cJSON *p = NULL;\n    cJSON *a = NULL;\n\n    if ((count < 0) || (numbers == NULL))\n    {\n        return NULL;\n    }\n\n    a = cJSON_CreateArray();\n\n    for(i = 0; a && (i < (size_t)count); i++)\n    {\n        n = cJSON_CreateNumber((double)numbers[i]);\n        if(!n)\n        {\n            cJSON_Delete(a);\n            return NULL;\n        }\n        if(!i)\n        {\n            a->child = n;\n        }\n        else\n        {\n            suffix_object(p, n);\n        }\n        p = n;\n    }\n\n    if (a && a->child) {\n        a->child->prev = n;\n    }\n\n    return a;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_AddItemReferenceToObject": {
+  "decl": "CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item)",
+  "body": "CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item)\n{\n    if ((object == NULL) || (string == NULL))\n    {\n        return false;\n    }\n\n    return add_item_to_object(object, string, create_reference(item, &global_hooks), &global_hooks, false);\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_Minify": {
+  "decl": "CJSON_PUBLIC(void) cJSON_Minify(char *json)",
+  "body": "CJSON_PUBLIC(void) cJSON_Minify(char *json)\n{\n    char *into = json;\n\n    if (json == NULL)\n    {\n        return;\n    }\n\n    while (json[0] != '\\0')\n    {\n        switch (json[0])\n        {\n            case ' ':\n            case '\\t':\n            case '\\r':\n            case '\\n':\n                json++;\n                break;\n\n            case '/':\n                if (json[1] == '/')\n                {\n                    skip_oneline_comment(&json);\n                }\n                else if (json[1] == '*')\n                {\n                    skip_multiline_comment(&json);\n                } else {\n                    json++;\n                }\n                break;\n\n            case '\\\"':\n                minify_string(&json, (char**)&into);\n                break;\n\n            default:\n                into[0] = json[0];\n                json++;\n                into++;\n        }\n    }\n\n    /* and null-terminate. */\n    *into = '\\0';\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_CreateObject": {
+  "decl": "CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void)",
+  "body": "CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void)\n{\n    cJSON *item = cJSON_New_Item(&global_hooks);\n    if (item)\n    {\n        item->type = cJSON_Object;\n    }\n\n    return item;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_Version": {
+  "decl": "CJSON_PUBLIC(const char*) cJSON_Version(void)",
+  "body": "CJSON_PUBLIC(const char*) cJSON_Version(void)\n{\n    static char version[15];\n    sprintf(version, \"%i.%i.%i\", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);\n\n    return version;\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_GetErrorPtr": {
+  "decl": "CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)",
+  "body": "CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)\n{\n    return (const char*) (global_error.json + global_error.position);\n}",
+  "file": "cJSON.c"
+ },
+ "cJSON_AddTrueToObject": {
+  "decl": "CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObject(cJSON * const object, const char * const name)",
+  "body": "CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObject(cJSON * const object, const char * const name)\n{\n    cJSON *true_item = cJSON_CreateTrue();\n    if (add_item_to_object(object, name, true_item, &global_hooks, false))\n    {\n        return true_item;\n    }\n\n    cJSON_Delete(true_item);\n    return NULL;\n}",
+  "file": "cJSON.c"
+ }
+}

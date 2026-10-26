@@ -1,0 +1,11 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+gztell,refused,,uses,y,
+gzprintf,refused,,uses,n,"gzprintf is variadic (accepts '...'), which cannot be safely exposed through an automatic binding generator."
+adler32_combine,other,,,y,
+gzeof,refused,,uses,y,
+inflateInit_,refused,,creates,y,
+crc32_combine_gen,other,,,y,
+adler32_z,other,,,y,
+get_crc_table,other,library,uses,y,
+adler32,other,,,y,
+deflate,refused,,uses,y,

@@ -774,6 +774,20 @@ class _OwnershipMixin:
                 if ev:
                     rec.detaches = True
                     rec.detach_evidence = ev
+            # Escape by DIRECT STORE, not only by call. Rule 3 was written
+            # against cJSON, where a node reaches its parent through a helper
+            # call; libxml2's xmlNewChild assigns it straight into
+            # parent->children, and the same surrender is invisible to a
+            # call-only test. member_writes already records these stores for
+            # the detach rule.
+            if rec.origin == "alloc" or rec.origin.startswith("call:"):
+                for w_root, w_path, _wpos, w_names, _is_null in member_writes:
+                    if w_root in rec.handle_params and any(r in w_names
+                                                           for r in ret_ids):
+                        rec.escaped = True
+                        rec.escape_triggers.append(f"store to {w_root}->{w_path}")
+                        break
+
             producer = rec.origin.split(":", 1)[1] if rec.origin.startswith("call:") else None
             if rec.origin == "alloc" or rec.origin.startswith("call:"):
                 # Collect EVERY callee that satisfies the escape test rather

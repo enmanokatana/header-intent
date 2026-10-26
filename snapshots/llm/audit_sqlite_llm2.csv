@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+sqlite3_errstr,other,library,uses,y,
+sqlite3_column_int64,lifecycle,,uses,y,
+sqlite3_db_handle,handle_return,library,uses,y,
+sqlite3_wal_autocheckpoint,lifecycle,,uses,y,
+sqlite3_create_window_function,refused,,,n,"The function accepts multiple function pointer parameters (xStep, xFinal, xValue, xInverse, xDestroy), making it unsafe "
+sqlite3_set_authorizer,refused,,uses,n,"The function accepts a callback (xAuth) with a function-pointer parameter, making it unsafe to expose directly in an aut"
+sqlite3_uri_boolean,other,,,y,
+sqlite3_mprintf,other,caller,creates,n,"Returns a heap-allocated string that the caller must free with sqlite3_free, but the variadic parameter list makes it un"
+sqlite3_initialize,other,,,y,
+sqlite3_declare_vtab,lifecycle,,,y,
+sqlite3_next_stmt,handle_return,library,uses,y,
+sqlite3_mutex_alloc,handle_return,,creates,y,
+sqlite3_wal_checkpoint,lifecycle,,uses,y,
+sqlite3_keyword_count,other,,,y,
+sqlite3_result_int64,refused,,uses,y,
+sqlite3_close,lifecycle,,destroys,y,
+sqlite3_rollback_hook,refused,,uses,n,"The function accepts a callback (function pointer parameter), which makes it unsafe to expose directly in a binding, and"
+sqlite3_blob_open,handle_return,caller,creates,y,
+sqlite3_result_null,refused,,uses,y,
+sqlite3_str_new,handle_return,caller,creates,y,

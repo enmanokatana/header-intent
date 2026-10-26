@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+PQbinaryTuples,lifecycle,,uses,y,
+PQconndefaults,handle_return,caller,creates,y,
+PQconnectPoll,lifecycle,,destroys,y,
+PQconnectionNeedsPassword,lifecycle,,uses,y,
+PQconninfo,handle_return,caller,creates,y,
+PQconninfoParse,refused,library,borrows,n,"PQconninfoParse: param 'errmsg' is opaque (unresolved pointer, callback, or writable buffer)"
+PQdescribePortal,handle_return,library,borrows,y,
+PQdisplayTuples,refused,,uses,n,"PQdisplayTuples: param 'fp' is opaque (unresolved pointer, callback, or writable buffer)"
+PQescapeBytea,other,,,y,
+PQexecPrepared,refused,library,borrows,n,"PQexecPrepared: param 'paramValues' is opaque (unresolved pointer, callback, or writable buffer)"
+PQfn,refused,library,borrows,n,"PQfn: param 'args' is opaque (unresolved pointer, callback, or writable buffer)"
+PQgetResult,handle_return,library,borrows,y,
+PQinitSSL,other,,,y,
+PQisthreadsafe,other,,,y,
+PQlibVersion,other,,,y,
+PQprotocolVersion,lifecycle,,uses,y,
+PQsetdbLogin,handle_return,caller,creates,y,
+PQsetvalue,refused,,uses,n,"PQsetvalue: param 'value' is opaque (unresolved pointer, callback, or writable buffer)"
+PQunescapeBytea,other,,,y,
+lo_tell,lifecycle,,uses,y,

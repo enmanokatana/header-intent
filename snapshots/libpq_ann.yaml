@@ -1,0 +1,4452 @@
+library: lib
+functions:
+  PQconnectStart:
+    restype: c_void_p
+    params:
+    - name: conninfo
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGconn
+    owner: caller
+  PQconnectStartParams:
+    restype: c_void_p
+    params:
+    - name: keywords
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: values
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: expand_dbname
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGconn
+    owner: caller
+  PQconnectPoll:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: destroys
+    handle_type: PGconn
+  PQconnectdb:
+    restype: c_void_p
+    params:
+    - name: conninfo
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGconn
+    owner: caller
+  PQconnectdbParams:
+    restype: c_void_p
+    params:
+    - name: keywords
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: values
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: expand_dbname
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGconn
+    owner: caller
+  PQsetdbLogin:
+    restype: c_void_p
+    params:
+    - name: pghost
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pgport
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pgoptions
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pgtty
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: dbName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: login
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: pwd
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGconn
+    owner: caller
+  PQfinish:
+    restype: null
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: destroys
+    handle_type: PGconn
+  PQconndefaults:
+    restype: c_void_p
+    params: []
+    lifecycle: creates
+    handle_type: PQconninfoOption
+    owner: caller
+  PQconninfoParse:
+    restype: c_void_p
+    params:
+    - name: conninfo
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: errmsg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: borrows
+    handle_type: PQconninfoOption
+    owner: library
+  PQconninfo:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PQconninfoOption
+      pointee: pg_conn
+    lifecycle: creates
+    handle_type: PQconninfoOption
+    owner: caller
+  PQconninfoFree:
+    restype: null
+    params:
+    - name: connOptions
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PQconninfoOption
+      pointee: _PQconninfoOption
+    lifecycle: destroys
+    handle_type: PQconninfoOption
+  PQresetStart:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: destroys
+    handle_type: PGconn
+  PQresetPoll:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: destroys
+    handle_type: PGconn
+  PQreset:
+    restype: null
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: destroys
+    handle_type: PGconn
+  PQgetCancel:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGcancel
+      pointee: pg_conn
+    lifecycle: creates
+    handle_type: PGcancel
+    owner: caller
+  PQfreeCancel:
+    restype: null
+    params:
+    - name: cancel
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGcancel
+      pointee: pg_cancel
+    lifecycle: destroys
+    handle_type: PGcancel
+  PQcancel:
+    restype: c_int
+    params:
+    - name: cancel
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGcancel
+      pointee: pg_cancel
+    - name: errbuf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: errbufsize
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGcancel
+  PQrequestCancel:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQdb:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQuser:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQpass:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQhost:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQhostaddr:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQport:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQtty:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQoptions:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQstatus:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQtransactionStatus:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQparameterStatus:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: paramName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQprotocolVersion:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQserverVersion:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQerrorMessage:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQsocket:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQbackendPID:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQpipelineStatus:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQconnectionNeedsPassword:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQconnectionUsedPassword:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQconnectionUsedGSSAPI:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQclientEncoding:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetClientEncoding:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: encoding
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsslInUse:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQsslStruct:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: struct_name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsslAttribute:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: attribute_name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQsslAttributeNames:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQgetssl:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQinitSSL:
+    restype: null
+    params:
+    - name: do_init
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQinitOpenSSL:
+    restype: null
+    params:
+    - name: do_ssl
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: do_crypto
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQgssEncInUse:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQgetgssctx:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetErrorVerbosity:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: verbosity
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetErrorContextVisibility:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: show_context
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetNoticeReceiver:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: proc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: arg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetNoticeProcessor:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: proc
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: arg
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: uses
+    handle_type: PGconn
+  PQregisterThreadLock:
+    restype: c_void_p
+    params:
+    - name: newhandler
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  PQtrace:
+    restype: null
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: debug_port
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: _IO_FILE
+    lifecycle: uses
+    handle_type: PGconn
+  PQuntrace:
+    restype: null
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetTraceFlags:
+    restype: null
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: flags
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQexec:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: query
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQexecParams:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: command
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParams
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: paramTypes
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramValues
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramLengths
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramFormats
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: resultFormat
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQprepare:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: stmtName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: query
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParams
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: paramTypes
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQexecPrepared:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: stmtName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParams
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: paramValues
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramLengths
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramFormats
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: resultFormat
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQsendQuery:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: query
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsendQueryParams:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: command
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParams
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: paramTypes
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramValues
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramLengths
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramFormats
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: resultFormat
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsendPrepare:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: stmtName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: query
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParams
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: paramTypes
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources:
+        - def_use
+        confidence: 0.99
+        verified: false
+    lifecycle: uses
+    handle_type: PGconn
+  PQsendQueryPrepared:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: stmtName
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nParams
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: paramValues
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramLengths
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: paramFormats
+      role: opaque
+      ctype: c_void_p
+      by_ref: true
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: resultFormat
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetSingleRowMode:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQgetResult:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQisBusy:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQconsumeInput:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQenterPipelineMode:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQexitPipelineMode:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQpipelineSync:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQsendFlushRequest:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQnotifies:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGnotify
+      pointee: pg_conn
+    lifecycle: borrows
+    handle_type: PGnotify
+    owner: library
+  PQputCopyData:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: buffer
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nbytes
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQputCopyEnd:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: errormsg
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQgetCopyData:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: buffer
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: async
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQgetline:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: buffer
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: length
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQputline:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: string
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQgetlineAsync:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: buffer
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: bufsize
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQputnbytes:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: buffer
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: nbytes
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQendcopy:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQsetnonblocking:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: arg
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQisnonblocking:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQisthreadsafe:
+    restype: c_int
+    params: []
+  PQping:
+    restype: c_int
+    params:
+    - name: conninfo
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQpingParams:
+    restype: c_int
+    params:
+    - name: keywords
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: values
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: expand_dbname
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQflush:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn
+  PQfn:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: fnid
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: result_buf
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    - name: result_len
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    - name: result_is_int
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: args
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: PQArgBlock
+    - name: nargs
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: borrows
+    handle_type: PGresult
+    owner: library
+  PQresultStatus:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQresStatus:
+    restype: c_char_p
+    params:
+    - name: status
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  PQresultErrorMessage:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQresultVerboseErrorMessage:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: verbosity
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: show_context
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQresultErrorField:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: fieldcode
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQntuples:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQnfields:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQbinaryTuples:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQfname:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQfnumber:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQftable:
+    restype: c_uint
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQftablecol:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQfformat:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQftype:
+    restype: c_uint
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQfsize:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQfmod:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQcmdStatus:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQoidStatus:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQoidValue:
+    restype: c_uint
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQcmdTuples:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQgetvalue:
+    restype: c_char_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: tup_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+    string_owner: library
+  PQgetlength:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: tup_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQgetisnull:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: tup_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQnparams:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQparamtype:
+    restype: c_uint
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: param_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQdescribePrepared:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: stmt
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQdescribePortal:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: portal
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQsendDescribePrepared:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: stmt
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQsendDescribePortal:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: portal
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQclear:
+    restype: null
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: destroys
+    handle_type: PGresult
+  PQfreemem:
+    restype: null
+    params:
+    - name: ptr
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  PQmakeEmptyPGresult:
+    restype: c_void_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_conn
+    - name: status
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQcopyResult:
+    restype: c_void_p
+    params:
+    - name: src
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: flags
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: creates
+    handle_type: PGresult
+    owner: caller
+  PQsetResultAttrs:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: numAttributes
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: attDescs
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: pgresAttDesc
+    lifecycle: uses
+    handle_type: PGresult
+  PQresultAlloc:
+    restype: c_void_p
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: nBytes
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQresultMemorySize:
+    restype: c_ulong
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    lifecycle: uses
+    handle_type: PGresult
+  PQsetvalue:
+    restype: c_int
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: tup_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: field_num
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: value
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: len
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQescapeStringConn:
+    restype: c_ulong
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: to
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: from
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: length
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: error
+      role: scalar
+      ctype: c_int
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    lifecycle: uses
+    handle_type: PGconn
+  PQescapeLiteral:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: str
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQescapeIdentifier:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: str
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQescapeByteaConn:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: from
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: from_length
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: to_length
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  PQunescapeBytea:
+    restype: c_char_p
+    params:
+    - name: strtext
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: retbuflen
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        - def_use
+        confidence: 0.99
+        verified: false
+    string_owner: library
+  PQescapeString:
+    restype: c_ulong
+    params:
+    - name: to
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: from
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: length
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQescapeBytea:
+    restype: c_char_p
+    params:
+    - name: from
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: from_length
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: to_length
+      role: scalar
+      ctype: c_ulong
+      by_ref: true
+      intent:
+        value: out
+        sources:
+        - const_ness
+        confidence: 0.9
+        verified: false
+    string_owner: library
+  PQprint:
+    restype: null
+    params:
+    - name: fout
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: _IO_FILE
+    - name: res
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: pg_result
+    - name: po
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: _PQprintOpt
+  PQdisplayTuples:
+    restype: null
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: fp
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: _IO_FILE
+    - name: fillAlign
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: fieldSep
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: printHeader
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: quiet
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  PQprintTuples:
+    restype: null
+    params:
+    - name: res
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGresult
+      pointee: pg_result
+    - name: fout
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+      pointee: _IO_FILE
+    - name: PrintAttNames
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: TerseOutput
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: colWidth
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGresult
+  lo_open:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: lobjId
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: mode
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_close:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_read:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_write:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: buf
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_lseek:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: offset
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: whence
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_lseek64:
+    restype: c_long
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: offset
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: whence
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_creat:
+    restype: c_uint
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: mode
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_create:
+    restype: c_uint
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: lobjId
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_tell:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_tell64:
+    restype: c_long
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_truncate:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_ulong
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_truncate64:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: fd
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: len
+      role: scalar
+      ctype: c_long
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_unlink:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: lobjId
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_import:
+    restype: c_uint
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: filename
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_import_with_oid:
+    restype: c_uint
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: filename
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: lobjId
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  lo_export:
+    restype: c_int
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: lobjId
+      role: scalar
+      ctype: c_uint
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: filename
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+  PQlibVersion:
+    restype: c_int
+    params: []
+  PQmblen:
+    restype: c_int
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: encoding
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQmblenBounded:
+    restype: c_int
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: encoding
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQdsplen:
+    restype: c_int
+    params:
+    - name: s
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: encoding
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQenv2encoding:
+    restype: c_int
+    params: []
+  PQencryptPassword:
+    restype: c_char_p
+    params:
+    - name: passwd
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: user
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    string_owner: library
+  PQencryptPasswordConn:
+    restype: c_char_p
+    params:
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    - name: passwd
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: user
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: algorithm
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    lifecycle: uses
+    handle_type: PGconn
+    string_owner: library
+  pg_char_to_encoding:
+    restype: c_int
+    params:
+    - name: name
+      role: string
+      ctype: c_char_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  pg_encoding_to_char:
+    restype: c_char_p
+    params:
+    - name: encoding
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  pg_valid_server_encoding_id:
+    restype: c_int
+    params:
+    - name: encoding
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+  PQgetSSLKeyPassHook_OpenSSL:
+    restype: c_void_p
+    params: []
+  PQsetSSLKeyPassHook_OpenSSL:
+    restype: null
+    params:
+    - name: hook
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+  PQdefaultSSLKeyPassHook_OpenSSL:
+    restype: c_int
+    params:
+    - name: buf
+      role: opaque
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources: []
+        confidence: 0.0
+        verified: false
+    - name: size
+      role: scalar
+      ctype: c_int
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - type
+        confidence: 1.0
+        verified: true
+    - name: conn
+      role: handle
+      ctype: c_void_p
+      by_ref: false
+      intent:
+        value: in
+        sources:
+        - handle_analysis
+        confidence: 0.9
+        verified: false
+      handle_type: PGconn
+      pointee: pg_conn
+    lifecycle: uses
+    handle_type: PGconn

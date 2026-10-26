@@ -1,0 +1,98 @@
+{
+ "png_get_uint_32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "png_get_uint_32 reads and returns a 32-bit integer value from a buffer; it returns a scalar, not a pointer, so ownership does not apply."
+ },
+ "png_get_palette_max": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer (not a pointer), so ownership and lifecycle do not apply, and it is straightforward to expose safely."
+ },
+ "png_get_iCCP": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "The returned name and profile pointers point directly into library-owned info_ptr fields; the caller must not free them, but an automatic binding cannot easily enforce this ownership constraint."
+ },
+ "png_set_sig_bytes": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This function sets a field on an existing png_struct and returns no pointer, so ownership and lifecycle questions do not apply to a return value."
+ },
+ "png_write_png": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns void, so ownership does not apply; it simply uses the caller-managed png_ptr and info_ptr handles to write a PNG file and returns no pointer."
+ },
+ "png_get_uint_16": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "png_get_uint_16 returns a uint16 integer value, not a pointer, so ownership and lifecycle do not apply."
+ },
+ "png_get_x_offset_microns": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (png_int_32), not a pointer, so ownership and lifecycle do not apply."
+ },
+ "png_sig_cmp": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (comparison result) and allocates no memory, so ownership and lifecycle do not apply."
+ },
+ "png_image_finish_read": {
+  "owner": "na",
+  "lifecycle": "destroys",
+  "safe_to_expose": "yes",
+  "reason": "Returns an int (no pointer ownership question), but it destroys/finalises the image handle by calling png_image_free(image) internally, completing the read lifecycle."
+ },
+ "png_set_filter_heuristics_fixed": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function is a no-op stub that returns void and allocates or returns no memory, so ownership and lifecycle questions do not apply."
+ },
+ "png_set_write_user_transform_fn": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns void and merely stores a callback pointer into the png_ptr structure, so no ownership or lifecycle question arises for a returned pointer."
+ },
+ "png_access_version_number": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer constant (the library version number) with no pointer or heap allocation involved."
+ },
+ "png_get_y_offset_microns": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (png_int_32), not a pointer, so ownership and lifecycle do not apply."
+ },
+ "png_handle_as_unknown": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer status code, not a pointer, so ownership and lifecycle do not apply and it is safe to expose."
+ },
+ "png_create_info_struct": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "png_create_info_struct allocates a new png_info structure via png_malloc_base and returns it to the caller, who is responsible for freeing it (typically via png_destroy_info_struct)."
+ },
+ "png_get_int_32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "png_get_int_32 reads and returns a signed 32-bit integer value by value, involving no heap allocation or ownership transfer."
+ }
+}

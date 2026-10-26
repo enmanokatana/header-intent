@@ -308,11 +308,36 @@ def _maybe_dump_records(records):
         json.dump(existing, fh, indent=1, default=list)
 
 
-def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
+def _normalize_manual(manual):
+    """{fn: "caller"} or {fn: {"owner": ..., "note": ...}} -> {fn: (owner, note)}.
+
+    Rejects anything that is not a valid owner rather than silently ignoring
+    it: a typo in an annotation file must not read as "no annotation".
+    """
+    out = {}
+    for fn, v in (manual or {}).items():
+        owner, note = (v, "") if isinstance(v, str) else (v.get("owner"),
+                                                          v.get("note", ""))
+        if owner not in (OWNED, BORROWED):
+            raise ValueError(f"manual ownership for {fn!r}: owner must be "
+                             f"{OWNED!r} or {BORROWED!r}, got {owner!r}")
+        out[fn] = (owner, note)
+    return out
+
+
+def classify_ownership(records: dict[str, OwnRecord],
+                       manual: dict | None = None) -> dict[str, OwnFact]:
     _maybe_dump_records(records)
+    manual = _normalize_manual(manual)
     verdict: dict[str, str] = {}
 
     def base(rec: OwnRecord) -> str | None:
+        # A manual fact outranks every inferred rule, the escape rule and
+        # rule 5 included: abstention is what the author is overriding. It is
+        # seeded BEFORE the fixed point below, so rule 4 carries it to every
+        # caller -- one annotation resolves a whole call chain.
+        if rec.name in manual:
+            return manual[rec.name][0]
         if not rec.returns_pointer:
             return None
         if rec.escaped:
@@ -355,7 +380,10 @@ def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
             continue
         if n in verdict:
             own = verdict[n]
-            if r.escaped:
+            if n in manual:
+                reason = "manual: " + (manual[n][1] or "supplied by the author")
+                conf = 1.0
+            elif r.escaped:
                 reason, conf = "allocated then stored into a parameter (parent owns it)", 0.85
             elif r.origin == "param_member" and own == OWNED and getattr(r, "detaches", False):
                 reason, conf = (f"detached from {r.detach_evidence}: the container "
@@ -372,16 +400,23 @@ def classify_ownership(records: dict[str, OwnRecord]) -> dict[str, OwnFact]:
         else:
             own, reason, conf = BORROWED, "ownership unresolved; fail-safe = do not free", 0.3
         facts[n] = OwnFact(n, own, reason, conf)
+
+    # A manual fact for a function the analysis produced no record for -- its
+    # file failed to parse, say -- still stands.
+    for n, (owner, note) in manual.items():
+        if n not in facts:
+            facts[n] = OwnFact(n, owner,
+                               "manual: " + (note or "supplied by the author"), 1.0)
     return facts
 
 
 def analyze_ownership(source: str | None = None, *, engine=None, path=None,
-                      clang_args=None) -> dict[str, OwnFact]:
+                      clang_args=None, manual=None) -> dict[str, OwnFact]:
     if engine is not None:
         records = engine.ownership_records(path, clang_args)
     else:
         records = _records_from_pycparser(source)
-    return classify_ownership(records)
+    return classify_ownership(records, manual)
 
 
 def apply_ownership_facts(spec, facts: dict[str, OwnFact]) -> list[str]:
@@ -391,13 +426,19 @@ def apply_ownership_facts(spec, facts: dict[str, OwnFact]) -> list[str]:
     for fname, f in facts.items():
         fn = spec.functions.get(fname)
         if fn is None:
+            if f.reason.startswith("manual:"):
+                notes.append(f"{fname}: manual ownership override names a "
+                             f"function that is not in the spec (typo?)")
             continue
         fn.owner = f.owner
         if fn.lifecycle == "creates" and f.owner == BORROWED:
             fn.lifecycle = "borrows"
             notes.append(f"{fname}: creates -> BORROWS ({f.reason})")
         elif fn.lifecycle == "creates":
-            notes.append(f"{fname}: creates (owner=caller)")
+            extra = f" [{f.reason}]" if f.reason.startswith("manual:") else ""
+            notes.append(f"{fname}: creates (owner=caller){extra}")
+        elif f.reason.startswith("manual:"):
+            notes.append(f"{fname}: owner={f.owner} ({f.reason})")
     return notes
 
 
@@ -508,7 +549,7 @@ def apply_string_ownership_facts(spec, facts: dict) -> list[str]:
     return notes
 
 
-def analyze_ownership_multi(paths, *, engine, clang_args=None):
+def analyze_ownership_multi(paths, *, engine, clang_args=None, manual=None):
     """Multi-file ownership analysis.
 
     Merges the RAW ownership records across all files FIRST, then runs
@@ -522,7 +563,7 @@ def analyze_ownership_multi(paths, *, engine, clang_args=None):
     """
     from .libclang_engine import _merge_multi
     records, skipped = _merge_multi(engine, "ownership_records", paths, clang_args)
-    return classify_ownership(records), skipped
+    return classify_ownership(records, manual), skipped
 
 
 def analyze_string_ownership_multi(paths, *, engine, clang_args=None):

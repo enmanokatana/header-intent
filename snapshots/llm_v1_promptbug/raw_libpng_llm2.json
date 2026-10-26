@@ -1,0 +1,98 @@
+{
+ "png_get_uint_32": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "png_get_uint_32 returns a scalar integer value (png_uint_32), not a pointer, so ownership does not apply."
+ },
+ "png_get_palette_max": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value, not a pointer, so ownership does not apply."
+ },
+ "png_get_iCCP": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns pointers to internally owned buffers inside the info_ptr structure; the library retains ownership and the caller must not free them."
+ },
+ "png_set_sig_bytes": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This function returns void and merely sets a field on the library-owned png_struct; no pointer ownership is involved."
+ },
+ "png_write_png": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "This function returns void, so ownership does not apply; it is a high-level write operation that uses caller-supplied png_ptr and info_ptr handles without transferring ownership."
+ },
+ "png_get_uint_16": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "png_get_uint_16 returns a scalar integer value (png_uint_16), not a pointer, so ownership does not apply."
+ },
+ "png_get_x_offset_microns": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (png_int_32), not a pointer, so ownership does not apply."
+ },
+ "png_sig_cmp": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (not a pointer), so ownership does not apply; it merely compares a caller-supplied byte buffer against the PNG signature and returns a comparison result."
+ },
+ "png_image_finish_read": {
+  "owner": "library",
+  "lifecycle": "destroys",
+  "safe_to_expose": "no",
+  "reason": "This function returns an int (not a pointer, so ownership is not applicable), but it is unsafe to expose directly because it accepts caller-supplied writable buffers (buffer, colormap) whose sizes must be provided correctly by the caller, making it error-prone for automatic binding generation."
+ },
+ "png_set_filter_heuristics_fixed": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns void and is a no-op stub, so ownership does not apply and there is nothing unsafe about exposing it."
+ },
+ "png_set_write_user_transform_fn": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "This function registers a callback (function pointer) into the library-owned png_struct, which makes it unsafe to expose directly in a binding due to the callback parameter."
+ },
+ "png_access_version_number": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (not a pointer), so ownership does not apply."
+ },
+ "png_get_y_offset_microns": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a plain integer value (png_int_32), not a pointer, so ownership does not apply."
+ },
+ "png_handle_as_unknown": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer value (not a pointer), so ownership does not apply; it merely queries the png_ptr state to look up a chunk handling flag."
+ },
+ "png_create_info_struct": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "png_create_info_struct allocates a new png_info structure via png_malloc_base and returns it; the caller is responsible for freeing it with png_destroy_info_struct."
+ },
+ "png_get_int_32": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "png_get_int_32 returns a scalar integer value (png_int_32), not a pointer, so ownership does not apply."
+ }
+}

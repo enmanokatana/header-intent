@@ -1,0 +1,33 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+cJSON_AddArrayToObject,handle_return,library,borrows,y,
+cJSON_AddItemReferenceToObject,lifecycle,,uses,y,
+cJSON_AddItemToArray,lifecycle,,uses,y,
+cJSON_AddItemToObject,lifecycle,,uses,y,
+cJSON_AddNumberToObject,handle_return,library,borrows,y,
+cJSON_AddObjectToObject,handle_return,library,borrows,y,
+cJSON_AddTrueToObject,handle_return,library,borrows,y,
+cJSON_CreateDoubleArray,refused,caller,creates,n,"cJSON_CreateDoubleArray: param 'numbers' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_CreateFloatArray,refused,caller,creates,n,"cJSON_CreateFloatArray: param 'numbers' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_CreateIntArray,refused,caller,creates,n,"cJSON_CreateIntArray: param 'numbers' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_CreateNumber,handle_return,caller,creates,y,
+cJSON_CreateObject,handle_return,caller,creates,y,
+cJSON_CreateStringArray,refused,caller,creates,n,"cJSON_CreateStringArray: param 'strings' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_CreateStringReference,handle_return,caller,creates,y,
+cJSON_DetachItemFromObject,handle_return,caller,creates,y,
+cJSON_Duplicate,handle_return,caller,creates,y,
+cJSON_GetErrorPtr,other,,,y,
+cJSON_InitHooks,refused,,,y,
+cJSON_IsArray,lifecycle,,uses,y,
+cJSON_IsFalse,lifecycle,,uses,y,
+cJSON_IsNull,lifecycle,,uses,y,
+cJSON_IsObject,lifecycle,,uses,y,
+cJSON_Minify,refused,,,n,"cJSON_Minify: param 'json' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_Parse,handle_return,caller,creates,y,
+cJSON_ParseWithLengthOpts,refused,caller,creates,n,"cJSON_ParseWithLengthOpts: param 'return_parse_end' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_ParseWithOpts,refused,caller,creates,n,"cJSON_ParseWithOpts: param 'return_parse_end' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_Print,lifecycle,,uses,y,
+cJSON_PrintPreallocated,refused,,uses,n,"cJSON_PrintPreallocated: param 'buffer' is opaque (unresolved pointer, callback, or writable buffer)"
+cJSON_ReplaceItemInObject,lifecycle,,uses,y,
+cJSON_SetValuestring,lifecycle,,uses,y,
+cJSON_Version,other,,,y,
+cJSON_malloc,refused,,,n,cJSON_malloc: returns a raw void* that is not a managed handle

@@ -1,0 +1,11 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+gztell,refused,,,y,
+gzprintf,refused,,,n,"The function uses a variadic parameter list, which most automatic binding generators cannot safely expose."
+adler32_combine,other,,,y,
+gzeof,refused,,uses,y,
+inflateInit_,refused,,,y,
+crc32_combine_gen,other,,,y,
+adler32_z,other,,,y,
+get_crc_table,other,library,uses,y,
+adler32,other,,,y,
+deflate,refused,,uses,n,"deflate takes a stream pointer and writes to user-supplied buffers, requiring the caller to manage buffer sizes and life"

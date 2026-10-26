@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+png_get_uint_32,other,,,n,"The implementation is not available, so the function signature and semantics are unknown."
+png_get_palette_max,lifecycle,,,y,
+png_get_iCCP,refused,library,uses,y,
+png_set_sig_bytes,lifecycle,,uses,y,
+png_write_png,refused,,uses,y,
+png_get_uint_16,other,,,n,"The implementation is unavailable, so contract details cannot be determined."
+png_get_x_offset_microns,lifecycle,,,y,
+png_sig_cmp,other,,,y,
+png_image_finish_read,refused,,uses,n,"It requires writable buffer and colormap pointers whose lifetime and size must be managed by the caller, making it unsaf"
+png_set_filter_heuristics_fixed,refused,,,y,
+png_set_write_user_transform_fn,refused,,uses,n,"The function sets a user-supplied callback, which is not safely exposable across automatic bindings."
+png_access_version_number,other,,,y,
+png_get_y_offset_microns,lifecycle,,,y,
+png_handle_as_unknown,lifecycle,,,y,
+png_create_info_struct,handle_return,caller,creates,y,
+png_get_int_32,other,,,n,"No implementation or documentation is available, so ownership, lifecycle, and interface safety cannot be determined."

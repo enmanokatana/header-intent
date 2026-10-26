@@ -1,0 +1,24 @@
+\begin{table}[!t]
+\caption{Coverage across all seven libraries. ``Built'' counts exported
+functions present in the generated binding; variadic functions are counted as
+refused. ``Files'' is the number of source files the parse guard refused, all
+of them platform-specific or feature-gated after the include paths were
+audited.}
+\label{tab:coverage}
+\centering\footnotesize
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Library} & \textbf{Role} & \textbf{Exported} & \textbf{Built} &
+\textbf{Coverage} & \textbf{Files} \\
+\midrule
+cJSON & calibration & 78 & 68 & 87\% & 0 \\
+zlib & blind & 81 & 62 & 77\% & 0 \\
+libpng & blind & 246 & 173 & 70\% & 13 \\
+libpq & blind & 165 & 129 & 78\% & 6 \\
+libgit2 & blind & 834 & 645 & 77\% & 0 \\
+libxml2 & blind & 639 & 474 & 74\% & 7 \\
+\midrule
+\textbf{Blind total} & & 1,965 & 1,483 & 75\% & \\
+\bottomrule
+\end{tabular}
+\end{table}

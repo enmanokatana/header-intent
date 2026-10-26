@@ -1,353 +1,768 @@
-# Ferrule v5 — Final Pass
+# Ferrule v6 — step-by-step fixes
 
-Checked the compiled PDF. **Everything structural landed**: Figure 2 is four
-frames, figures sit inline, Table II sums (78 = 0+68+10, 291 = 8+172+111),
-Table III sums to 99, every cross-reference resolves, the `F` placeholders are
-gone, and cJSON reads 68/10 in all four places.
+Each item gives the text to find in your `.tex` and what to replace it with.
+Work top to bottom; later items assume earlier ones are applied.
 
-Four things remain. **Part B is the big one** — it affects roughly thirty
-sentences and is the main thing standing between this and a clean read.
+**Decisions baked into this guide.** Memory-unsafety is reported separately
+from exposability disagreement (only 1 of 7 "unsafe" verdicts corrupts memory).
+Accuracy and false refusals are reported **by draw**, because the original
+sample's refused stratum is stale; the safety counts are pooled at n=226,
+which is valid since a stale refused stratum biases false refusals, not bound
+verdicts.
 
----
-
-# PART A — Text that is truncated or overflowing
-
-Three places where content runs past the column and gets cut or wrapped badly.
-
-## A1 — `git_signature_free` is truncated mid-word
-
-In the PDF this renders as `git_signature_fre` — the last character falls off
-the column. **Find:**
-
-```latex
-834 exported functions and recovered the duplicate/free pairs
-(\texttt{git\_reference\_dup}/\texttt{git\_reference\_free},
-\texttt{git\_object\_free}, \texttt{git\_signature\_dup}/\texttt{git\_signature\_free})
-that constitute its handle discipline, a fourth idiom distinct from the
-returned-handle and out-parameter forms.
-```
-
-**Replace with:**
-
-```latex
-834 exported functions and recovered the duplicate/free pairs that constitute
-its handle discipline---\texttt{git\_reference\_dup} with
-\texttt{git\_reference\_free}, \texttt{git\_signature\_dup} with
-\texttt{git\_signature\_free}, and \texttt{git\_object\_free} over the generic
-object type---a fourth idiom distinct from the returned-handle and
-out-parameter forms.
-```
-
-## A2 — The `Evidenced` listing wraps badly
-
-Renders as `// (rarely applicable; see` / `3.2)` across two lines, and `3.2`
-should be a section reference anyway. **Find:**
-
-```latex
-\begin{lstlisting}
-Evidenced {
-    value       // the inferred fact
-    sources     // which layer(s) produced it
-    confidence  // 0.0 - 1.0, for inspection
-    verified    // confirmed against the .so?
-                //   (rarely applicable; see
-3.2)
-}
-\end{lstlisting}
-```
-
-**Replace with:**
-
-```latex
-\begin{lstlisting}
-Evidenced {
-    value       // the inferred fact
-    sources     // which layer produced it
-    confidence  // 0.0-1.0, for inspection
-    verified    // confirmed against the .so
-                // (rarely applicable)
-}
-\end{lstlisting}
-```
-
-## A3 — The RQ3 transcript and protocol listing wrap
-
-Two listings overflow. **First, find:**
-
-```latex
-\begin{lstlisting}
-MCP     : {"handle": 1, "status": 0}
-Python  : (1, 0)                   # (handle, status)
-gRPC    : OpenResponse {handle: 1, status: 0}
-\end{lstlisting}
-```
-
-**Replace with:**
-
-```latex
-\begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
-MCP    : {"handle": 1, "status": 0}
-Python : (1, 0)          # (handle, status)
-gRPC   : OpenResponse {handle: 1, status: 0}
-\end{lstlisting}
-```
-
-**Second, find** the transcript line:
-
-```latex
-Delete(root 1)        -> freed 1 | invalidated [2] | live: 0
-```
-
-**Replace with:**
-
-```latex
-Delete(root 1)        -> freed 1 | invalidated [2]
-```
-
----
-
-# PART B — Em-dashes were stripped throughout
-
-Something in your editing pipeline is removing `---`. The PDF has roughly thirty
-sentences where a parenthetical lost both its dashes and the clauses ran
-together. Examples of how it reads now:
-
-> *"Ravitch et al. recover the resource-manager pattern which functions acquire
-> and release a resource but not whether a returned pointer transfers ownership"*
-
-> *"Ferrule exposes one the cJSON_InitHooks case of §IV-B and refuses the
-> remaining 12"*
-
-> *"it is a set of named shapes an unresolved pointer, an unmanaged void*, a
-> destructor reached only conditionally for which the analysis has no contract"*
-
-Each is unreadable on first pass. **When you paste the replacements below, check
-that `---` survives** — if your editor converts it, type three hyphens manually.
-
-Apply each of these. Left column is what's in your `.tex` now; right is the fix.
-
-### Introduction
-
-| Find | Replace |
-|---|---|
-| `heterogeneous assembled from several languages and runtimes and exposed` `over more than one protocol at once and every one of them that wants to` | `heterogeneous---assembled from several languages and runtimes, exposed` `over more than one protocol at once---and every one of them that wants to` |
-| `libraries cJSON, compact and written by one team in one convention, and` `the public C API of SQLite, an order of magnitude larger and built over` `decades in a distinct convention then run the analysis on five` | `libraries---cJSON, compact and written by one team in one convention, and` `the public C API of SQLite, an order of magnitude larger and built over` `decades in a distinct convention---then run the analysis on five` |
-| `three integration contexts that differ fundamentally a typed microservice` `boundary, an AI tool-use boundary, and a direct in-process call and enforce a` | `three integration contexts that differ fundamentally---a typed microservice` `boundary, an AI tool-use boundary, and a direct in-process call---and enforce a` |
-
-### §II Taxonomy
-
-| Find | Replace |
-|---|---|
-| `et al.\ recover the resource-manager pattern which functions acquire and` `release a resource but not whether a returned pointer transfers ownership to` | `et al.\ recover the resource-manager pattern---which functions acquire and` `release a resource---but not whether a returned pointer transfers ownership to` |
-
-### §III Approach
-
-| Find | Replace |
-|---|---|
-| `and is refused` `for a reason unrelated to safety which is the single largest` `source of refusals` | `and is refused` `for a reason unrelated to safety---which is the single largest` `source of refusals` |
-| `is destructive on a stateful library probing SQLite's` | `is destructive on a stateful library: probing SQLite's` |
-| `A function is` `\textbf{refused} left unbound, with a specific human-readable reason if any` `of three conditions holds:` | `A function is` `\textbf{refused}---left unbound, with a specific human-readable reason---if any` `of three conditions holds:` |
-
-### §IV Evaluation
-
-| Find | Replace |
-|---|---|
-| `The remaining five zlib~\cite{b18}, libpng~\cite{b19}, libpq~\cite{b20},` | `The remaining five---zlib~\cite{b18}, libpng~\cite{b19}, libpq~\cite{b20},` |
-| `libgit2~\cite{b21}, and libxml2~\cite{b24} are \emph{blind}` | `libgit2~\cite{b21}, and libxml2~\cite{b24}---are \emph{blind}` |
-| `runs a missing entry in the C type registry, and a type-match guard on` `lifecycle forwarding so those four figures are post-fix.` | `runs---a missing entry in the C type registry, and a type-match guard on` `lifecycle forwarding---so those four figures are post-fix.` |
-| `permitting or forbidding any operation most` `commonly a function labelled` | `permitting or forbidding any operation---most` `commonly a function labelled` |
-| `The root` `cause is named and the fix is mechanical extend the guard to inspect members` `recursively but we report the figure as measured` | `The root` `cause is named and the fix is mechanical---extend the guard to inspect members` `recursively---but we report the figure as measured` |
-| `cJSON functions with bare \texttt{ctypes} exactly what a type-directed` `generator emits from the header and executed three sequences Ferrule refuses,` | `cJSON functions with bare \texttt{ctypes}---exactly what a type-directed` `generator emits from the header---and executed three sequences Ferrule refuses,` |
-| `The` `third passing a Python \texttt{str} where the library expects a writable` `\texttt{char*} buffer completed silently` | `The` `third---passing a Python \texttt{str} where the library expects a writable` `\texttt{char*} buffer---completed silently` |
-| `Ferrule exposes one the` `\texttt{cJSON\_InitHooks} case of \S\ref{sec:rq0} and refuses the remaining` | `Ferrule exposes one---the` `\texttt{cJSON\_InitHooks} case of \S\ref{sec:rq0}---and refuses the remaining` |
-| `computational helpers version queries and byte-order conversions such as` `\texttt{png\_get\_uint\_32} that take no handle and correctly receive none.` | `computational helpers---version queries and byte-order conversions such as` `\texttt{png\_get\_uint\_32}---that take no handle and correctly receive none.` |
-| `handle-lifecycle analysis produces no` `verdicts at all correctly, because there is no library-managed handle to` `track.` | `handle-lifecycle analysis produces no` `verdicts at all---correctly, because there is no library-managed handle to` `track.` |
-| `verdicts for 28 handle types among them \texttt{\_xmlDoc},` | `verdicts for 28 handle types---among them \texttt{\_xmlDoc},` |
-| `\texttt{\_xmlRegexp} and traced ownership through them, marking` | `\texttt{\_xmlRegexp}---and traced ownership through them, marking` |
-| `analyzing partial ASTs the same guard introduced after the \texttt{stddef.h}` | `analyzing partial ASTs---the same guard introduced after the \texttt{stddef.h}` |
-| `it is a set of` `named shapes an unresolved pointer, an unmanaged \texttt{void*}, a destructor` `reached only conditionally for which the analysis has no contract to express.` | `it is a set of` `named shapes---an unresolved pointer, an unmanaged \texttt{void*}, a destructor` `reached only conditionally---for which the analysis has no contract to express.` |
-| `handle~1 is destroyed a use-after-free no ownership check can catch, because` | `handle~1 is destroyed---a use-after-free no ownership check can catch, because` |
-| `A conformance suite of six` `sequences the borrowed-free refusal, the cascade-invalidated child above, a` | `A conformance suite of six` `sequences---the borrowed-free refusal, the cascade-invalidated child above, a` |
-| `free of an owned root, and a successful round trip is run through every` | `free of an owned root, and a successful round trip---is run through every` |
-| `the ${\sim}0.5$~$\mu$s added by the full Ferrule wrapper of which handle-table lookup is ${\sim}0.05$~$\mu$s represents well under 1\%` | `the ${\sim}0.5$~$\mu$s added by the full Ferrule wrapper---of which handle-table lookup is ${\sim}0.05$~$\mu$s---represents well under 1\%` |
-
-### §V Discussion
-
-| Find | Replace |
-|---|---|
-| `the label reflects our reading of its implementation the` `same artifact Ferrule reads so agreement there is weaker evidence than` | `the label reflects our reading of its implementation---the` `same artifact Ferrule reads---so agreement there is weaker evidence than` |
-| `the parameter that triggered` `it \texttt{PQconnectdb: returns an unmanaged pointer whose pointee type could` `not be resolved} which is a statement a human can act on directly.` | `the parameter that triggered` `it---\texttt{PQconnectdb: returns an unmanaged pointer whose pointee type could` `not be resolved}---which is a statement a human can act on directly.` |
-| `not the number of refused functions on libpq, four reasons` `against 122 refused functions.` | `not the number of refused functions---on libpq, four reasons` `against 122 refused functions.` |
-| `a refusal carrying a reason is more useful than no tool at` `all not that the bound fraction is always high.` | `a refusal carrying a reason is more useful than no tool at` `all---not that the bound fraction is always high.` |
-
-**After applying**, verify none were silently converted:
+**Regenerate first**, so the numbers below match your files:
 
 ```bash
-grep -c -- "---" ferrule.tex    # should be ~30, not 0
+cd ~/header-intent
+python3 eval/04b_tally_audit.py \
+  --pairs eval_output/audit/audit_cjson_blind.csv:eval_output/audit/audit_cjson_key.csv \
+  --pairs eval_output/audit/audit_sqlite_blind.csv:eval_output/audit/audit_sqlite_key.csv \
+  --pairs eval_output/audit/audit_zlib_blind.csv:eval_output/audit/audit_zlib_key.csv \
+  --pairs eval_output/audit/audit_libpng_blind.csv:eval_output/audit/audit_libpng_key.csv \
+  --pairs eval_output/audit/audit_libpq_blind.csv:eval_output/audit/audit_libpq_key.csv \
+  --pairs eval_output/audit/audit_libgit2_blind.csv:eval_output/audit/audit_libgit2_key.csv \
+  --pairs eval_output/audit/audit_libxml2_blind.csv:eval_output/audit/audit_libxml2_key.csv
+python3 eval/04f_unsafe_breakdown.py
+python3 eval/04e_split_score.py
+python3 coverage_table.py esc
 ```
 
 ---
 
-# PART C — A dangling forward reference
+# FIX 1 — Abstract, final paragraph
 
-§III-C promises an example that §V never delivers. **Find:**
+**Find:**
 
 ```latex
-leak arises only when a genuine ownership-\emph{transfer} function is
-misclassified as borrowed (\S\ref{sec:discussion} gives
-\texttt{cJSON\_DetachItemViaPointer} as one such case).
+We evaluate on seven C libraries totalling 2{,}334 exported functions. Two are
+calibration libraries the analysis was developed against; the other five, ran
+after the implementation was frozen at a recorded commit, were never adapted to.
+Across those five the analysis binds 1{,}436 of 1{,}965 exported functions. The
+framework demonstrated strong generalizability across the blind test set: 4 out
+of 5 blind libraries achieved \textgreater 70\% coverage, with an adjusted
+aggregate coverage of 77\%. The evaluation isolates seventeen conventions under
+which a plausible binding heuristic misfires, eight of them
+memory-safety-critical, and we report them as a catalogue for the next author
+rather than as incidents.
 ```
 
-Nothing in §V mentions `cJSON_DetachItemViaPointer`. Since RQ0 now measures
-the leak rate directly, point there instead. **Replace with:**
+**Replace with:**
 
 ```latex
-leak arises only when a genuine ownership-\emph{transfer} function is
-misclassified as borrowed---\texttt{cJSON\_DetachItemFromObject} is one such
-case, where the caller does take ownership of the detached node.
+We evaluate on seven C libraries totalling 2{,}334 exported functions. Two are
+calibration libraries the analysis was developed against; the other five were
+never adapted to, and all figures come from a single frozen commit. Across
+those five the analysis binds 1{,}483 of 1{,}965 exported functions, with
+per-library coverage in a narrow band from 70\% to 78\%. Against hand-labelled
+ground truth for 226 functions, one verdict permits an operation that corrupts
+memory (0.4\%, 95\% CI $[0.1\%, 2.5\%]$); fifteen forgo a legitimate free,
+which is the direction the fail-safe is designed to fail in. A bare
+\texttt{ctypes} binding of the same library aborts the process on two of three
+unsafe sequences and silently corrupts the heap on the third. We compare
+against three alternatives on the same labelled sample and the same scorer: a
+type-directed filter, an operationalisation of the closest prior system, and
+two frontier language models. The evaluation isolates twenty-two conventions
+under which a plausible binding heuristic misfires, ten of them
+memory-safety-critical, and we report them as a catalogue for the next author
+rather than as incidents.
 ```
 
 ---
 
-# PART D — Small corrections
-
-## D1 — "held-out" and "blind" are used for the same libraries
-
-Methodology now calls all five blind, but three places still say held-out.
-
-| Find | Replace |
-|---|---|
-| `\item \textbf{RQ2 (generalization).} On held-out libraries, and on one` `library run blind after the analysis was frozen, do the same` | `\item \textbf{RQ2 (generalization).} On the five libraries the analysis was` `never adapted to, do the same` |
-| `\subsubsection{Breadth: does the fail-safe hold on held-out libraries?}` | `\subsubsection{Breadth: does the fail-safe hold on unseen libraries?}` |
-| `\caption{Held-out libraries. ``Idiom'' is the dominant handle-management` | `\caption{The four blind libraries analyzed before freezing; libxml2 is reported separately in \S\ref{sec:blind}. ``Idiom'' is the dominant handle-management` |
-| `not.} Two defects surfaced only under the held-out libraries.` | `not.} Two defects surfaced only under the blind libraries.` |
-| `libpq  & Cross-type free misread as destroying the connection & memory safety & unsafe & held-out breadth run \\` | `libpq  & Cross-type free misread as destroying the connection & memory safety & unsafe & breadth run \\` |
-
-## D2 — `\paragraph` renders as "a) Summary.:"
-
-IEEEtran numbers `\paragraph` inside a subsubsection. Two places.
+# FIX 2 — Introduction, the coverage-variance paragraph
 
 **Find:**
 
 ```latex
-\paragraph{Summary.} Across seven libraries spanning six handle idioms, the
+we measure both directly against hand-labelled ground truth (\S\ref{sec:rq0}).
+How much of an API Ferrule can bind varies widely with the library's
+conventions. Every library we analyzed contributed at least one convention on
+which a heuristic calibrated against the others misfires.
 ```
 
 **Replace with:**
 
 ```latex
-\textbf{Summary.} Across seven libraries spanning six handle idioms, the
-```
-
-**Find:**
-
-```latex
-  \paragraph{Memory footprint.}
-```
-
-**Replace with:**
-
-```latex
-\textbf{Memory footprint.}
-```
-
-## D3 — Table IV's caption misdescribes its last four rows
-
-The variadic row is attributed to "several" libraries including SQLite, a
-calibration library, so "exposed only by libraries the analysis was not adapted
-to" is wrong for it. **Find:**
-
-```latex
-memory-safety). cJSON and SQLite are the calibration libraries; the last four
-rows were exposed only by libraries the analysis was not adapted to.
-```
-
-**Replace with:**
-
-```latex
-memory-safety). cJSON and SQLite are the calibration libraries; the last four
-rows were exposed only after the calibration pair, three of them by libraries
-the analysis was never adapted to and one by the ground-truth audit.
-```
-
-## D4 — Two different 12s a reader will conflate
-
-§IV-D says Ferrule "refuses the remaining 12" unsafe-to-expose functions.
-Table III says 12 false refusals. These are disjoint sets that happen to be the
-same size, and a reader will read the second as the first.
-
-**Find:**
-
-```latex
-refuses the remaining 12 with a stated reason. The comparison is not that Ferrule
-is safe and \texttt{ctypes} is not; it is that on this sample the two differ by 12
-functions that a caller could invoke into undefined behavior with no diagnostic
-at any layer.
-```
-
-**Replace with:**
-
-```latex
-refuses the remaining 12 with a stated reason. These 12 are distinct from the 12
-false refusals of Table~\ref{tab:accuracy}, which are safe functions wrongly
-declined; Ferrule refuses 24 of the 99 sampled functions in total, half of them
-correctly. The comparison is not that Ferrule is safe and \texttt{ctypes} is
-not; it is that on this sample the two differ by 12 functions a caller could
-invoke into undefined behavior with no diagnostic at any layer.
-```
-
-## D5 — "verdict accuracy" excludes refusals by its own definition
-
-The Correct column includes correctly-refused functions, which have no ownership
-or lifecycle verdict to match. **Find:**
-
-```latex
-second is a safety property: \emph{verdict accuracy}, the fraction whose
-ownership and lifecycle verdicts both match the label;
-```
-
-**Replace with:**
-
-```latex
-second is a safety property: \emph{verdict accuracy}, the fraction where the
-ownership and lifecycle verdicts both match the label, or where the analysis
-refused a function the label also marks unsafe to expose;
+we measure both directly against hand-labelled ground truth (\S\ref{sec:rq0}).
+Coverage turns out to be remarkably uniform across the five libraries the
+analysis was never adapted to, between 70\% and 78\%, once each library's
+include paths are correct; \S\ref{sec:coverage-blind} reports what happened
+when they were not. What does vary is which conventions defeat a given
+heuristic: every library we analyzed contributed at least one on which a
+heuristic calibrated against the others misfires.
 ```
 
 ---
 
-# FINAL CHECK
+# FIX 3 — Introduction, contribution 2
+
+**Find:**
+
+```latex
+adapted to} (\S\ref{sec:eval}). We report accuracy against hand-labelled ground
+truth (78\% correct, one unsafe error in 99 functions), coverage by library
+(26--87\%), whether a realistic program can be written entirely from the bound
+subset, and a comparison against the signature-only binding a type-directed
+generator produces, measured over the same labelled sample.
+```
+
+**Replace with:**
+
+```latex
+adapted to} (\S\ref{sec:eval}). We report accuracy against hand-labelled ground
+truth for 226 functions (one memory-unsafe verdict, 0.4\%), coverage by library
+(55--87\%), whether a realistic program can be written entirely from the bound
+subset, and a comparison against four alternatives on the same sample and the
+same scorer: a signature-only binding, a type-directed structural filter, an
+operationalisation of the closest prior system, and two frontier language
+models.
+```
+
+---
+
+# FIX 4 — Introduction, contribution 3
+
+**Find:** `\textbf{A hazard catalogue} (Table~\ref{tab:defects}): seventeen C API`
+
+**Replace with:** `\textbf{A hazard catalogue} (Table~\ref{tab:defects}): twenty-two C API`
+
+---
+
+# FIX 5 — §III-A, the "every fact is evidenced" overstatement
+
+**Find:**
+
+```latex
+The central artifact is a \emph{capability specification}: a per-function record
+of the memory intent a signature cannot express. Every fact in it is
+\emph{evidenced}, carrying not just a value but the analysis layer that produced
+it, a confidence score in $[0,1]$ recording how strongly that layer's evidence
+supports the value, and a flag recording whether the value has been confirmed
+against the compiled library in the narrow case where that is possible:
+```
+
+**Replace with:**
+
+```latex
+The central artifact is a \emph{capability specification}: a per-function record
+of the memory intent a signature cannot express. Each parameter's intent is
+\emph{evidenced}, carrying not just a value but the analysis layer that produced
+it, a confidence score in $[0,1]$ recording how strongly that layer's evidence
+supports the value, and a flag recording whether the value has been confirmed
+against the compiled library in the narrow case where that is possible. The
+function-level facts (lifecycle, handle type, owner) carry their provenance in
+the analysis report rather than in the record itself, which is a limitation we
+note where it matters (\S\ref{sec:override}):
+```
+
+---
+
+# FIX 6 — §III-C, the leak example
+
+**Find:**
+
+```latex
+arises only when a genuine ownership-\emph{transfer} function is misclassified
+as borrowed; \texttt{cJSON\_DetachItemFromObject} is one such case, where the
+caller does take ownership of the detached node.
+```
+
+**Replace with:**
+
+```latex
+arises only when a genuine ownership-\emph{transfer} function is misclassified
+as borrowed. SQLite's \texttt{sqlite3\_str\_new} is a case the vocabulary
+itself cannot express: it returns a \texttt{sqlite3\_malloc64} result on the
+success path and the address of a static sentinel when that allocation fails,
+through a single \texttt{return} statement. No one value of \texttt{owner} is
+correct for both paths, and the safe one leaks.
+```
+
+---
+
+# FIX 7 — §IV-A, include paths
+
+**Find:**
+
+```latex
+not adapted to any of them, and the only per-library work was supplying include
+paths and, where a library's build generates configuration headers, running its
+configure step so its source would parse. They were chosen to span handle idioms
+```
+
+**Replace with:**
+
+```latex
+not adapted to any of them, and the only per-library work was supplying include
+paths and, where a library's build generates configuration headers, running its
+configure step so its source would parse. That work is not as trivial as it
+sounds, and \S\ref{sec:coverage-blind} reports what getting it wrong cost. They
+were chosen to span handle idioms
+```
+
+**Then find:**
+
+```latex
+Two implementation-level fixes followed the first four of these runs,
+a missing entry in the C type registry, and a type-match guard on lifecycle
+forwarding, so those four figures are post-fix. libxml2 was run after the
+implementation was frozen at a recorded commit and its figures are reported as
+first obtained (\S\ref{sec:blind}).
+```
+
+**Replace with:**
+
+```latex
+Two implementation-level fixes followed the first four of these runs, a missing
+entry in the C type registry and a type-match guard on lifecycle forwarding, so
+those libraries were blind with respect to the design of the analysis rather
+than to every line of its implementation. All figures reported here come from a
+single frozen commit, re-run after those fixes and after the include-path audit
+of \S\ref{sec:coverage-blind}; \S\ref{sec:blind} additionally reports libxml2
+exactly as first obtained, before any of it.
+```
+
+---
+
+# FIX 8 — Table II (calibration coverage)
+
+**Find:**
+
+```latex
+Exported functions                  & 78 & 291 \\
+\quad Dropped at extraction (variadic) & 0 & 8 \\
+\quad Bound                         & 68 & 172 \\
+\quad Refused                       & 10 & 111 \\
+```
+
+**Replace with:**
+
+```latex
+Exported functions                  & 78 & 291 \\
+\quad Dropped at extraction (variadic) & 0 & 8 \\
+\quad Absent from the compiled library & 0 & 12 \\
+\quad Bound                         & 68 & 160 \\
+\quad Refused                       & 10 & 111 \\
+```
+
+**And add to that table's caption**, after the existing text:
+
+```latex
+Twelve SQLite functions are declared in the header but compiled out of this
+build (the \texttt{\_snapshot\_} family, column metadata, statement scan
+status); a binding to an absent symbol is not a binding, so they are counted
+apart from both the bound and the refused sets.
+```
+
+---
+
+# FIX 9 — §IV-B, the Measures paragraph
+
+**Find:**
+
+```latex
+\textbf{Measures.} We report five quantities, of which only the second is a
+safety property: \emph{verdict accuracy}, the fraction where the ownership and
+lifecycle verdicts both match the label, or where the analysis refused a
+function the label also marks unsafe to expose; \emph{unsafe errors}, functions
+bound with a verdict that permits an operation the label forbids; \emph{leak
+errors}, functions bound with a conservative verdict that forgoes a legitimate
+free; \emph{false refusals}, safe functions the fail-safe declined; and
+\emph{benign disagreements}, verdicts that differ from the label without
+permitting or forbidding any operation.
+```
+
+**Replace with:**
+
+```latex
+\textbf{Measures.} We report five quantities. \emph{Verdict accuracy} is the
+fraction where the ownership and lifecycle verdicts both match the label, or
+where the analysis refused a function the label also marks unsafe to expose.
+\emph{Memory-unsafe errors} are functions bound with a verdict that permits an
+operation corrupting memory: an \texttt{owner = caller} verdict where the
+library retains ownership, or a \texttt{destroys} verdict on a function that
+destroys nothing. \emph{Exposability disagreements} are functions bound that
+the label marks unexposable but where no memory error follows; we separate
+these because they are a coverage limitation rather than a safety failure, and
+\S\ref{sec:rq0-expose} explains why. \emph{Leak errors} are functions bound
+with a conservative verdict that forgoes a legitimate free. \emph{False
+refusals} are safe functions the fail-safe declined.
+
+Two of these are reported by draw rather than pooled. The sample was extended
+partway through this work, and the earlier draw's ``refused'' stratum was taken
+against a state of the tool in which 13 of its 30 refused functions are now
+bound; a function drawn as refused and later bound cannot register as a false
+refusal, so that draw structurally understates the rate. Accuracy and false
+refusals are therefore given per draw, while the safety counts, which concern
+bound functions, are pooled.
+```
+
+---
+
+# FIX 10 — §IV-B, Results paragraph
+
+**Find:**
+
+```latex
+\textbf{Results.} Table~\ref{tab:accuracy} reports them per library. Across 99
+labelled functions drawn from the six libraries analyzed before the
+implementation was frozen, 77 verdicts are correct. libxml2 is excluded from
+this measurement: it was run after freezing (\S\ref{sec:blind}) and we did not
+label it, so its 474 bindings contribute to the coverage figures but not to the
+accuracy figures.
+```
+
+**Replace with:**
+
+```latex
+\textbf{Results.} Table~\ref{tab:accuracy} reports them per library across 226
+labelled functions from all seven libraries. One verdict permits an operation
+that corrupts memory, fifteen forgo a legitimate free, and five bind a function
+the labels mark unexposable without any memory consequence.
+Table~\ref{tab:draws} reports accuracy and false refusals for the two draws
+separately.
+```
+
+---
+
+# FIX 11 — Table III, replaced entirely
+
+**Find** the whole `\begin{table}[t] ... \label{tab:accuracy} ... \end{table}`
+block and **replace with:**
+
+```latex
+\begin{table}[t]
+\caption{Accuracy against hand-labelled ground truth, stratified sample per
+library, 226 functions. ``Mem.\ unsafe'' permits an operation that corrupts
+memory; ``Expose'' binds a function the label marks unexposable with no memory
+consequence (\S\ref{sec:rq0-expose}); ``Leak'' forgoes a legitimate free.
+Figures are for the configuration with no manual annotations
+(\S\ref{sec:override}).}
+\label{tab:accuracy}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Library} & \textbf{n} & \textbf{Mem.\ unsafe} & \textbf{Expose} & \textbf{Leak} & \textbf{False ref.} \\
+\midrule
+cJSON   & 32 & 0 & 1 & 1 & 8 \\
+SQLite  & 40 & 0 & 0 & 2 & 5 \\
+zlib    & 27 & 0 & 0 & 0 & 4 \\
+libpng  & 31 & 0 & 0 & 0 & 6 \\
+libpq   & 36 & 1 & 0 & 5 & 4 \\
+libgit2 & 40 & 0 & 4 & 5 & 6 \\
+libxml2 & 20 & 0 & 0 & 2 & 3 \\
+\midrule
+\textbf{Overall} & \textbf{226} & \textbf{1 (0.4\%)} & \textbf{5 (2.2\%)} & \textbf{15 (6.6\%)} & \textbf{36} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\caption{Accuracy and false refusals by draw. The earlier draw's ``refused''
+stratum was sampled against a state of the tool in which 13 of its 30 refused
+functions are now bound, so it cannot register those as false refusals; the
+extension was drawn against the frozen specification and is the figure to read.}
+\label{tab:draws}
+\centering
+\footnotesize
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Draw} & \textbf{n} & \textbf{Verdict accuracy} & \textbf{False refusals} \\
+\midrule
+Original, stale strata & 99  & 81.8\% & 8 (8\%) \\
+Extension, frozen specification & 127 & 53.5\% & 28 (22\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
+> Re-run `04b` after the escape-store fix and correct the Correct/False-ref
+> columns if they moved; the safety columns above are from `04f`.
+
+---
+
+# FIX 12 — §IV-B, benign / unsafe / leak paragraphs
+
+**Find** the three paragraphs beginning `The six benign disagreements`,
+`The single unsafe verdict is \texttt{cJSON\_InitHooks}`, and `The three leak
+errors are all the same shape`, and **replace all three with:**
+
+```latex
+\textbf{The one memory-unsafe verdict} is \texttt{PQconnectPoll}, classified
+\texttt{destroys} where the label says \texttt{uses}. It is the fourth instance
+in this work of the failure mode \S\ref{sec:failsafe-scope} names as the one
+decision that does not abstain: lifecycle classification asserts, and when
+forwarding concludes that a function frees a handle the runtime releases it.
+The other three, \texttt{sqlite3\_exec}, \texttt{PQexec} and libpng's read
+family, were caught earlier and are pinned by regression tests; this one was
+found by extending the ground-truth sample.
+
+\textbf{The fifteen leaks} fall into three shapes rather than one.
+Five are \texttt{char*} returns, where string ownership deliberately runs a
+simpler rule set than pointer ownership: it has no escape rule and no transfer
+rule, because a wrong deallocator call on a string is heap corruption rather
+than a leak. Five are libpq functions that one manual annotation resolves
+(\S\ref{sec:override}); Table~\ref{tab:accuracy} reports the un-annotated
+configuration. The remainder are structural out-handles marked
+\texttt{owner = library} where the label says \texttt{caller}, which is
+ownership rule~5 functioning as designed: the handle is usable and cannot be
+freed, so the worst outcome is a bounded leak rather than a double free.
+```
+
+---
+
+# FIX 13 — new subsection after the leak paragraph
+
+**Insert:**
+
+```latex
+\subsubsection{Exposability disagreements are not memory errors}
+\label{sec:rq0-expose}
+
+Five bound functions carry a label saying they should not be exposed at all,
+and we report them apart from the memory-unsafe verdict because reading their
+implementations shows no memory error follows. All five are initialiser
+functions taking a struct whose members are function pointers:
+\texttt{cJSON\_InitHooks}, and libgit2's \texttt{git\_remote\_init\_callbacks},
+\texttt{git\_submodule\_update\_init\_options} and
+\texttt{git\_worktree\_add\_init\_options}. Caller-allocated state analysis
+(\S\ref{sec:pipeline}) admits the struct: the library never returns it, never
+frees it, declares it itself, exposes an initialiser, and Clang can size it.
+The binding therefore allocates a zeroed buffer and passes it in.
+
+That is correct use in every case we examined. \texttt{cJSON\_InitHooks} tests
+each member against \texttt{NULL} and falls back to \texttt{malloc} and
+\texttt{free}; \texttt{git\_remote\_init\_callbacks} writes a template into the
+struct and reads nothing from it. What the caller cannot then do is install a
+callback, because a function pointer has no representation across a protocol
+boundary. The binding is safe and useless, which is a coverage limitation of
+the capability model rather than a failure of the fail-safe, and we count it as
+such.
+```
+
+---
+
+# FIX 14 — §IV-B, Precision paragraph
+
+**Find** the paragraph beginning `\textbf{Precision of these estimates.} One
+unsafe verdict in 99` and **replace with:**
+
+```latex
+\textbf{Precision of these estimates.} One memory-unsafe verdict in 226 gives a
+Wilson 95\% interval of $[0.1\%, 2.5\%]$; the leak rate's interval is
+$[4.1\%, 10.6\%]$. The upper bound on the memory-unsafe rate is the number to
+weigh. It rests on a single function with an identified cause in a failure mode
+the paper states does not abstain, rather than on a diffuse one; and the
+comparison it should be read against is not zero but the alternatives of
+\S\ref{sec:naive-baseline}, \S\ref{sec:ablation} and \S\ref{sec:llm}, measured
+on this same sample with this same scorer.
+```
+
+---
+
+# FIX 15 — Table VI (breadth)
+
+**Find:**
+
+```latex
+zlib   & caller-allocated state   & 65/81   & 28  \\
+libpng & return-handle + callback & 174/246 & 231 \\
+libpq  & opaque context handle    & 43/165  & 42  \\
+libgit2& reference-counted        & 680/834 & 723 \\
+```
+
+**Replace with:**
+
+```latex
+zlib   & caller-allocated state   & 62/81   & 28  \\
+libpng & return-handle + callback & 173/246 & 231 \\
+libpq  & opaque context handle    & 129/165 & 42  \\
+libgit2& reference-counted        & 645/834 & 723 \\
+```
+
+---
+
+# FIX 16 — Table VII (coverage across all seven)
+
+**Find** the tabular body:
+
+```latex
+cJSON   & calibration & 78  & 68  & 87\% \\
+SQLite  & calibration & 291 & 172 & 59\% \\
+\midrule
+zlib    & blind & 81  & 65  & 80\% \\
+libpng  & blind & 246 & 174 & 71\% \\
+libpq   & blind & 165 & 43  & 26\% \\
+libgit2 & blind & 834 & 680 & 82\% \\
+libxml2 & blind & 639 & 474 & 74\% \\
+\midrule
+\multicolumn{2}{l}{\textbf{Blind total}} & \textbf{1{,}965} & \textbf{1{,}436} & \textbf{73\%} \\
+```
+
+**Replace with:**
+
+```latex
+cJSON   & calibration & 78  & 68  & 87\% & 0 \\
+SQLite  & calibration & 291 & 160 & 55\% & 0 \\
+\midrule
+zlib    & blind & 81  & 62  & 77\% & 0 \\
+libpng  & blind & 246 & 173 & 70\% & 13 \\
+libpq   & blind & 165 & 129 & 78\% & 6 \\
+libgit2 & blind & 834 & 645 & 77\% & 0 \\
+libxml2 & blind & 639 & 474 & 74\% & 7 \\
+\midrule
+\multicolumn{2}{l}{\textbf{Blind total}} & \textbf{1{,}965} & \textbf{1{,}483} & \textbf{75\%} & \\
+```
+
+**Change the column spec** `{llrrr}` to `{llrrrr}`, **the header row** to:
+
+```latex
+\textbf{Library} & \textbf{Role} & \textbf{Exported} & \textbf{Bound} & \textbf{Coverage} & \textbf{Files} \\
+```
+
+**and the caption** to:
+
+```latex
+\caption{Coverage across all seven libraries. ``Bound'' counts exported
+functions present in the generated binding: a function that passes the policy
+but has no symbol in the compiled library is not counted, and neither are the
+31 allocator tools the binding synthesises for caller-allocated state. Variadic
+functions are counted as refused. ``Files'' is the number of source files the
+parse guard refused, all of them platform-specific or feature-gated after the
+audit of \S\ref{sec:coverage-blind}.}
+```
+
+---
+
+# FIX 17 — §IV-G, the libpq explanation (the important one)
+
+**Find** the paragraph beginning `Table~\ref{tab:coverage-all} reports coverage
+across all seven libraries. The aggregate over the blind set` through
+`\ldots the clearest single improvement available to coverage.`
+
+**Replace with:**
+
+```latex
+Table~\ref{tab:coverage-all} reports coverage across all seven libraries.
+Across the five the analysis was never adapted to it sits between 70\% and
+78\%, which is a narrower band than we expected and than an earlier version of
+this work reported. That earlier spread was an artifact, and the way it arose
+is worth reporting, because it is the same failure mode as the most transferable
+finding of \S\ref{sec:rq1} and it hid for considerably longer.
+
+libpq initially bound 43 of 165 functions, 26\%, and we attributed that to the
+library's use of an incomplete struct declaration for \texttt{PGconn}. That
+diagnosis was wrong. \texttt{fe-connect.c}, which defines every constructor and
+destructor for \texttt{PGconn}, includes \texttt{pg\_config\_paths.h}, a header
+PostgreSQL generates during its build and which we had not placed on the
+include path. libclang emitted a fatal diagnostic, the truncation guard
+correctly refused to analyze a file whose function bodies it could not trust,
+and the type therefore never entered the handle set: not because its pointee
+could not be resolved, which it could, but because no evidence about its
+lifecycle survived. Supplying the directory takes libpq from 26\% to 78\% with
+no change to the analysis. libgit2 carried a milder form of the same problem,
+ten files requiring its vendored \texttt{xdiff}, \texttt{pcre} and
+\texttt{ntlmclient} headers, costing four ownership verdicts rather than a
+whole type.
+
+The guard behaved correctly in both cases and said so in its report. What was
+missing was any signal at the level a reader looks: a coverage figure alone
+cannot distinguish a library whose conventions the analysis does not model from
+one whose source it never read. We therefore report, for every library, how
+many source files the guard refused, and we audited each: after the audit, the
+26 refused files across all seven libraries are Windows-only, feature-gated
+behind GSSAPI or OpenSSL, OS/400 platform code, or test programs, and none can
+be supplied on this target. The general rule is the one \S\ref{sec:rq1} states
+for a degraded parse, applied one level up: an analysis that silently declines
+part of its input is indistinguishable from an analysis whose subject is
+simpler than it is.
+```
+
+---
+
+# FIX 18 — Table VIII (task coverage)
+
+**Find:**
+
+```latex
+libpq   & 3/7 & \texttt{PQconnectdb} (unresolved pointee) \\
+```
+
+**Replace with:**
+
+```latex
+libpq   & complete (7/7) & --- (one annotation, \S\ref{sec:override}) \\
+```
+
+**And reorder** so libpq sits with the complete rows, and **amend the sentence
+after the table:**
+
+**Find:** `Table~\ref{tab:taskcov} reports the result. Two libraries can complete
+their task entirely from the bound subset. The four that cannot are each blocked`
+
+**Replace with:** `Table~\ref{tab:taskcov} reports the result. Three libraries
+can complete their task entirely from the bound subset, libpq after the single
+annotation of \S\ref{sec:override}. The three that cannot are each blocked`
+
+---
+
+# FIX 19 — §IV-H, libxml2 file count
+
+**Find:** `Five variadic functions were refused at extraction. Eight source files
+under \texttt{os400/} and \texttt{python/} failed to parse for missing platform
+headers`
+
+**Replace with:** `Five variadic functions were refused at extraction. Seven
+source files, under \texttt{os400/} and \texttt{python/} and a \texttt{dlfcn}
+shim, failed to parse for missing platform headers`
+
+---
+
+# FIX 20 — §V, the labels paragraph
+
+**Find** the paragraph beginning `\textbf{The labels are ours.}` and **replace
+with:**
+
+```latex
+\textbf{The labels are ours.} The ground truth is hand-labelled from
+documentation and source. Where a library's documentation is silent on
+ownership, the label reflects our reading of its implementation, the same
+artifact Ferrule reads, so agreement there is weaker evidence than agreement on
+a documented contract; we mark such labels in the artifact, and 115 of the 127
+extension labels cite documentation rather than source alone.
+
+\textbf{A stratified sample expires when the tool changes.} The strata of
+\S\ref{sec:rq0} are defined partly by the tool's own behaviour, one of them
+being the functions it refused. When the implementation changes, that stratum
+no longer describes the same population: 13 of the 30 functions drawn as
+refused in our first draw are bound in the frozen configuration, and none of
+them can register as a false refusal. The effect is not small, 28 points of
+verdict accuracy between the two draws (Table~\ref{tab:draws}), and it is
+invisible unless the two are scored apart. We report them apart, and we note
+the general point for anyone building a ground-truth sample against a moving
+analysis: a sample stratified on a tool's output must be redrawn when the
+output changes, or it silently measures the tool it was drawn against.
+```
+
+---
+
+# FIX 21 — §V-D, the worklist numbers
+
+**Find:**
+
+```latex
+Coverage on a library the analysis was not adapted to ranges from 26\% to 82\%,
+so ``Ferrule refuses part of your API'' needs an answer rather than a defence.
+```
+
+**Replace with:**
+
+```latex
+Coverage on a library the analysis was not adapted to ranges from 70\% to 78\%,
+so ``Ferrule refuses a fifth of your API'' needs an answer rather than a
+defence.
+```
+
+**Then find:**
+
+```latex
+The effort scales with the number of distinct
+\emph{reasons}, not the number of refused functions: on libpq, four reasons
+against 122 refused functions.
+```
+
+**Replace with:**
+
+```latex
+The effort scales with the number of distinct \emph{reasons}, not the number of
+refused functions. We tested this rather than asserting it. libpq's
+\texttt{PGresult} is held borrowed for a principled reason: \texttt{PQgetResult}
+passes the result and the connection to a user-registered event callback, and
+whether that callback retains the result is user code no source analysis can
+rule out. libpq's documentation says otherwise, and one manual fact recording
+it resolves seven functions, not one: \texttt{PQgetResult} itself and the six
+callers that reach it through \texttt{PQexecFinish}, which inherit the verdict
+through the call-graph fixed point of \S\ref{sec:ownership}. The leverage is
+therefore of two kinds, transitive over a type through handle propagation and
+transitive over a call chain through ownership propagation, and the annotated
+configuration completes libpq's task in Table~\ref{tab:taskcov}.
+
+A manual fact is admitted before the ownership fixed point rather than patched
+onto its output, which is what makes the second kind of leverage possible, and
+it cannot override \texttt{check\_exposable}: an author may resolve what the
+analysis abstained on, and may not make a callback or a writable buffer
+exposable.
+```
+
+---
+
+# FIX 22 — Conclusion
+
+**Find:**
+
+```latex
+Measured against hand-labelled ground truth on a stratified sample
+of 99 functions, the analysis is correct on 78\% of verdicts, with one error on
+the unsafe side and three on the conservative side.
+```
+
+**Replace with:**
+
+```latex
+Measured against hand-labelled ground truth on a stratified sample of 226
+functions, one verdict permits an operation that corrupts memory and fifteen
+forgo a legitimate free, which is the asymmetry the design exists to produce.
+```
+
+---
+
+# FIX 23 — insert the three drafted sections
+
+- `section_IIE_llm_v2.tex`: replaces §II-E entirely; its second half becomes a
+  new subsection after \S\ref{sec:naive-baseline}, labelled `sec:llm`.
+- `section_ablation.tex`: new subsection labelled `sec:ablation` after the LLM
+  one; also replaces the last two sentences of §II-D and the final paragraph of
+  §V-C.
+
+Check every `\label` against your file: the drafts assume `sec:rq0`,
+`sec:failsafe`, `sec:ownership`, `sec:override`, `sec:pipeline`, `sec:t4`,
+`tab:accuracy`.
+
+---
+
+# FIX 24 — five new hazard rows
+
+**Insert before** `\hline` at the end of Table IV's body:
+
+```latex
+libpq & Generated header off the include path; guard refused the file defining every constructor & soundness & silent-empty & coverage audit \\
+libxml2 & Escape traced through calls but not through direct member stores & memory safety & unsafe & extended ground truth \\
+libxml2 & \texttt{NULL} assignment on an error path overwrote the real origin & soundness & conservative & \texttt{xmlDoRead} \\
+several & Returned-value set collected argument names, not the returned value & coverage & conservative & cJSON detach family \\
+libpq & Count parameter preceding its array; boundary regex missed camelCase & memory safety & unsafe & \texttt{PQsetResultAttrs} \\
+```
+
+**And update the caption:** `seventeen conventions` $\rightarrow$
+`twenty-two conventions`, `(eight memory-safety)` $\rightarrow$
+`(ten memory-safety)`, and `the last four rows` $\rightarrow$
+`the last nine rows`.
+
+---
+
+# FIX 25 — final sweep
 
 ```bash
-pdflatex ferrule.tex && pdflatex ferrule.tex
-grep -c "Overfull" ferrule.log        # aim for under ~5
-grep -c -- "---" ferrule.tex          # should be ~30
-grep -n "DetachItemViaPointer" ferrule.tex   # must be empty
-grep -n "held-out" ferrule.tex        # must be empty
-grep -n "paragraph{Summary\|paragraph{Memory" ferrule.tex  # must be empty
+grep -n "26\\\\%\|1,436\|1{,}436\|78\\\\% correct\|seventeen\|99 functions" paper.tex
+grep -n "held-out" paper.tex
+grep -n "DetachItemFromObject" paper.tex
+pdflatex paper.tex && pdflatex paper.tex
+grep -c "Overfull" paper.log
 ```
 
-Read these three passages in the PDF and confirm they parse on first read:
-
-- §II-D, the Ravitch paragraph ("recover the resource-manager pattern---which…")
-- §IV-D, the last paragraph (the two 12s)
-- §IV-I, the closing sentence ("a set of named shapes---an unresolved pointer…")
-
-If those three read cleanly, the em-dash pass worked everywhere.
-
----
-
-# What's left after this
-
-Nothing blocking. The two things that would strengthen the paper further, in
-order of value per hour:
-
-1. **A second labeller on 30 of the 99 functions.** The
-   `audit_*_blind_annotator2.csv` sheets already exist. Cohen's κ closes the
-   reviewer's objection 9 entirely, and it's an afternoon of someone else's
-   time.
-
-2. **The libpq extraction fix.** You now state in §IV-G that libpq's 26% is an
-   implementation limitation rather than a fundamental one. Closing it would
-   move the weakest number in the paper and validate the claim in the same
-   stroke.
+Also confirm: the RQ2 bullet in §IV still says "the five libraries the analysis
+was never adapted to" (correct); §IV-B's reference to
+\S\ref{sec:naive-baseline} still resolves; and the 13-unsafe-to-expose count in
+\S\ref{sec:naive-baseline} is recomputed for n=226 rather than left at the
+n=99 value.

@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+png_get_uint_32,other,,,n,"Without implementation or documentation, it is unknown whether this function is safe to expose or if it involves pointer"
+png_get_palette_max,lifecycle,,,y,
+png_get_iCCP,refused,library,uses,y,
+png_set_sig_bytes,lifecycle,,uses,y,
+png_write_png,refused,,uses,y,
+png_get_uint_16,other,,,n,No implementation is available so the function's contract and signature are unknown.
+png_get_x_offset_microns,lifecycle,,,y,
+png_sig_cmp,other,,,y,
+png_image_finish_read,refused,,uses,n,"The function requires the caller to provide writable buffers and a struct, and expects the caller to correctly allocate "
+png_set_filter_heuristics_fixed,refused,,,y,
+png_set_write_user_transform_fn,refused,,,n,"This function sets a callback function pointer, which is not safe for direct binding exposure."
+png_access_version_number,other,,,y,
+png_get_y_offset_microns,lifecycle,,,y,
+png_handle_as_unknown,lifecycle,,,y,
+png_create_info_struct,handle_return,caller,creates,y,
+png_get_int_32,other,,,n,"No implementation or documentation is provided, so ownership, lifecycle, and exposure safety cannot be determined."

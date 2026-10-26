@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer offset and does not allocate or return any pointer, so ownership and lifecycle do not apply; automatic exposure is safe."
+ },
+ "gzprintf": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer or manage any ownership; it just writes formatted output to a gzFile."
+ },
+ "adler32_combine": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns a value type (uLong) and does not allocate or manage memory, so ownership and lifecycle do not apply."
+ },
+ "gzeof": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function takes an opaque gzFile handle, does not return a pointer, and only queries state without affecting ownership or lifecycle."
+ },
+ "inflateInit_": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function does not return a pointer, so ownership is not applicable and exposing this wrapper is safe given the standard signature."
+ },
+ "crc32_combine_gen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value type (uLong), not a pointer, so ownership and lifecycle do not arise and exposing it is safe."
+ },
+ "adler32_z": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function only returns a uLong value and does not return or manipulate any heap-allocated handles."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to a static (library-owned) table, so the caller must not free it."
+ },
+ "adler32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer type, not a pointer or resource handle."
+ },
+ "deflate": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "deflate does not allocate or return any heap memory or handle, only operates on a user-provided stream struct, so ownership does not apply and exposing it is safe."
+ }
+}

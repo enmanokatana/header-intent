@@ -72,6 +72,7 @@ class InferReport:
 def infer_spec(library: str, *, signatures: dict | None = None, header: str | None = None,
                source: str | None = None, so: str | None = None,
                engine: str = "libclang", clang_args=None, overrides=None,
+               ownership_overrides=None,
                preprocessed_source: str | None = None,
                enable_coverage_extensions: bool = True,
                enable_caller_state: bool = True):
@@ -157,10 +158,12 @@ def infer_spec(library: str, *, signatures: dict | None = None, header: str | No
 
         try:
             if eng and multi:
-                own, sk = analyze_ownership_multi(sources, engine=eng, clang_args=clang_args)
+                own, sk = analyze_ownership_multi(sources, engine=eng, clang_args=clang_args,
+                                                  manual=ownership_overrides)
                 report.skipped += [f"ownership {n}" for n in sk]
             elif eng:
-                own = analyze_ownership(engine=eng, path=sources[0], clang_args=clang_args)
+                own = analyze_ownership(engine=eng, path=sources[0], clang_args=clang_args,
+                                        manual=ownership_overrides)
             else:
                 own = analyze_ownership(preprocessed_source or open(sources[0]).read())
             report.ownership = apply_ownership_facts(spec, own)

@@ -1,0 +1,122 @@
+{
+ "git_config_parse_int64": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int status code and writes a parsed int64_t value through an output pointer; no heap allocation or handle management is involved."
+ },
+ "git_merge_base": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int and writes the result into a caller-supplied git_oid output parameter; no heap pointer is returned, so ownership does not apply."
+ },
+ "git_remote_create_detached": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates a new git_remote and returns it via 'out', making the caller responsible for freeing it (with git_remote_free)."
+ },
+ "git_index_set_version": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (error code), not a pointer, and simply sets a version field on an existing index object without allocating or freeing memory."
+ },
+ "git_oid_fromstr": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function writes into a caller-provided `git_oid` output parameter and returns an int status code, so no heap allocation or ownership transfer occurs."
+ },
+ "git_signature_default": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "git_signature_now allocates a new git_signature written to *out, which the caller is responsible for freeing (typically with git_signature_free)."
+ },
+ "git_reference_name": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "Returns a pointer to an internal field of the library-owned reference object; the caller must not free it."
+ },
+ "git_error_clear": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns void, manages no caller-visible pointer, and simply clears thread-local error state and system error codes."
+ },
+ "git_packbuilder_insert_commit": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (error code), not a pointer, so ownership does not apply; it inserts a commit into the packbuilder without transferring any ownership to the caller."
+ },
+ "git_merge_file_options_init": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function initializes a caller-supplied struct in place and returns an int status code, so no pointer ownership is involved."
+ },
+ "git_config_backend_foreach_match": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "The function returns an int (no pointer ownership question), but it accepts a callback parameter (git_config_foreach_cb), making it unsafe to expose directly in an automatic binding."
+ },
+ "git_blob_data_is_binary": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (binary detection result), takes a read-only buffer with explicit length, owns no heap memory, and involves no callbacks or function pointers."
+ },
+ "git_reference_is_valid_name": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an int (validity flag) and takes a const string; no memory ownership or handle lifecycle is involved."
+ },
+ "git_libgit2_opts": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "no",
+  "reason": "The function is variadic (va_list/...) with option-dependent argument types, making it impossible to expose safely in a binding without wrapping each option case individually."
+ },
+ "git_strarray_dispose": {
+  "owner": "na",
+  "lifecycle": "destroys",
+  "safe_to_expose": "yes",
+  "reason": "The function frees the contents of a caller-supplied git_strarray and zeroes it out, returning void, so no ownership of a returned pointer is involved."
+ },
+ "git_libgit2_shutdown": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns an integer status code and neither allocates nor returns any pointer, so ownership does not apply."
+ },
+ "git_cred_username_new": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates a new git_credential via the out parameter, and the caller is responsible for freeing it."
+ },
+ "git_rebase_operation_entrycount": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a scalar size_t value, so ownership does not apply, and it simply queries the operation count from an existing rebase handle."
+ },
+ "git_reflog_entry_id_old": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to a field inside the library-owned reflog entry struct; the caller must not free it."
+ },
+ "git_worktree_open_from_repository": {
+  "owner": "caller",
+  "lifecycle": "creates",
+  "safe_to_expose": "yes",
+  "reason": "The function allocates a new git_worktree via open_worktree_dir and writes it to *out, so the caller is responsible for freeing it (e.g., with git_worktree_free)."
+ }
+}

@@ -1,0 +1,17 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+png_get_uint_32,other,,,n,"Without the implementation, it is unknown whether this function deals with pointers or resources requiring ownership or "
+png_get_palette_max,lifecycle,,,y,
+png_get_iCCP,refused,library,uses,y,
+png_set_sig_bytes,lifecycle,,uses,y,
+png_write_png,refused,,uses,y,
+png_get_uint_16,other,,,n,"No implementation is available, so ownership, lifecycle, and safety cannot be determined."
+png_get_x_offset_microns,lifecycle,,,y,
+png_sig_cmp,other,,,y,
+png_image_finish_read,refused,,uses,y,
+png_set_filter_heuristics_fixed,refused,,,y,
+png_set_write_user_transform_fn,refused,,uses,y,
+png_access_version_number,other,,,y,
+png_get_y_offset_microns,lifecycle,,,y,
+png_handle_as_unknown,lifecycle,,uses,y,
+png_create_info_struct,handle_return,caller,creates,y,
+png_get_int_32,other,,,n,"The implementation is not available, so ownership and lifecycle semantics cannot be determined."

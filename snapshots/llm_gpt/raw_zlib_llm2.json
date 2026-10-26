@@ -1,0 +1,62 @@
+{
+ "gztell": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "gztell returns an integer offset and takes an opaque handle by value, so ownership and lifecycle are not implicated."
+ },
+ "gzprintf": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "no",
+  "reason": "This function takes a variadic parameter list ('...'), which is not safe for automatic binding exposure."
+ },
+ "adler32_combine": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "This function returns a value type and neither takes nor returns pointers or handles."
+ },
+ "gzeof": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "gzeof takes an existing gzFile and does not allocate or free any memory; it only checks the EOF state."
+ },
+ "inflateInit_": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "inflateInit_ initializes an existing z_stream struct and does not return a pointer or take ownership of any object."
+ },
+ "crc32_combine_gen": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns an integer type (uLong), not a pointer or handle, so ownership and lifecycle are not applicable and it is safe to expose."
+ },
+ "adler32_z": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "adler32_z does not return a pointer or require manual memory management, and takes only pointer-to-const data."
+ },
+ "get_crc_table": {
+  "owner": "library",
+  "lifecycle": "uses",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a pointer to an internal static table that must not be freed by the caller."
+ },
+ "adler32": {
+  "owner": "na",
+  "lifecycle": "na",
+  "safe_to_expose": "yes",
+  "reason": "The function returns a value type, takes read-only buffer parameters, and requires no ownership or lifetime management."
+ },
+ "deflate": {
+  "owner": "na",
+  "lifecycle": "uses",
+  "safe_to_expose": "no",
+  "reason": "The function operates on user-supplied z_stream pointers and writable buffers whose size must be managed by the caller, making it unsafe for automatic binding exposure."
+ }
+}

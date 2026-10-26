@@ -1,0 +1,102 @@
+{
+ "git_config_parse_int64": {
+  "decl": "GIT_EXTERN(int) git_config_parse_int64(int64_t *out, const char *value)",
+  "body": "int git_config_parse_int64(int64_t *out, const char *value)\n{\n\tconst char *num_end;\n\tint64_t num;\n\n\tif (!value || git__strntol64(&num, value, strlen(value), &num_end, 0) < 0)\n\t\tgoto fail_parse;\n\n\tswitch (*num_end) {\n\tcase 'g':\n\tcase 'G':\n\t\tnum *= 1024;\n\t\t/* fallthrough */\n\n\tcase 'm':\n\tcase 'M':\n\t\tnum *= 1024;\n\t\t/* fallthrough */\n\n\tcase 'k':\n\tcase 'K':\n\t\tnum *= 1024;\n\n\t\t/* check that that there are no more characters after the\n\t\t * given modifier suffix */\n\t\tif (num_end[1] != '\\0')\n\t\t\treturn -1;\n\n\t\t/* fallthrough */\n\n\tcase '\\0':\n\t\t*out = num;\n\t\treturn 0;\n\n\tdefault:\n\t\tgoto fail_parse;\n\t}\n\nfail_parse:\n\tgit_error_set(GIT_ERROR_CONFIG, \"failed to parse '%s' as an integer\", value ? value : \"(null)\");\n\treturn -1;\n}",
+  "file": "config.c"
+ },
+ "git_merge_base": {
+  "decl": "GIT_EXTERN(int) git_merge_base( git_oid *out, git_repository *repo, const git_oid *one, const git_oid *two)",
+  "body": "int git_merge_base(git_oid *out, git_repository *repo, const git_oid *one, const git_oid *two)\n{\n\tint error;\n\tgit_revwalk *walk;\n\tgit_commit_list *result;\n\n\tif ((error = merge_bases(&result, &walk, repo, one, two)) < 0)\n\t\treturn error;\n\n\tgit_oid_cpy(out, &result->item->oid);\n\tgit_commit_list_free(&result);\n\tgit_revwalk_free(walk);\n\n\treturn 0;\n}",
+  "file": "merge.c"
+ },
+ "git_remote_create_detached": {
+  "decl": "GIT_EXTERN(int) git_remote_create_detached( git_remote **out, const char *url)",
+  "body": "int git_remote_create_detached(git_remote **out, const char *url)\n{\n\treturn git_remote_create_with_opts(out, url, NULL);\n}",
+  "file": "remote.c"
+ },
+ "git_index_set_version": {
+  "decl": "GIT_EXTERN(int) git_index_set_version(git_index *index, unsigned int version)",
+  "body": "int git_index_set_version(git_index *index, unsigned int version)\n{\n\tGIT_ASSERT_ARG(index);\n\n\tif (version < INDEX_VERSION_NUMBER_LB ||\n\t    version > INDEX_VERSION_NUMBER_UB) {\n\t\tgit_error_set(GIT_ERROR_INDEX, \"invalid version number\");\n\t\treturn -1;\n\t}\n\n\tindex->version = version;\n\n\treturn 0;\n}",
+  "file": "index.c"
+ },
+ "git_oid_fromstr": {
+  "decl": "GIT_EXTERN(int) git_oid_fromstr(git_oid *out, const char *str)",
+  "body": "int git_oid_fromstr(git_oid *out, const char *str)\n{\n\treturn git_oid__fromstrn(out, str, GIT_OID_SHA1_HEXSIZE, GIT_OID_SHA1);\n}",
+  "file": "oid.c"
+ },
+ "git_signature_default": {
+  "decl": "GIT_EXTERN(int) git_signature_default(git_signature **out, git_repository *repo)",
+  "body": "int git_signature_default(git_signature **out, git_repository *repo)\n{\n\tint error;\n\tgit_config *cfg;\n\tconst char *user_name, *user_email;\n\n\tif ((error = git_repository_config_snapshot(&cfg, repo)) < 0)\n\t\treturn error;\n\n\tif (!(error = git_config_get_string(&user_name, cfg, \"user.name\")) &&\n\t\t!(error = git_config_get_string(&user_email, cfg, \"user.email\")))\n\t\terror = git_signature_now(out, user_name, user_email);\n\n\tgit_config_free(cfg);\n\treturn error;\n}",
+  "file": "signature.c"
+ },
+ "git_reference_name": {
+  "decl": "GIT_EXTERN(const char *) git_reference_name(const git_reference *ref)",
+  "body": "const char *git_reference_name(const git_reference *ref)\n{\n\tGIT_ASSERT_ARG_WITH_RETVAL(ref, NULL);\n\treturn ref->name;\n}",
+  "file": "refs.c"
+ },
+ "git_error_clear": {
+  "decl": "GIT_EXTERN(void) git_error_clear(void)",
+  "body": "void git_error_clear(void)\n{\n\tgit_threadstate *threadstate = git_threadstate_get();\n\n\tif (!threadstate)\n\t\treturn;\n\n\tif (threadstate->last_error != NULL) {\n\t\tset_error(0, NULL);\n\t\tthreadstate->last_error = NULL;\n\t}\n\n\terrno = 0;\n#ifdef GIT_WIN32\n\tSetLastError(0);\n#endif\n}",
+  "file": "errors.c"
+ },
+ "git_packbuilder_insert_commit": {
+  "decl": "GIT_EXTERN(int) git_packbuilder_insert_commit(git_packbuilder *pb, const git_oid *id)",
+  "body": "int git_packbuilder_insert_commit(git_packbuilder *pb, const git_oid *oid)\n{\n\tgit_commit *commit;\n\n\tif (git_commit_lookup(&commit, pb->repo, oid) < 0 ||\n\t\tgit_packbuilder_insert(pb, oid, NULL) < 0)\n\t\treturn -1;\n\n\tif (git_packbuilder_insert_tree(pb, git_commit_tree_id(commit)) < 0)\n\t\treturn -1;\n\n\tgit_commit_free(commit);\n\treturn 0;\n}",
+  "file": "pack-objects.c"
+ },
+ "git_merge_file_options_init": {
+  "decl": "GIT_EXTERN(int) git_merge_file_options_init(git_merge_file_options *opts, unsigned int version)",
+  "body": "int git_merge_file_options_init(\n\tgit_merge_file_options *opts, unsigned int version)\n{\n\tGIT_INIT_STRUCTURE_FROM_TEMPLATE(\n\t\topts, version, git_merge_file_options, GIT_MERGE_FILE_OPTIONS_INIT);\n\treturn 0;\n}",
+  "file": "merge.c"
+ },
+ "git_config_backend_foreach_match": {
+  "decl": "GIT_EXTERN(int) git_config_backend_foreach_match( git_config_backend *backend, const char *regexp, git_config_foreach_cb callback, void *payload)",
+  "body": "int git_config_backend_foreach_match(\n\tgit_config_backend *backend,\n\tconst char *regexp,\n\tgit_config_foreach_cb cb,\n\tvoid *payload)\n{\n\tgit_config_entry *entry;\n\tgit_config_iterator *iter;\n\tgit_regexp regex;\n\tint error = 0;\n\n\tGIT_ASSERT_ARG(backend);\n\tGIT_ASSERT_ARG(cb);\n\n\tif (regexp && git_regexp_compile(&regex, regexp, 0) < 0)\n\t\treturn -1;\n\n\tif ((error = backend->iterator(&iter, backend)) < 0) {\n\t\titer = NULL;\n\t\treturn -1;\n\t}\n\n\twhile (!(iter->next(&entry, iter) < 0)) {\n\t\t/* skip non-matching keys if regexp was provided */\n\t\tif (regexp && git_regexp_match(&regex, entry->name) != 0)\n\t\t\tcontinue;\n\n\t\t/* abort iterator on non-zero return value */\n\t\tif ((error = cb(entry, payload)) != 0) {\n\t\t\tgit_error_set_after_callback(error);\n\t\t\tbreak;\n\t\t}\n\t}\n\n\tif (regexp != NULL)\n\t\tgit_regexp_dispose(&regex);\n\n\titer->free(iter);\n\n\treturn error;\n}",
+  "file": "config.c"
+ },
+ "git_blob_data_is_binary": {
+  "decl": "GIT_EXTERN(int) git_blob_data_is_binary(const char *data, size_t len)",
+  "body": "int git_blob_data_is_binary(const char *str, size_t len)\n{\n\tgit_str content = GIT_STR_INIT;\n\n\tgit_str_attach_notowned(&content, str, len);\n\n\treturn git_str_is_binary(&content);\n}",
+  "file": "blob.c"
+ },
+ "git_reference_is_valid_name": {
+  "decl": "GIT_EXTERN(int) git_reference_is_valid_name(const char *refname)",
+  "body": "int git_reference_is_valid_name(const char *refname)\n{\n\tint valid = 0;\n\n\tgit_reference__name_is_valid(&valid, refname, GIT_REFERENCE_FORMAT_ALLOW_ONELEVEL);\n\n\treturn valid;\n}",
+  "file": "refs.c"
+ },
+ "git_libgit2_opts": {
+  "decl": "GIT_EXTERN(int) git_libgit2_opts(int option, ...)",
+  "body": "int git_libgit2_opts(int key, ...)\n{\n\tint error = 0;\n\tva_list ap;\n\n\tva_start(ap, key);\n\n\tswitch (key) {\n\tcase GIT_OPT_SET_MWINDOW_SIZE:\n\t\tgit_mwindow__window_size = va_arg(ap, size_t);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_MWINDOW_SIZE:\n\t\t*(va_arg(ap, size_t *)) = git_mwindow__window_size;\n\t\tbreak;\n\n\tcase GIT_OPT_SET_MWINDOW_MAPPED_LIMIT:\n\t\tgit_mwindow__mapped_limit = va_arg(ap, size_t);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_MWINDOW_MAPPED_LIMIT:\n\t\t*(va_arg(ap, size_t *)) = git_mwindow__mapped_limit;\n\t\tbreak;\n\n\tcase GIT_OPT_SET_MWINDOW_FILE_LIMIT:\n\t\tgit_mwindow__file_limit = va_arg(ap, size_t);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_MWINDOW_FILE_LIMIT:\n\t\t*(va_arg(ap, size_t *)) = git_mwindow__file_limit;\n\t\tbreak;\n\n\tcase GIT_OPT_GET_SEARCH_PATH:\n\t\t{\n\t\t\tint sysdir = va_arg(ap, int);\n\t\t\tgit_buf *out = va_arg(ap, git_buf *);\n\t\t\tgit_str str = GIT_STR_INIT;\n\t\t\tconst git_str *tmp;\n\t\t\tint level;\n\n\t\t\tif ((error = git_buf_tostr(&str, out)) < 0 ||\n\t\t\t    (error = config_level_to_sysdir(&level, sysdir)) < 0 ||\n\t\t\t    (error = git_sysdir_get(&tmp, level)) < 0 ||\n\t\t\t    (error = git_str_put(&str, tmp->ptr, tmp->size)) < 0)\n\t\t\t\tbreak;\n\n\t\t\terror = git_buf_fromstr(out, &str);\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_SET_SEARCH_PATH:\n\t\t{\n\t\t\tint level;\n\n\t\t\tif ((error = config_level_to_sysdir(&level, va_arg(ap, int))) >= 0)\n\t\t\t\terror = git_sysdir_set(level, va_arg(ap, const char *));\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_SET_CACHE_OBJECT_LIMIT:\n\t\t{\n\t\t\tgit_object_t type = (git_object_t)va_arg(ap, int);\n\t\t\tsize_t size = va_arg(ap, size_t);\n\t\t\terror = git_cache_set_max_object_size(type, size);\n\t\t\tbreak;\n\t\t}\n\n\tcase GIT_OPT_SET_CACHE_MAX_SIZE:\n\t\tgit_cache__max_storage = va_arg(ap, ssize_t);\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_CACHING:\n\t\tgit_cache__enabled = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_CACHED_MEMORY:\n\t\t*(va_arg(ap, ssize_t *)) = git_cache__current_storage.val;\n\t\t*(va_arg(ap, ssize_t *)) = git_cache__max_storage;\n\t\tbreak;\n\n\tcase GIT_OPT_GET_TEMPLATE_PATH:\n\t\t{\n\t\t\tgit_buf *out = va_arg(ap, git_buf *);\n\t\t\tgit_str str = GIT_STR_INIT;\n\t\t\tconst git_str *tmp;\n\n\t\t\tif ((error = git_buf_tostr(&str, out)) < 0 ||\n\t\t\t    (error = git_sysdir_get(&tmp, GIT_SYSDIR_TEMPLATE)) < 0 ||\n\t\t\t    (error = git_str_put(&str, tmp->ptr, tmp->size)) < 0)\n\t\t\t\tbreak;\n\n\t\t\terror = git_buf_fromstr(out, &str);\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_SET_TEMPLATE_PATH:\n\t\terror = git_sysdir_set(GIT_SYSDIR_TEMPLATE, va_arg(ap, const char *));\n\t\tbreak;\n\n\tcase GIT_OPT_SET_SSL_CERT_LOCATIONS:\n#ifdef GIT_OPENSSL\n\t\t{\n\t\t\tconst char *file = va_arg(ap, const char *);\n\t\t\tconst char *path = va_arg(ap, const char *);\n\t\t\terror = git_openssl__set_cert_location(file, path);\n\t\t}\n#elif defined(GIT_MBEDTLS)\n\t\t{\n\t\t\tconst char *file = va_arg(ap, const char *);\n\t\t\tconst char *path = va_arg(ap, const char *);\n\t\t\terror = git_mbedtls__set_cert_location(file, path);\n\t\t}\n#else\n\t\tgit_error_set(GIT_ERROR_SSL, \"TLS backend doesn't support certificate locations\");\n\t\terror = -1;\n#endif\n\t\tbreak;\n\tcase GIT_OPT_SET_USER_AGENT:\n\t\tgit__free(git__user_agent);\n\t\tgit__user_agent = git__strdup(va_arg(ap, const char *));\n\t\tif (!git__user_agent) {\n\t\t\tgit_error_set_oom();\n\t\t\terror = -1;\n\t\t}\n\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_STRICT_OBJECT_CREATION:\n\t\tgit_object__strict_input_validation = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_STRICT_SYMBOLIC_REF_CREATION:\n\t\tgit_reference__enable_symbolic_ref_target_validation = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_SET_SSL_CIPHERS:\n#if (GIT_OPENSSL || GIT_MBEDTLS)\n\t\t{\n\t\t\tgit__free(git__ssl_ciphers);\n\t\t\tgit__ssl_ciphers = git__strdup(va_arg(ap, const char *));\n\t\t\tif (!git__ssl_ciphers) {\n\t\t\t\tgit_error_set_oom();\n\t\t\t\terror = -1;\n\t\t\t}\n\t\t}\n#else\n\t\tgit_error_set(GIT_ERROR_SSL, \"TLS backend doesn't support custom ciphers\");\n\t\terror = -1;\n#endif\n\t\tbreak;\n\n\tcase GIT_OPT_GET_USER_AGENT:\n\t\t{\n\t\t\tgit_buf *out = va_arg(ap, git_buf *);\n\t\t\tgit_str str = GIT_STR_INIT;\n\n\t\t\tif ((error = git_buf_tostr(&str, out)) < 0 ||\n\t\t\t    (error = git_str_puts(&str, git__user_agent)) < 0)\n\t\t\t\tbreak;\n\n\t\t\terror = git_buf_fromstr(out, &str);\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_OFS_DELTA:\n\t\tgit_smart__ofs_delta_enabled = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_FSYNC_GITDIR:\n\t\tgit_repository__fsync_gitdir = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_WINDOWS_SHAREMODE:\n#ifdef GIT_WIN32\n\t\t*(va_arg(ap, unsigned long *)) = git_win32__createfile_sharemode;\n#endif\n\t\tbreak;\n\n\tcase GIT_OPT_SET_WINDOWS_SHAREMODE:\n#ifdef GIT_WIN32\n\t\tgit_win32__createfile_sharemode = va_arg(ap, unsigned long);\n#endif\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_STRICT_HASH_VERIFICATION:\n\t\tgit_odb__strict_hash_verification = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_SET_ALLOCATOR:\n\t\terror = git_allocator_setup(va_arg(ap, git_allocator *));\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_UNSAVED_INDEX_SAFETY:\n\t\tgit_index__enforce_unsaved_safety = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_SET_PACK_MAX_OBJECTS:\n\t\tgit_indexer__max_objects = va_arg(ap, size_t);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_PACK_MAX_OBJECTS:\n\t\t*(va_arg(ap, size_t *)) = git_indexer__max_objects;\n\t\tbreak;\n\n\tcase GIT_OPT_DISABLE_PACK_KEEP_FILE_CHECKS:\n\t\tgit_disable_pack_keep_file_checks = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_ENABLE_HTTP_EXPECT_CONTINUE:\n\t\tgit_http__expect_continue = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_SET_ODB_PACKED_PRIORITY:\n\t\tgit_odb__packed_priority = va_arg(ap, int);\n\t\tbreak;\n\n\tcase GIT_OPT_SET_ODB_LOOSE_PRIORITY:\n\t\tgit_odb__loose_priority = va_arg(ap, int);\n\t\tbreak;\n\n\tcase GIT_OPT_SET_EXTENSIONS:\n\t\t{\n\t\t\tconst char **extensions = va_arg(ap, const char **);\n\t\t\tsize_t len = va_arg(ap, size_t);\n\t\t\terror = git_repository__set_extensions(extensions, len);\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_GET_EXTENSIONS:\n\t\t{\n\t\t\tgit_strarray *out = va_arg(ap, git_strarray *);\n\t\t\tchar **extensions;\n\t\t\tsize_t len;\n\n\t\t\tif ((error = git_repository__extensions(&extensions, &len)) < 0)\n\t\t\t\tbreak;\n\n\t\t\tout->strings = extensions;\n\t\t\tout->count = len;\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_GET_OWNER_VALIDATION:\n\t\t*(va_arg(ap, int *)) = git_repository__validate_ownership;\n\t\tbreak;\n\n\tcase GIT_OPT_SET_OWNER_VALIDATION:\n\t\tgit_repository__validate_ownership = (va_arg(ap, int) != 0);\n\t\tbreak;\n\n\tcase GIT_OPT_GET_HOMEDIR:\n\t\t{\n\t\t\tgit_buf *out = va_arg(ap, git_buf *);\n\t\t\tgit_str str = GIT_STR_INIT;\n\t\t\tconst git_str *tmp;\n\n\t\t\tif ((error = git_buf_tostr(&str, out)) < 0 ||\n\t\t\t    (error = git_sysdir_get(&tmp, GIT_SYSDIR_HOME)) < 0 ||\n\t\t\t    (error = git_str_put(&str, tmp->ptr, tmp->size)) < 0)\n\t\t\t\tbreak;\n\n\t\t\terror = git_buf_fromstr(out, &str);\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_SET_HOMEDIR:\n\t\terror = git_sysdir_set(GIT_SYSDIR_HOME, va_arg(ap, const char *));\n\t\tbreak;\n\n\tcase GIT_OPT_GET_SERVER_CONNECT_TIMEOUT:\n\t\t*(va_arg(ap, int *)) = git_socket_stream__connect_timeout;\n\t\tbreak;\n\n\tcase GIT_OPT_SET_SERVER_CONNECT_TIMEOUT:\n\t\t{\n\t\t\tint timeout = va_arg(ap, int);\n\n\t\t\tif (timeout < 0) {\n\t\t\t\tgit_error_set(GIT_ERROR_INVALID, \"invalid connect timeout\");\n\t\t\t\terror = -1;\n\t\t\t} else {\n\t\t\t\tgit_socket_stream__connect_timeout = timeout;\n\t\t\t}\n\t\t}\n\t\tbreak;\n\n\tcase GIT_OPT_GET_SERVER_TIMEOUT:\n\t\t*(va_arg(ap, int *)) = git_socket_stream__timeout;\n\t\tbreak;\n\n\tcase GIT_OPT_SET_SERVER_TIMEOUT:\n\t\t{\n\t\t\tint timeout = va_arg(ap, int);\n\n\t\t\tif (timeout < 0) {\n\t\t\t\tgit_error_set(GIT_ERROR_INVALID, \"invalid timeout\");\n\t\t\t\terror = -1;\n\t\t\t} else {\n\t\t\t\tgit_socket_stream__timeout = timeout;\n\t\t\t}\n\t\t}\n\t\tbreak;\n\n\tdefault:\n\t\tgit_error_set(GIT_ERROR_INVALID, \"invalid option key\");\n\t\terror = -1;\n\t}\n\n\tva_end(ap);\n\n\treturn error;\n}",
+  "file": "libgit2.c"
+ },
+ "git_strarray_dispose": {
+  "decl": "GIT_EXTERN(void) git_strarray_dispose(git_strarray *array)",
+  "body": "void git_strarray_dispose(git_strarray *array)\n{\n\tsize_t i;\n\n\tif (array == NULL)\n\t\treturn;\n\n\tfor (i = 0; i < array->count; ++i)\n\t\tgit__free(array->strings[i]);\n\n\tgit__free(array->strings);\n\n\tmemset(array, 0, sizeof(*array));\n}",
+  "file": "strarray.c"
+ },
+ "git_libgit2_shutdown": {
+  "decl": "GIT_EXTERN(int) git_libgit2_shutdown(void)",
+  "body": "int git_libgit2_shutdown(void)\n{\n\treturn git_runtime_shutdown();\n}",
+  "file": "libgit2.c"
+ },
+ "git_cred_username_new": {
+  "decl": "GIT_EXTERN(int) git_cred_username_new(git_credential **out, const char *username)",
+  "body": "int git_cred_username_new(git_credential **out, const char *username)\n{\n\treturn git_credential_username_new(out, username);\n}",
+  "file": "credential.c"
+ },
+ "git_rebase_operation_entrycount": {
+  "decl": "GIT_EXTERN(size_t) git_rebase_operation_entrycount(git_rebase *rebase)",
+  "body": "size_t git_rebase_operation_entrycount(git_rebase *rebase)\n{\n\tGIT_ASSERT_ARG_WITH_RETVAL(rebase, 0);\n\n\treturn git_array_size(rebase->operations);\n}",
+  "file": "rebase.c"
+ },
+ "git_reflog_entry_id_old": {
+  "decl": "GIT_EXTERN(const git_oid *) git_reflog_entry_id_old(const git_reflog_entry *entry)",
+  "body": "const git_oid *git_reflog_entry_id_old(const git_reflog_entry *entry)\n{\n\tGIT_ASSERT_ARG_WITH_RETVAL(entry, NULL);\n\treturn &entry->oid_old;\n}",
+  "file": "reflog.c"
+ },
+ "git_worktree_open_from_repository": {
+  "decl": "GIT_EXTERN(int) git_worktree_open_from_repository(git_worktree **out, git_repository *repo)",
+  "body": "int git_worktree_open_from_repository(git_worktree **out, git_repository *repo)\n{\n\tgit_str parent = GIT_STR_INIT;\n\tconst char *gitdir, *commondir;\n\tchar *name = NULL;\n\tint error = 0;\n\n\tif (!git_repository_is_worktree(repo)) {\n\t\tgit_error_set(GIT_ERROR_WORKTREE, \"cannot open worktree of a non-worktree repo\");\n\t\terror = -1;\n\t\tgoto out;\n\t}\n\n\tgitdir = git_repository_path(repo);\n\tcommondir = git_repository_commondir(repo);\n\n\tif ((error = git_fs_path_prettify_dir(&parent, \"..\", commondir)) < 0)\n\t\tgoto out;\n\n\t/* The name is defined by the last component in '.git/worktree/%s' */\n\tname = git_fs_path_basename(gitdir);\n\n\tif ((error = open_worktree_dir(out, parent.ptr, gitdir, name)) < 0)\n\t\tgoto out;\n\nout:\n\tgit__free(name);\n\tgit_str_dispose(&parent);\n\n\treturn error;\n}",
+  "file": "worktree.c"
+ }
+}

@@ -1,0 +1,18 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+cJSON_DetachItemFromObject,handle_return,caller,creates,y,
+cJSON_InitHooks,refused,,,y,
+cJSON_Duplicate,handle_return,caller,creates,y,
+cJSON_Print,lifecycle,caller,creates,y,
+cJSON_IsNull,lifecycle,,,y,
+cJSON_CreateStringArray,refused,caller,creates,y,
+cJSON_SetValuestring,lifecycle,library,uses,y,
+cJSON_CreateStringReference,handle_return,caller,creates,n,The returned pointer is newly allocated but refers internally to external memory; safe exposure and correct freeing requ
+cJSON_AddItemToArray,lifecycle,,uses,y,
+cJSON_CreateIntArray,refused,caller,creates,y,
+cJSON_CreateFloatArray,refused,caller,creates,y,
+cJSON_AddItemReferenceToObject,lifecycle,,creates,n,"The function creates a reference to an existing item and adds it to an object, but from the signature and shown code, it"
+cJSON_Minify,refused,,uses,y,
+cJSON_CreateObject,handle_return,caller,creates,y,
+cJSON_Version,other,library,uses,y,
+cJSON_GetErrorPtr,other,library,uses,y,
+cJSON_AddTrueToObject,handle_return,library,creates,y,

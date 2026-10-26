@@ -1,0 +1,58 @@
+[multi-file] 15 source files for L2 analysis
+buildable tools : 34  ['adler32', 'adler32_combine', 'adler32_z', 'compressBound', 'crc32', 'crc32_combine', 'crc32_combine_gen', 'crc32_combine_op', 'crc32_z', 'get_crc_table', 'gzbuffer', 'gzclearerr', 'gzclose', 'gzclose_r', 'gzclose_w', 'gzdirect', 'gzdopen', 'gzeof', 'gzerror', 'gzflush', 'gzgetc', 'gzgetc_', 'gzoffset', 'gzopen', 'gzputc', 'gzputs', 'gzrewind', 'gzseek', 'gzsetparams', 'gztell', 'gzungetc', 'zError', 'zlibCompileFlags', 'zlibVersion']
+refused         : 46
+    - deflate: deflate: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateEnd: deflateEnd: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflate: inflate: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateEnd: inflateEnd: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateSetDictionary: deflateSetDictionary: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateGetDictionary: deflateGetDictionary: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateCopy: deflateCopy: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateReset: deflateReset: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateParams: deflateParams: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateTune: deflateTune: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateBound: deflateBound: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflatePending: deflatePending: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflatePrime: deflatePrime: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateSetHeader: deflateSetHeader: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateSetDictionary: inflateSetDictionary: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateGetDictionary: inflateGetDictionary: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateSync: inflateSync: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateCopy: inflateCopy: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateReset: inflateReset: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateReset2: inflateReset2: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflatePrime: inflatePrime: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateMark: inflateMark: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateGetHeader: inflateGetHeader: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateBack: inflateBack: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateBackEnd: inflateBackEnd: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - compress: compress: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - compress2: compress2: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - uncompress: uncompress: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - uncompress2: uncompress2: param 'dest' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzread: gzread: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzfread: gzfread: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzwrite: gzwrite: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzfwrite: gzfwrite: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzgets: gzgets: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateInit_: deflateInit_: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateInit_: inflateInit_: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateInit2_: deflateInit2_: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateInit2_: inflateInit2_: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateBackInit_: inflateBackInit_: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateSyncPoint: inflateSyncPoint: param 'a0' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateUndermine: inflateUndermine: param 'a0' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateValidate: inflateValidate: param 'a0' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateCodesUsed: inflateCodesUsed: param 'a0' is opaque (unresolved pointer, callback, or writable buffer)
+    - inflateResetKeep: inflateResetKeep: param 'a0' is opaque (unresolved pointer, callback, or writable buffer)
+    - deflateResetKeep: deflateResetKeep: param 'a0' is opaque (unresolved pointer, callback, or writable buffer)
+    - gzvprintf: gzvprintf: param 'va' is opaque (unresolved pointer, callback, or writable buffer)
+handle lifecycle: ['gzclose: uses gzFile_s', 'gzopen: creates gzFile_s', 'gzdopen: creates gzFile_s', 'gzbuffer: uses gzFile_s', 'gzrewind: uses gzFile_s', 'gzseek: uses gzFile_s', "  (matched gzseek's 'file' to header param 'a0' by position: names differ between declaration and definition)", 'gztell: uses gzFile_s', "  (matched gztell's 'file' to header param 'a0' by position: names differ between declaration and definition)", 'gzoffset: uses gzFile_s', "  (matched gzoffset's 'file' to header param 'a0' by position: names differ between declaration and definition)", 'gzeof: uses gzFile_s', 'gzerror: uses gzFile_s', 'gzclearerr: uses gzFile_s', 'gzread: uses gzFile_s', 'gzfread: uses gzFile_s', 'gzgetc: uses gzFile_s', 'gzgetc_: uses gzFile_s', 'gzungetc: uses gzFile_s', 'gzgets: uses gzFile_s', 'gzdirect: uses gzFile_s', 'gzclose_r: uses gzFile_s', 'gzwrite: uses gzFile_s', 'gzfwrite: uses gzFile_s', 'gzputc: uses gzFile_s', 'gzputs: uses gzFile_s', 'gzvprintf: uses gzFile_s', 'gzflush: uses gzFile_s', 'gzsetparams: uses gzFile_s', 'gzclose_w: uses gzFile_s']
+ownership       : ['gzopen: creates (owner=caller)', 'gzdopen: creates (owner=caller)']
+coverage exts   : 2 params reclassified
+    - z_stream_s: has function-pointer members, so the library would call through a zeroed buffer; not caller-allocated state
+    - gz_header_s: no initializing function found among its 2 users; refused rather than assumed
+L1/L2 conflicts : [('compress2', 'destLen', 'out', '->', 'inout'), ('uncompress2', 'destLen', 'out', '->', 'inout'), ('uncompress2', 'sourceLen', 'out', '->', 'inout')]
+skipped analyses: ['L0 gzprintf: variadic (...) — binding the visible parameters only would produce undefined behavior', 'arrays: needs preprocessed source (libclang array analysis not built yet)']
+
+wrote snapshots/zlib_guard5.yaml

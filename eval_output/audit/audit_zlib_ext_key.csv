@@ -1,0 +1,18 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+deflateBound,refused,,,n,"deflateBound: param 'strm' is opaque (unresolved pointer, callback, or writable buffer)"
+deflateGetDictionary,refused,,,n,"deflateGetDictionary: param 'dictionary' is opaque (unresolved pointer, callback, or writable buffer)"
+deflateReset,other,,,y,
+deflateSetHeader,refused,,,n,"deflateSetHeader: param 'head' is opaque (unresolved pointer, callback, or writable buffer)"
+gzclose,lifecycle,,uses,y,
+gzdopen,handle_return,caller,creates,y,
+gzgetc_,lifecycle,,uses,y,
+gzgets,refused,,uses,n,"gzgets: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)"
+gzopen,handle_return,caller,creates,y,
+gzputc,lifecycle,,uses,y,
+gzread,refused,,uses,n,"gzread: param 'buf' is opaque (unresolved pointer, callback, or writable buffer)"
+gzseek,lifecycle,,uses,y,
+gzsetparams,lifecycle,,uses,y,
+inflateBackEnd,other,,,y,
+inflateMark,other,,,y,
+inflateSetDictionary,other,,,y,
+zlibCompileFlags,other,,,y,

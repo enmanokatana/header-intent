@@ -1,0 +1,21 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+sqlite3_backup_finish,lifecycle,,destroys,y,
+sqlite3_backup_init,handle_return,caller,creates,y,
+sqlite3_backup_remaining,lifecycle,,uses,y,
+sqlite3_bind_parameter_index,lifecycle,,uses,y,
+sqlite3_blob_read,refused,,uses,n,"sqlite3_blob_read: param 'Z' is opaque (unresolved pointer, callback, or writable buffer)"
+sqlite3_column_table_name,refused,,uses,n,symbol not found in the .so (platform-specific or build-config-gated declaration): /home/enma/ferrule-libs/sqlite/libsqlite3.so: undefined symbol: sqlite3_column_table_name
+sqlite3_column_value,handle_return,library,borrows,y,
+sqlite3_db_mutex,handle_return,library,borrows,y,
+sqlite3_errmsg16,refused,,uses,n,sqlite3_errmsg16: returns a raw void* that is not a managed handle
+sqlite3_exec,refused,,uses,n,"sqlite3_exec: param 'callback' is opaque (unresolved pointer, callback, or writable buffer)"
+sqlite3_hard_heap_limit64,other,,,y,
+sqlite3_libversion,other,,,y,
+sqlite3_soft_heap_limit64,other,,,y,
+sqlite3_str_append,lifecycle,,uses,y,
+sqlite3_str_appendall,lifecycle,,uses,y,
+sqlite3_thread_cleanup,other,,,y,
+sqlite3_threadsafe,other,,,y,
+sqlite3_update_hook,refused,,uses,n,sqlite3_update_hook: returns a raw void* that is not a managed handle
+sqlite3_value_dup,handle_return,library,borrows,y,
+sqlite3_vfs_find,handle_return,library,borrows,y,

@@ -1,0 +1,11 @@
+function,stratum,ferrule_owner,ferrule_lifecycle,ferrule_bound,refusal_reason
+gztell,refused,library,uses,y,
+gzprintf,refused,library,uses,n,"Returns an int (no pointer ownership applies), but the variadic argument list makes this function unsafe to expose direc"
+adler32_combine,other,library,uses,y,
+gzeof,refused,library,uses,y,
+inflateInit_,refused,library,creates,y,
+crc32_combine_gen,other,library,uses,y,
+adler32_z,other,library,uses,y,
+get_crc_table,other,library,uses,y,
+adler32,other,library,uses,y,
+deflate,refused,library,uses,y,

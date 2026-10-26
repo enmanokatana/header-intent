@@ -1,0 +1,18 @@
+function,signature,stratum,label_owner,label_lifecycle,label_should_bind,label_source,notes
+deflateBound,"c_ulong deflateBound(c_void_p strm, c_ulong sourceLen)",refused,na,uses,y,doc,strm must already be deflateInit'd for the bound to be tight; the manual says the value is conservative otherwise.
+deflateGetDictionary,"c_int deflateGetDictionary(c_void_p strm, c_void_p dictionary, c_uint* dictLength)",refused,na,uses,n,doc,n: `dictionary` is a writable buffer with no size parameter - dictLength is out-only and the manual just says the caller must provide up to 32768 bytes. Exactly the unstated-out-buffer case.
+deflateReset,c_int deflateReset(c_void_p strm),other,na,uses,y,doc,
+deflateSetHeader,"c_int deflateSetHeader(c_void_p strm, c_void_p head)",refused,na,uses,y,doc,"Borderline. gz_header holds no function pointers so it fails the struct-of-callbacks test, but the manual requires head and its extra/name/comment buffers to stay valid and writable across all later deflate() calls - a lifetime contract the signature cannot express. A labeller applying the definition rather than the four-item list could justify n."
+gzclose,c_int gzclose(c_void_p file),lifecycle,na,destroys,y,doc,Also closes the underlying fd for handles obtained from gzdopen.
+gzdopen,"c_void_p gzdopen(c_int fd, c_char_p mode)",handle_return,caller,creates,y,doc,"Caller must gzclose. Note the fd ownership transfer: gzclose closes fd, so the caller must not close it independently - not visible in the signature."
+gzgetc_,c_int gzgetc_(c_void_p file),lifecycle,na,uses,y,source,Out-of-line version of the gzgetc macro; identical semantics.
+gzgets,"c_char_p gzgets(c_void_p file, c_void_p buf, c_int len)",refused,caller,uses,y,doc,"Took a while. The return is the caller's own `buf` pointer, not a new allocation - `caller` is correct only in the sense that the caller already owned it. A binding treating the return as a fresh library allocation and freeing it separately double-frees. `len` is present, so the buffer extent is stated."
+gzopen,"c_void_p gzopen(c_char_p a0, c_char_p a1)",handle_return,caller,creates,y,doc,Caller must gzclose.
+gzputc,"c_int gzputc(c_void_p file, c_int c)",lifecycle,na,uses,y,doc,
+gzread,"c_int gzread(c_void_p file, c_void_p buf, c_uint len)",refused,na,uses,y,doc,"`len` states the buffer size, so bindable despite being a writable buffer."
+gzseek,"c_long gzseek(c_void_p a0, c_long a1, c_int a2)",lifecycle,na,uses,y,doc,
+gzsetparams,"c_int gzsetparams(c_void_p file, c_int level, c_int strategy)",lifecycle,na,uses,y,doc,
+inflateBackEnd,c_int inflateBackEnd(c_void_p strm),other,na,destroys,y,doc,Frees the window allocated by inflateBackInit; strm's internal state is invalid afterwards.
+inflateMark,c_long inflateMark(c_void_p strm),other,na,uses,y,doc,
+inflateSetDictionary,"c_int inflateSetDictionary(c_void_p strm, c_char_p dictionary, c_uint dictLength)",other,na,uses,y,doc,"dictionary is const input with an explicit dictLength, and zlib copies it."
+zlibCompileFlags,c_ulong zlibCompileFlags(),other,na,na,y,doc,
