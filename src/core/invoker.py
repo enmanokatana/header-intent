@@ -155,6 +155,9 @@ def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capab
         for p in fn.params:
             if p.name == fn.handle_out_param:
                 args.append(ctypes.byref(cell))
+            elif p.role is Role.HANDLE:
+                hval = kwargs[p.name]
+                args.append(None if hval is None else handles.get(hval))
             else:
                 args.append(to_c(kwargs[p.name], ctype_by_name(p.ctype)))
         ret = cfn(*args)
@@ -177,7 +180,7 @@ def _out_handle_capability(lib, fn: FunctionSpec, handles: HandleTable) -> Capab
         return result
 
     doc = (f"{fn.name}({', '.join(f.name for f in inputs)}) "
-          f"[out-param handle:creates {fn.handle_type} owner=caller]")
+          f"[out-param handle:creates {fn.handle_type} owner={fn.owner or 'library'}]")
     return Capability(fn.name, doc, inputs, outputs, True, invoke,
                       fn.lifecycle, fn.owner, fn.handle_type)
 
