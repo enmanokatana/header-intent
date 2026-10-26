@@ -132,7 +132,7 @@ def build_c(sampled):
     from src.spec.io import load_yaml
     rows = {}
     for lib, names in sampled.items():
-        p = f"snapshots/{lib}_audit.yaml"
+        p = f"snapshots/{lib}_esc.yaml" if os.path.exists(f"snapshots/{lib}_esc.yaml") else f"snapshots/{lib}_audit.yaml"
         if not os.path.exists(p):
             continue
         spec = load_yaml(p)
