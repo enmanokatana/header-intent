@@ -1,71 +1,38 @@
-# Python bytecode and caches
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.spec.yaml
-
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-scripts/
-graphify-out/
-*.sh
-# Test and type-check caches
 .pytest_cache/
-tests/.pytest_cache/
-.hypothesis/
 .mypy_cache/
 .ruff_cache/
-.pyre/
-*.csv
-*.yaml
-*.tex
-*.txt
-# Coverage artifacts
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
-eval/
-# Packaging/build artifacts
-build/
-dist/
-*.egg-info/
-.eggs/
-pip-wheel-metadata/
-*.db
-*.json
-*.py.*
-# Logs and runtime files
-*.log
-*.pid
-*.bak
-*.bak2
-./docs/*
-eval/
-eval_results/
-eval_specs/
-*.proto
-# Environment and local overrides
+
+# Environments and editors
+venv/
+.venv/
 .env
 .env.*
-!.env.example
-
-# IDE/editor files
-.vscode/
 .idea/
+.vscode/
 *.swp
-*.swo
-
-# OS-generated files
 .DS_Store
-Thumbs.db
-docs/*
 
+# Backups
+*.bak
+*.bak2
+*.pre_*
+* copy.csv
 
-
-
-docs/base.md
-snapshots/
+# Local working material, not part of the repository
+docs/
+eval_results/
+eval_specs/
+graphify-out/
+scripts/
+sh-scripts/
+/*.tex
+/*.log
+/*.spec.yaml
+/runbook*
+/run_libs.sh
+eval_output/*.tex
+eval_output/*.json
+eval_output/*.log

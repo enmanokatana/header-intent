@@ -1,0 +1,21 @@
+# One annotation, for the section V-D experiment.
+#
+# PQgetResult reaches PQfireResultCreateEvents(conn, res), which packs both
+# the result and the connection into a local struct and hands it to a
+# user-registered callback. Whether that callback retains the result is user
+# code, so no source analysis can rule it out and the fail-safe holds the
+# result borrowed. libpq's own contract says otherwise, and its documentation
+# and every example free the result with PQclear.
+#
+# This is the case the annotation worklist exists for: the analysis abstains
+# for a principled reason, the author supplies one documented fact, and rule 4
+# carries it to every caller in the chain
+#     PQexec / PQexecParams / PQexecPrepared / PQprepare /
+#     PQdescribePrepared / PQdescribePortal  ->  PQexecFinish  ->  PQgetResult
+#
+#   python3 -m src.cli infer ... --overrides libpq.overrides.yaml
+
+ownership:
+  PQgetResult:
+    owner: caller
+    note: "libpq: the caller owns the PGresult and must free it with PQclear"
