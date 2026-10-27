@@ -24,7 +24,9 @@ ZLIB_SRC=$(for f in adler32 compress crc32 deflate gzclose gzlib gzread gzwrite 
 infer () {   # name snapshot args...
   local name=$1 snap=$2; shift 2
   echo "== $name"
+  local start=$SECONDS
   python3 -m src.cli infer "$@" -o "$OUT/$name.yaml" > "$OUT/$name.log" 2>&1
+  echo "   analysis time: $((SECONDS - start)) s"
   python3 - "$snap" "$OUT/$name.yaml" "$OUT/$name.log" "$name" << 'EOF'
 import sys, re, yaml
 snap, regen, log, name = sys.argv[1:]
